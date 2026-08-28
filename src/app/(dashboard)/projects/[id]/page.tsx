@@ -3,6 +3,9 @@ import { getSession } from "@/lib/auth";
 import { getProject, getStageHistory } from "@/db/projects";
 import { getAvailableActions, STAGES, type Stage } from "@/lib/workflow";
 import { ProjectActions } from "@/components/project-actions";
+import { listDocuments } from "@/db/documents";
+import { can } from "@/lib/rbac";
+import { DocumentUpload } from "@/components/document-upload";
 
 export default async function ProjectDetailPage({
   params,
@@ -20,6 +23,8 @@ export default async function ProjectDetailPage({
   const currentStage = project.stage as Stage;
   const availableActions = getAvailableActions(currentStage, session.role);
   const currentIndex = STAGES.indexOf(currentStage);
+  const docs = await listDocuments(id);
+  const canUpload = can(session.role, "document:upload");
 
   return (
     <div className="space-y-6">
@@ -65,6 +70,33 @@ export default async function ProjectDetailPage({
               {h.createdAt.toLocaleString()}
             </li>
           ))}
+        </ul>
+      </div>
+
+      <div>
+        <h3 className="mb-2 text-sm font-medium">Documents</h3>
+        {canUpload ? (
+          <DocumentUpload projectId={project.id} />
+        ) : (
+          <p className="text-sm text-gray-500">Your role cannot upload documents.</p>
+        )}
+        <ul className="mt-3 space-y-1 text-sm text-gray-600">
+          {docs.length === 0 ? (
+            <li className="text-gray-400">No documents uploaded yet.</li>
+          ) : (
+            docs.map((d) => (
+              <li key={d.id}>
+                <a
+                  href={`/api/documents/${d.id}/download`}
+                  className="hover:underline"
+                >
+                  {d.fileName}
+                </a>{" "}
+                — {d.category} v{d.version}, {(d.sizeBytes / 1024).toFixed(1)} KB, by{" "}
+                {d.uploadedBy} on {d.uploadedAt.toLocaleString()}
+              </li>
+            ))
+          )}
         </ul>
       </div>
     </div>
