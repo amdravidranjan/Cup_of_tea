@@ -1,6 +1,16 @@
 import Link from "next/link";
 import { getSession } from "@/lib/auth";
 import { listProjects } from "@/db/projects";
+import { Badge } from "@/components/ui/badge";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { stageTone, toneBadgeClass } from "@/lib/status-colors";
 
 export default async function DashboardPage() {
   const session = await getSession();
@@ -12,20 +22,38 @@ export default async function DashboardPage() {
     <div className="space-y-4">
       <h2 className="text-lg font-semibold">Projects</h2>
       {projects.length === 0 ? (
-        <p className="text-sm text-gray-500">No projects yet.</p>
+        <p className="text-sm text-muted-foreground">No projects yet.</p>
       ) : (
-        <ul className="space-y-2">
-          {projects.map((p) => (
-            <li key={p.id} className="rounded-md border border-gray-200 p-3">
-              <Link href={`/projects/${p.id}`} className="font-medium hover:underline">
-                {p.name}
-              </Link>
-              <p className="text-sm text-gray-500">
-                {p.district}, {p.state} — Stage: {p.stage}
-              </p>
-            </li>
-          ))}
-        </ul>
+        <div className="rounded-lg border bg-background">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Project</TableHead>
+                <TableHead>District, State</TableHead>
+                <TableHead>Stage</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {projects.map((p) => (
+                <TableRow key={p.id}>
+                  <TableCell>
+                    <Link href={`/projects/${p.id}`} className="font-medium hover:underline">
+                      {p.name}
+                    </Link>
+                  </TableCell>
+                  <TableCell className="text-muted-foreground">
+                    {p.district}, {p.state}
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant="outline" className={toneBadgeClass(stageTone(p.stage))}>
+                      {p.stage}
+                    </Badge>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
       )}
     </div>
   );
