@@ -6,6 +6,13 @@ import { ProjectActions } from "@/components/project-actions";
 import { listDocuments } from "@/db/documents";
 import { can } from "@/lib/rbac";
 import { DocumentUpload } from "@/components/document-upload";
+import { listParcels } from "@/db/parcels";
+import {
+  parseStoredGeometry,
+  computeParcelsWithImpact,
+  IMPACT_BUFFER_METERS,
+} from "@/lib/geo";
+import { ProjectMap } from "@/components/project-map";
 
 export default async function ProjectDetailPage({
   params,
@@ -25,6 +32,9 @@ export default async function ProjectDetailPage({
   const currentIndex = STAGES.indexOf(currentStage);
   const docs = await listDocuments(id);
   const canUpload = can(session.role, "document:upload");
+  const alignment = parseStoredGeometry(project.geometryType, project.geometryGeoJson);
+  const parcelList = await listParcels(id);
+  const parcelsWithImpact = computeParcelsWithImpact(alignment, parcelList);
 
   return (
     <div className="space-y-6">
@@ -59,6 +69,16 @@ export default async function ProjectDetailPage({
       <div>
         <h3 className="mb-2 text-sm font-medium">Actions</h3>
         <ProjectActions projectId={project.id} availableActions={availableActions} />
+      </div>
+
+      <div>
+        <h3 className="mb-2 text-sm font-medium">Map</h3>
+        <ProjectMap alignment={alignment} parcels={parcelsWithImpact} />
+        <p className="mt-2 text-xs text-gray-500">
+          {parcelsWithImpact.filter((p) => p.withinImpact).length} of{" "}
+          {parcelsWithImpact.length} parcels within the {IMPACT_BUFFER_METERS}m impact
+          buffer of the project alignment.
+        </p>
       </div>
 
       <div>

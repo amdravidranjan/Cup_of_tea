@@ -1,0 +1,130 @@
+"use client";
+
+import { useEffect, useRef } from "react";
+import { MapLibreMap, NavigationControl, Popup } from "maplibre-gl";
+import "maplibre-gl/dist/maplibre-gl.css";
+import type { Geometry, PolygonGeometry } from "@/lib/geo";
+
+interface ParcelFeature {
+  id: string;
+  village: string;
+  status: string;
+  areaHectares: number;
+  withinImpact: boolean;
+  geometry: PolygonGeometry;
+}
+
+export function ProjectMap({
+  alignment,
+  parcels,
+}: {
+  alignment: Geometry | null;
+  parcels: ParcelFeature[];
+}) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const mapRef = useRef<MapLibreMap | null>(null);
+
+  useEffect(() => {
+    if (!containerRef.current || mapRef.current) return;
+
+    const center: [number, number] =
+      alignment?.type === "LineString"
+        ? alignment.coordinates[0]
+        : parcels[0]
+          ? parcels[0].geometry.coordinates[0][0]
+          : [82.71, 18.81];
+
+    const map = new MapLibreMap({
+      container: containerRef.current,
+      style: "https://demotiles.maplibre.org/style.json",
+      center,
+      zoom: 12,
+    });
+    mapRef.current = map;
+    map.addControl(new NavigationControl(), "top-right");
+
+    map.on("load", () => {
+      if (alignment) {
+        map.addSource("alignment", {
+          type: "geojson",
+          data: { type: "Feature", properties: {}, geometry: alignment },
+        });
+        map.addLayer({
+          id: "alignment-line",
+          type: "line",
+          source: "alignment",
+          paint: { "line-color": "#2563eb", "line-width": 4 },
+        });
+      }
+
+      map.addSource("parcels", {
+        type: "geojson",
+        data: {
+          type: "FeatureCollection",
+          features: parcels.map((p) => ({
+            type: "Feature",
+            properties: {
+              village: p.village,
+              status: p.status,
+              areaHectares: p.areaHectares,
+              withinImpact: p.withinImpact,
+            },
+            geometry: p.geometry,
+          })),
+        },
+      });
+      map.addLayer({
+        id: "parcels-fill",
+        type: "fill",
+        source: "parcels",
+        paint: {
+          "fill-color": ["case", ["get", "withinImpact"], "#f97316", "#22c55e"],
+          "fill-opacity": 0.5,
+        },
+      });
+      map.addLayer({
+        id: "parcels-outline",
+        type: "line",
+        source: "parcels",
+        paint: { "line-color": "#1f2937", "line-width": 1 },
+      });
+
+      map.on("click", "parcels-fill", (e) => {
+        const feature = e.features?.[0];
+        if (!feature) return;
+        const props = feature.properties as {
+          village: string;
+          status: string;
+          areaHectares: number;
+          withinImpact: boolean;
+        };
+        new Popup()
+          .setLngLat(e.lngLat)
+          .setHTML(
+            `<strong>${props.village}</strong><br/>Status: ${props.status}<br/>Area: ${props.areaHectares} ha<br/>${
+              props.withinImpact ? "Within impact buffer" : "Outside impact buffer"
+            }`
+          )
+          .addTo(map);
+      });
+      map.on("mouseenter", "parcels-fill", () => {
+        map.getCanvas().style.cursor = "pointer";
+      });
+      map.on("mouseleave", "parcels-fill", () => {
+        map.getCanvas().style.cursor = "";
+      });
+    });
+
+    return () => {
+      map.remove();
+      mapRef.current = null;
+    };
+  }, [alignment, parcels]);
+
+  return (
+    <div
+      ref={containerRef}
+      className="h-96 w-full rounded-md border border-gray-200"
+    />
+  );
+}
