@@ -121,7 +121,7 @@ export function CompensationPanel({
             />
           </div>
           <Button type="submit" variant="outline" disabled={pending !== null}>
-            {pending === "rate" ? "Saving..." : "Set current rate"}
+            {pending === "rate" ? "Saving…" : "Set current rate"}
           </Button>
         </form>
       )}
@@ -164,7 +164,7 @@ export function CompensationPanel({
                         onClick={() => handlePay(p.compensation!.id)}
                         disabled={pending !== null}
                       >
-                        {pending === p.compensation.id ? "Working..." : "Mark paid"}
+                        {pending === p.compensation.id ? "Working…" : "Mark paid"}
                       </Button>
                     )}
                   </div>
@@ -176,8 +176,11 @@ export function CompensationPanel({
                       className="mt-2 flex items-end gap-2"
                     >
                       <div className="space-y-1">
-                        <Label className="text-xs">Assets value (Rs)</Label>
+                        <Label htmlFor={`assetsValue-${p.id}`} className="text-xs">
+                          Assets value (Rs)
+                        </Label>
                         <Input
+                          id={`assetsValue-${p.id}`}
                           name="assetsValue"
                           type="number"
                           step="any"
@@ -191,7 +194,7 @@ export function CompensationPanel({
                         variant="outline"
                         disabled={pending !== null}
                       >
-                        {pending === p.id ? "Assessing..." : "Assess compensation"}
+                        {pending === p.id ? "Assessing…" : "Assess compensation"}
                       </Button>
                     </form>
                   )

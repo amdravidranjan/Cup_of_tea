@@ -68,7 +68,7 @@ export function DocumentUpload({ projectId }: { projectId: string }) {
         />
       </div>
       <Button type="submit" disabled={pending}>
-        {pending ? "Uploading..." : "Upload"}
+        {pending ? "Uploading…" : "Upload"}
       </Button>
     </form>
   );

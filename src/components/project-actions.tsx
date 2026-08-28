@@ -51,7 +51,7 @@ export function ProjectActions({
           onClick={() => perform(action)}
           disabled={pending !== null}
         >
-          {pending === action ? "Working..." : action}
+          {pending === action ? "Working…" : action}
         </Button>
       ))}
     </div>

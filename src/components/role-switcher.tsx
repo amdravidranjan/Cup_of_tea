@@ -43,7 +43,7 @@ export function RoleSwitcher() {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="outline" disabled={pending}>
-          {pending ? "Switching..." : "Switch demo role"}
+          {pending ? "Switching…" : "Switch demo role"}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
