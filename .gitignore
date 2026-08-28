@@ -48,3 +48,6 @@ logs
 local.db
 local.db-*
 /drizzle
+
+# local file storage (documents module)
+/uploads
