@@ -13,6 +13,9 @@ import {
   IMPACT_BUFFER_METERS,
 } from "@/lib/geo";
 import { ProjectMap } from "@/components/project-map";
+import { getCurrentCompensationRate, listCompensationsForProject } from "@/db/compensation";
+import { resolveCompensationDates } from "@/lib/compensation";
+import { CompensationPanel } from "@/components/compensation-panel";
 
 export default async function ProjectDetailPage({
   params,
@@ -35,6 +38,22 @@ export default async function ProjectDetailPage({
   const alignment = parseStoredGeometry(project.geometryType, project.geometryGeoJson);
   const parcelList = await listParcels(id);
   const parcelsWithImpact = computeParcelsWithImpact(alignment, parcelList);
+
+  const compensationRate = await getCurrentCompensationRate(project.state, project.district);
+  const compensationList = await listCompensationsForProject(id);
+  const compensationDates = resolveCompensationDates(history);
+  const canManageRate = can(session.role, "compensation:manage-rate");
+  const canAssessCompensation = can(session.role, "compensation:assess");
+  const compensationByParcel = new Map(compensationList.map((c) => [c.parcelId, c]));
+  const parcelsWithCompensation = parcelsWithImpact.map((p) => {
+    const comp = compensationByParcel.get(p.id);
+    return {
+      id: p.id,
+      village: p.village,
+      areaHectares: p.areaHectares,
+      compensation: comp ? { id: comp.id, total: comp.total, status: comp.status } : null,
+    };
+  });
 
   return (
     <div className="space-y-6">
@@ -79,6 +98,25 @@ export default async function ProjectDetailPage({
           {parcelsWithImpact.length} parcels within the {IMPACT_BUFFER_METERS}m impact
           buffer of the project alignment.
         </p>
+      </div>
+
+      <div>
+        <h3 className="mb-2 text-sm font-medium">Compensation</h3>
+        <CompensationPanel
+          projectId={project.id}
+          canManageRate={canManageRate}
+          canAssess={canAssessCompensation}
+          datesResolved={compensationDates !== null}
+          currentRate={
+            compensationRate
+              ? {
+                  ratePerHectare: compensationRate.ratePerHectare,
+                  multiplier: compensationRate.multiplier,
+                }
+              : null
+          }
+          parcels={parcelsWithCompensation}
+        />
       </div>
 
       <div>
