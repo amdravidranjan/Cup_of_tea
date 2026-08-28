@@ -2,6 +2,14 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const DEMO_USERS = [
   { id: "u-central-1", label: "Central (DoLR)" },
@@ -13,32 +21,38 @@ const DEMO_USERS = [
 
 export function RoleSwitcher() {
   const router = useRouter();
-  const [pendingId, setPendingId] = useState<string | null>(null);
+  const [pending, setPending] = useState(false);
 
-  async function switchTo(userId: string) {
-    setPendingId(userId);
-    await fetch("/api/auth/login", {
+  async function switchTo(userId: string, label: string) {
+    setPending(true);
+    const res = await fetch("/api/auth/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ userId }),
     });
-    setPendingId(null);
+    setPending(false);
+    if (!res.ok) {
+      toast.error("Failed to switch role");
+      return;
+    }
+    toast.success(`Switched to ${label}`);
     router.refresh();
   }
 
   return (
-    <div className="flex flex-wrap gap-2">
-      {DEMO_USERS.map((u) => (
-        <button
-          key={u.id}
-          type="button"
-          onClick={() => switchTo(u.id)}
-          disabled={pendingId !== null}
-          className="rounded-md border border-gray-300 px-3 py-1 text-sm hover:bg-gray-100 disabled:opacity-50"
-        >
-          {pendingId === u.id ? "Switching..." : u.label}
-        </button>
-      ))}
-    </div>
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="outline" disabled={pending}>
+          {pending ? "Switching..." : "Switch demo role"}
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        {DEMO_USERS.map((u) => (
+          <DropdownMenuItem key={u.id} onSelect={() => switchTo(u.id, u.label)}>
+            {u.label}
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }
