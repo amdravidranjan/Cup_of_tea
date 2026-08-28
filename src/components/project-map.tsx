@@ -55,7 +55,10 @@ export function ProjectMap({
 
     const map = new MapLibreMap({
       container: containerRef.current,
-      style: "https://demotiles.maplibre.org/style.json",
+      // OpenFreeMap: free, keyless, full OSM detail (roads, buildings,
+      // labels) — demotiles.maplibre.org is a bare placeholder tileset
+      // with no street-level content, never meant for real use.
+      style: "https://tiles.openfreemap.org/styles/liberty",
       center,
       zoom: 12,
     });
