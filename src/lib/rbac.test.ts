@@ -45,4 +45,21 @@ describe("can", () => {
     expect(can("central", "project:geometry:edit")).toBe(false);
     expect(can("field", "project:geometry:edit")).toBe(false);
   });
+
+  it("allows district and state to manage the compensation rate", () => {
+    expect(can("district", "compensation:manage-rate")).toBe(true);
+    expect(can("state", "compensation:manage-rate")).toBe(true);
+  });
+
+  it("does not allow agency, central, or field to manage the compensation rate", () => {
+    expect(can("agency", "compensation:manage-rate")).toBe(false);
+    expect(can("central", "compensation:manage-rate")).toBe(false);
+    expect(can("field", "compensation:manage-rate")).toBe(false);
+  });
+
+  it("only allows district to assess compensation", () => {
+    expect(can("district", "compensation:assess")).toBe(true);
+    expect(can("agency", "compensation:assess")).toBe(false);
+    expect(can("state", "compensation:assess")).toBe(false);
+  });
 });

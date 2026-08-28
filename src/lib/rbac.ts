@@ -6,7 +6,9 @@ export type Permission =
   | "project:view:all"
   | "project:transition"
   | "document:upload"
-  | "project:geometry:edit";
+  | "project:geometry:edit"
+  | "compensation:manage-rate"
+  | "compensation:assess";
 
 const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
   // "project:transition" here is the coarse gate ("can this role attempt
@@ -25,8 +27,10 @@ const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
     "project:transition",
     "document:upload",
     "project:geometry:edit",
+    "compensation:manage-rate",
+    "compensation:assess",
   ],
-  state: ["project:view:all", "project:transition"],
+  state: ["project:view:all", "project:transition", "compensation:manage-rate"],
   central: ["project:view:all", "project:transition"],
   field: ["project:view:own", "document:upload"],
 };
