@@ -19,7 +19,8 @@ beforeEach(async () => {
     CREATE TABLE projects (
       id TEXT PRIMARY KEY, name TEXT NOT NULL, purpose TEXT NOT NULL,
       state TEXT NOT NULL, district TEXT NOT NULL, stage TEXT NOT NULL DEFAULT 'DRAFT',
-      created_by TEXT NOT NULL, created_at INTEGER NOT NULL, updated_at INTEGER NOT NULL
+      created_by TEXT NOT NULL, created_at INTEGER NOT NULL, updated_at INTEGER NOT NULL,
+      geometry_type TEXT, geometry_geo_json TEXT
     );
   `);
   await testDb.run(sql`
@@ -110,5 +111,31 @@ describe("projects data layer", () => {
     expect(history[0].fromStage).toBeNull();
     expect(history[1].fromStage).toBe("DRAFT");
     expect(history[2].toStage).toBe("SIA");
+  });
+
+  it("stores and retrieves project geometry", async () => {
+    const { createProjectWith, setProjectGeometryWith, getProjectWith } = await import(
+      "./projects"
+    );
+    const id = await createProjectWith(testDb, {
+      name: "Test Bridge",
+      purpose: "Testing",
+      state: "Odisha",
+      district: "Koraput",
+      createdBy: "u-agency-1",
+    });
+    await setProjectGeometryWith(testDb, id, {
+      type: "LineString",
+      coordinates: [
+        [82.71, 18.81],
+        [82.712, 18.815],
+      ],
+    });
+    const project = await getProjectWith(testDb, id);
+    expect(project?.geometryType).toBe("LineString");
+    expect(JSON.parse(project!.geometryGeoJson!)).toEqual([
+      [82.71, 18.81],
+      [82.712, 18.815],
+    ]);
   });
 });

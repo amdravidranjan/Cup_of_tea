@@ -4,6 +4,7 @@ import { db as defaultDb } from "./client";
 import { projects, stageHistory } from "./schema";
 import * as schema from "./schema";
 import { transitionProject, type Action, type Role, type Stage } from "@/lib/workflow";
+import type { Geometry } from "@/lib/geo";
 
 type Db = LibSQLDatabase<typeof schema>;
 
@@ -92,12 +93,28 @@ export async function applyProjectTransitionWith(
   return nextStage;
 }
 
+export async function setProjectGeometryWith(
+  database: Db,
+  projectId: string,
+  geometry: Geometry
+): Promise<void> {
+  await database
+    .update(projects)
+    .set({
+      geometryType: geometry.type,
+      geometryGeoJson: JSON.stringify(geometry.coordinates),
+    })
+    .where(eq(projects.id, projectId));
+}
+
 export const createProject = (input: CreateProjectInput) =>
   createProjectWith(defaultDb, input);
 export const listProjects = () => listProjectsWith(defaultDb);
 export const getProject = (id: string) => getProjectWith(defaultDb, id);
 export const getStageHistory = (projectId: string) =>
   getStageHistoryWith(defaultDb, projectId);
+export const setProjectGeometry = (projectId: string, geometry: Geometry) =>
+  setProjectGeometryWith(defaultDb, projectId, geometry);
 export const applyProjectTransition = (
   projectId: string,
   action: Action,
