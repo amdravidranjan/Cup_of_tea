@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { getSession } from "@/lib/auth";
 import { listProjects } from "@/db/projects";
 
@@ -16,7 +17,9 @@ export default async function DashboardPage() {
         <ul className="space-y-2">
           {projects.map((p) => (
             <li key={p.id} className="rounded-md border border-gray-200 p-3">
-              <p className="font-medium">{p.name}</p>
+              <Link href={`/projects/${p.id}`} className="font-medium hover:underline">
+                {p.name}
+              </Link>
               <p className="text-sm text-gray-500">
                 {p.district}, {p.state} — Stage: {p.stage}
               </p>
