@@ -5,6 +5,7 @@ import { saveFile } from "@/lib/storage";
 import { createDocument } from "./documents";
 import { setProjectGeometry } from "./projects";
 import { createParcel } from "./parcels";
+import { setCompensationRate } from "./compensation";
 import type { PolygonGeometry } from "@/lib/geo";
 import type { ParcelStatus } from "@/lib/parcel-status";
 
@@ -138,6 +139,14 @@ async function main() {
   for (const p of demoParcels) {
     await createParcel({ projectId, ...p });
   }
+
+  await setCompensationRate({
+    state: "Odisha",
+    district: "Koraput",
+    ratePerHectare: 1_500_000,
+    multiplier: 1.5,
+    setBy: "u-district-1",
+  });
 
   console.log("Seed complete: 5 demo users, 1 demo project.");
 }
