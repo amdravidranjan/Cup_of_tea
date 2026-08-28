@@ -34,4 +34,15 @@ describe("can", () => {
     expect(can("state", "document:upload")).toBe(false);
     expect(can("central", "document:upload")).toBe(false);
   });
+
+  it("allows agency and district to edit project geometry", () => {
+    expect(can("agency", "project:geometry:edit")).toBe(true);
+    expect(can("district", "project:geometry:edit")).toBe(true);
+  });
+
+  it("does not allow state, central, or field to edit project geometry", () => {
+    expect(can("state", "project:geometry:edit")).toBe(false);
+    expect(can("central", "project:geometry:edit")).toBe(false);
+    expect(can("field", "project:geometry:edit")).toBe(false);
+  });
 });
