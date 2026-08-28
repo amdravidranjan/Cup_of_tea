@@ -1,6 +1,8 @@
 import { db } from "./client";
 import { users, projects, stageHistory } from "./schema";
 import { DEMO_USERS } from "./seed-data";
+import { saveFile } from "@/lib/storage";
+import { createDocument } from "./documents";
 
 async function main() {
   for (const user of DEMO_USERS) {
@@ -43,6 +45,24 @@ async function main() {
     actorId: "u-agency-1",
     actorRole: "agency",
     createdAt: now,
+  });
+
+  const dprContent = Buffer.from(
+    "Detailed Project Report (demo)\nKoraput River Bridge Project\nPublic purpose: NH-26 connectivity.\n"
+  );
+  const { storagePath, sizeBytes } = await saveFile(dprContent, {
+    projectId,
+    category: "DPR",
+    fileName: "koraput-bridge-dpr.txt",
+  });
+  await createDocument({
+    projectId,
+    category: "DPR",
+    fileName: "koraput-bridge-dpr.txt",
+    mimeType: "text/plain",
+    sizeBytes,
+    storagePath,
+    uploadedBy: "u-agency-1",
   });
 
   console.log("Seed complete: 5 demo users, 1 demo project.");
