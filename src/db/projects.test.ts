@@ -1,10 +1,14 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { drizzle } from "drizzle-orm/libsql";
+import { drizzle, type LibSQLDatabase } from "drizzle-orm/libsql";
 import { createClient } from "@libsql/client";
 import { sql } from "drizzle-orm";
 import * as schema from "./schema";
 
-let testDb: ReturnType<typeof drizzle>;
+// Typed explicitly rather than `ReturnType<typeof drizzle>` — that resolves
+// against the generic function's default type parameters, not this file's
+// actual `drizzle(client, { schema })` call, and silently loses the real
+// schema type (surfaces only under `tsc --noEmit`, not the dev server).
+let testDb: LibSQLDatabase<typeof schema>;
 
 beforeEach(async () => {
   const client = createClient({ url: ":memory:" });

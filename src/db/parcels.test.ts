@@ -1,10 +1,12 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { drizzle } from "drizzle-orm/libsql";
+import { drizzle, type LibSQLDatabase } from "drizzle-orm/libsql";
 import { createClient } from "@libsql/client";
 import { sql } from "drizzle-orm";
 import * as schema from "./schema";
+import type { PolygonGeometry } from "@/lib/geo";
 
-let testDb: ReturnType<typeof drizzle>;
+// See src/db/projects.test.ts for why this isn't `ReturnType<typeof drizzle>`.
+let testDb: LibSQLDatabase<typeof schema>;
 
 beforeEach(async () => {
   const client = createClient({ url: ":memory:" });
@@ -18,8 +20,8 @@ beforeEach(async () => {
   `);
 });
 
-const square = {
-  type: "Polygon" as const,
+const square: PolygonGeometry = {
+  type: "Polygon",
   coordinates: [
     [
       [82.71, 18.81],
