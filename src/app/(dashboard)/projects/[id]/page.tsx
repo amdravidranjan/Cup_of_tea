@@ -16,6 +16,17 @@ import { ProjectMap } from "@/components/project-map";
 import { getCurrentCompensationRate, listCompensationsForProject } from "@/db/compensation";
 import { resolveCompensationDates } from "@/lib/compensation";
 import { CompensationPanel } from "@/components/compensation-panel";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { stageTone, toneBadgeClass } from "@/lib/status-colors";
 
 export default async function ProjectDetailPage({
   params,
@@ -59,104 +70,151 @@ export default async function ProjectDetailPage({
     <div className="space-y-6">
       <div>
         <h2 className="text-lg font-semibold">{project.name}</h2>
-        <p className="text-sm text-gray-500">{project.purpose}</p>
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-muted-foreground">{project.purpose}</p>
+        <p className="text-sm text-muted-foreground">
           {project.district}, {project.state}
         </p>
       </div>
 
-      <div>
-        <h3 className="mb-2 text-sm font-medium">Stage</h3>
-        <ol className="flex flex-wrap gap-2 text-xs">
-          {STAGES.map((stage, i) => (
-            <li
-              key={stage}
-              className={
-                i === currentIndex
-                  ? "rounded-full bg-blue-600 px-2 py-1 text-white"
-                  : i < currentIndex
-                    ? "rounded-full bg-gray-300 px-2 py-1 text-gray-700"
-                    : "rounded-full border border-gray-300 px-2 py-1 text-gray-400"
-              }
-            >
-              {stage}
-            </li>
-          ))}
-        </ol>
-      </div>
-
-      <div>
-        <h3 className="mb-2 text-sm font-medium">Actions</h3>
-        <ProjectActions projectId={project.id} availableActions={availableActions} />
-      </div>
-
-      <div>
-        <h3 className="mb-2 text-sm font-medium">Map</h3>
-        <ProjectMap alignment={alignment} parcels={parcelsWithImpact} />
-        <p className="mt-2 text-xs text-gray-500">
-          {parcelsWithImpact.filter((p) => p.withinImpact).length} of{" "}
-          {parcelsWithImpact.length} parcels within the {IMPACT_BUFFER_METERS}m impact
-          buffer of the project alignment.
-        </p>
-      </div>
-
-      <div>
-        <h3 className="mb-2 text-sm font-medium">Compensation</h3>
-        <CompensationPanel
-          projectId={project.id}
-          canManageRate={canManageRate}
-          canAssess={canAssessCompensation}
-          datesResolved={compensationDates !== null}
-          currentRate={
-            compensationRate
-              ? {
-                  ratePerHectare: compensationRate.ratePerHectare,
-                  multiplier: compensationRate.multiplier,
-                }
-              : null
-          }
-          parcels={parcelsWithCompensation}
-        />
-      </div>
-
-      <div>
-        <h3 className="mb-2 text-sm font-medium">History</h3>
-        <ul className="space-y-1 text-sm text-gray-600">
-          {history.map((h) => (
-            <li key={h.id}>
-              {h.fromStage ?? "—"} → {h.toStage} ({h.action}) by {h.actorRole} on{" "}
-              {h.createdAt.toLocaleString()}
-            </li>
-          ))}
-        </ul>
-      </div>
-
-      <div>
-        <h3 className="mb-2 text-sm font-medium">Documents</h3>
-        {canUpload ? (
-          <DocumentUpload projectId={project.id} />
-        ) : (
-          <p className="text-sm text-gray-500">Your role cannot upload documents.</p>
-        )}
-        <ul className="mt-3 space-y-1 text-sm text-gray-600">
-          {docs.length === 0 ? (
-            <li className="text-gray-400">No documents uploaded yet.</li>
-          ) : (
-            docs.map((d) => (
-              <li key={d.id}>
-                <a
-                  href={`/api/documents/${d.id}/download`}
-                  className="hover:underline"
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-sm font-medium">Stage</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ol className="flex flex-wrap gap-2">
+            {STAGES.map((stage, i) => (
+              <li key={stage}>
+                <Badge
+                  variant="outline"
+                  className={
+                    i === currentIndex
+                      ? toneBadgeClass(stageTone(stage))
+                      : i < currentIndex
+                        ? "border-muted-foreground/20 bg-muted text-muted-foreground"
+                        : "border-dashed text-muted-foreground/60"
+                  }
                 >
-                  {d.fileName}
-                </a>{" "}
-                — {d.category} v{d.version}, {(d.sizeBytes / 1024).toFixed(1)} KB, by{" "}
-                {d.uploadedBy} on {d.uploadedAt.toLocaleString()}
+                  {stage}
+                </Badge>
               </li>
-            ))
+            ))}
+          </ol>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-sm font-medium">Actions</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ProjectActions projectId={project.id} availableActions={availableActions} />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-sm font-medium">Map</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ProjectMap alignment={alignment} parcels={parcelsWithImpact} />
+          <p className="mt-2 text-xs text-muted-foreground">
+            {parcelsWithImpact.filter((p) => p.withinImpact).length} of{" "}
+            {parcelsWithImpact.length} parcels within the {IMPACT_BUFFER_METERS}m impact
+            buffer of the project alignment.
+          </p>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-sm font-medium">Compensation</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <CompensationPanel
+            projectId={project.id}
+            canManageRate={canManageRate}
+            canAssess={canAssessCompensation}
+            datesResolved={compensationDates !== null}
+            currentRate={
+              compensationRate
+                ? {
+                    ratePerHectare: compensationRate.ratePerHectare,
+                    multiplier: compensationRate.multiplier,
+                  }
+                : null
+            }
+            parcels={parcelsWithCompensation}
+          />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-sm font-medium">History</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ul className="space-y-1 text-sm text-muted-foreground">
+            {history.map((h) => (
+              <li key={h.id}>
+                {h.fromStage ?? "—"} → {h.toStage} ({h.action}) by {h.actorRole} on{" "}
+                {h.createdAt.toLocaleString()}
+              </li>
+            ))}
+          </ul>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-sm font-medium">Documents</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {canUpload ? (
+            <DocumentUpload projectId={project.id} />
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              Your role cannot upload documents.
+            </p>
           )}
-        </ul>
-      </div>
+          {docs.length === 0 ? (
+            <p className="text-sm text-muted-foreground/70">No documents uploaded yet.</p>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>File</TableHead>
+                  <TableHead>Category</TableHead>
+                  <TableHead>Size</TableHead>
+                  <TableHead>Uploaded</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {docs.map((d) => (
+                  <TableRow key={d.id}>
+                    <TableCell>
+                      <a
+                        href={`/api/documents/${d.id}/download`}
+                        className="font-medium hover:underline"
+                      >
+                        {d.fileName}
+                      </a>
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {d.category} v{d.version}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {(d.sizeBytes / 1024).toFixed(1)} KB
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {d.uploadedBy} on {d.uploadedAt.toLocaleString()}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }
