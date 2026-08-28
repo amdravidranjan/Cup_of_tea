@@ -5,14 +5,20 @@ import { MapLibreMap, NavigationControl, Popup, setWorkerUrl } from "maplibre-gl
 import "maplibre-gl/dist/maplibre-gl.css";
 import type { Geometry, PolygonGeometry } from "@/lib/geo";
 
-// v6 requires this one-time call for every bundler (webpack, Turbopack,
-// Vite, esbuild) — import.meta.url doesn't reliably resolve to the worker
-// file inside a bundler's module graph, so without it the worker 404s and
-// the map renders an empty canvas with no tiles.
+// v6 requires this one-time call for every bundler — import.meta.url
+// doesn't reliably resolve to the worker file inside a bundler's module
+// graph. Pointed at /public rather than a `new URL(..., import.meta.url)`
+// bundler asset: the worker file internally imports a sibling module
+// ("./maplibre-gl-shared.mjs") via a plain relative ESM import, and
+// webpack's asset-URL copying only copies the worker file itself, not
+// that sibling — the browser then 404s resolving the relative import
+// against the copied file's hashed URL. Serving both files together from
+// a stable public/ path (kept in sync by scripts/copy-maplibre-worker.mjs,
+// run on postinstall) sidesteps the bundler entirely.
 let workerUrlConfigured = false;
 function ensureWorkerUrlConfigured() {
   if (workerUrlConfigured) return;
-  setWorkerUrl(new URL("maplibre-gl/dist/maplibre-gl-worker.mjs", import.meta.url).href);
+  setWorkerUrl("/maplibre-gl/maplibre-gl-worker.mjs");
   workerUrlConfigured = true;
 }
 
