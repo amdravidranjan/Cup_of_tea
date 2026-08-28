@@ -23,4 +23,15 @@ describe("can", () => {
     expect(can("field", "project:view:own")).toBe(true);
     expect(can("field", "project:view:all")).toBe(false);
   });
+
+  it("allows agency, district, and field to upload documents", () => {
+    expect(can("agency", "document:upload")).toBe(true);
+    expect(can("district", "document:upload")).toBe(true);
+    expect(can("field", "document:upload")).toBe(true);
+  });
+
+  it("does not allow state or central to upload documents", () => {
+    expect(can("state", "document:upload")).toBe(false);
+    expect(can("central", "document:upload")).toBe(false);
+  });
 });
