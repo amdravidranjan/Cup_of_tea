@@ -1,9 +1,20 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { MapLibreMap, NavigationControl, Popup } from "maplibre-gl";
+import { MapLibreMap, NavigationControl, Popup, setWorkerUrl } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import type { Geometry, PolygonGeometry } from "@/lib/geo";
+
+// v6 requires this one-time call for every bundler (webpack, Turbopack,
+// Vite, esbuild) — import.meta.url doesn't reliably resolve to the worker
+// file inside a bundler's module graph, so without it the worker 404s and
+// the map renders an empty canvas with no tiles.
+let workerUrlConfigured = false;
+function ensureWorkerUrlConfigured() {
+  if (workerUrlConfigured) return;
+  setWorkerUrl(new URL("maplibre-gl/dist/maplibre-gl-worker.mjs", import.meta.url).href);
+  workerUrlConfigured = true;
+}
 
 interface ParcelFeature {
   id: string;
@@ -26,6 +37,8 @@ export function ProjectMap({
 
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return;
+
+    ensureWorkerUrlConfigured();
 
     const center: [number, number] =
       alignment?.type === "LineString"
