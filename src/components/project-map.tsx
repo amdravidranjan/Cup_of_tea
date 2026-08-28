@@ -146,7 +146,7 @@ export function ProjectMap({
   return (
     <div
       ref={containerRef}
-      className="h-96 w-full rounded-md border border-gray-200"
+      className="h-96 w-full overflow-hidden rounded-lg border"
     />
   );
 }
