@@ -55,3 +55,31 @@ export const parcels = sqliteTable("parcels", {
   geometryGeoJson: text("geometry_geo_json").notNull(),
   createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
 });
+
+export const compensationRates = sqliteTable("compensation_rates", {
+  id: text("id").primaryKey(),
+  state: text("state").notNull(),
+  district: text("district").notNull(),
+  ratePerHectare: real("rate_per_hectare").notNull(),
+  multiplier: real("multiplier").notNull(),
+  setBy: text("set_by").notNull(),
+  createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
+});
+
+export const compensations = sqliteTable("compensations", {
+  id: text("id").primaryKey(),
+  parcelId: text("parcel_id").notNull(),
+  projectId: text("project_id").notNull(),
+  ratePerHectare: real("rate_per_hectare").notNull(),
+  multiplier: real("multiplier").notNull(),
+  assetsValue: real("assets_value").notNull(),
+  marketValue: real("market_value").notNull(),
+  multipliedMarketValue: real("multiplied_market_value").notNull(),
+  solatium: real("solatium").notNull(),
+  interest: real("interest").notNull(),
+  total: real("total").notNull(),
+  status: text("status").notNull(),
+  assessedBy: text("assessed_by").notNull(),
+  assessedAt: integer("assessed_at", { mode: "timestamp" }).notNull(),
+  paidAt: integer("paid_at", { mode: "timestamp" }),
+});
