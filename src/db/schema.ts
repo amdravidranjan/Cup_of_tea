@@ -1,4 +1,4 @@
-import { sqliteTable, text, integer } from "drizzle-orm/sqlite-core";
+import { sqliteTable, text, integer, real } from "drizzle-orm/sqlite-core";
 
 export const users = sqliteTable("users", {
   id: text("id").primaryKey(),
@@ -18,6 +18,8 @@ export const projects = sqliteTable("projects", {
   createdBy: text("created_by").notNull(),
   createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
   updatedAt: integer("updated_at", { mode: "timestamp" }).notNull(),
+  geometryType: text("geometry_type"),
+  geometryGeoJson: text("geometry_geo_json"),
 });
 
 export const stageHistory = sqliteTable("stage_history", {
@@ -42,4 +44,14 @@ export const documents = sqliteTable("documents", {
   storagePath: text("storage_path").notNull(),
   uploadedBy: text("uploaded_by").notNull(),
   uploadedAt: integer("uploaded_at", { mode: "timestamp" }).notNull(),
+});
+
+export const parcels = sqliteTable("parcels", {
+  id: text("id").primaryKey(),
+  projectId: text("project_id").notNull(),
+  village: text("village").notNull(),
+  areaHectares: real("area_hectares").notNull(),
+  status: text("status").notNull(),
+  geometryGeoJson: text("geometry_geo_json").notNull(),
+  createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
 });
