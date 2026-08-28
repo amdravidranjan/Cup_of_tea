@@ -70,4 +70,18 @@ describe("parcels data layer", () => {
     expect(listP1).toHaveLength(1);
     expect(listP1[0].village).toBe("A");
   });
+
+  it("fetches a single parcel by id", async () => {
+    const { createParcelWith, getParcelWith } = await import("./parcels");
+    const id = await createParcelWith(testDb, {
+      projectId: "p-1",
+      village: "Similiguda",
+      areaHectares: 1.2,
+      status: "NOTIFIED",
+      geometry: square,
+    });
+    const parcel = await getParcelWith(testDb, id);
+    expect(parcel?.village).toBe("Similiguda");
+    expect(parcel?.projectId).toBe("p-1");
+  });
 });

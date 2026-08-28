@@ -68,5 +68,11 @@ export async function listParcelsWith(database: Db, projectId: string): Promise<
   return rows.map(toParcel);
 }
 
+export async function getParcelWith(database: Db, id: string): Promise<Parcel | null> {
+  const rows = await database.select().from(parcels).where(eq(parcels.id, id));
+  return rows[0] ? toParcel(rows[0]) : null;
+}
+
 export const createParcel = (input: CreateParcelInput) => createParcelWith(defaultDb, input);
 export const listParcels = (projectId: string) => listParcelsWith(defaultDb, projectId);
+export const getParcel = (id: string) => getParcelWith(defaultDb, id);
