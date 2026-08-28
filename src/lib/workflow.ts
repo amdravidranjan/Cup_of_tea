@@ -90,3 +90,10 @@ export function transitionProject(
   }
   return rule.next;
 }
+
+export function getAvailableActions(stage: Stage, role: Role): Action[] {
+  const prefix = `${stage}:`;
+  return Object.entries(TRANSITIONS)
+    .filter(([key, rule]) => key.startsWith(prefix) && rule.allowedRoles.includes(role))
+    .map(([key]) => key.slice(prefix.length) as Action);
+}

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { transitionProject, STAGES, type Role } from "./workflow";
+import { transitionProject, getAvailableActions, STAGES, type Role } from "./workflow";
 
 describe("transitionProject", () => {
   it("moves DRAFT to SCRUTINY on SUBMIT by an agency", () => {
@@ -44,5 +44,24 @@ describe("transitionProject", () => {
     expect(STAGES[0]).toBe("DRAFT");
     expect(STAGES).toHaveLength(11);
     expect(STAGES[STAGES.length - 1]).toBe("RR_COMPLETE");
+  });
+});
+
+describe("getAvailableActions", () => {
+  it("returns SUBMIT for both agency and district on DRAFT", () => {
+    expect(getAvailableActions("DRAFT", "agency")).toEqual(["SUBMIT"]);
+    expect(getAvailableActions("DRAFT", "district")).toEqual(["SUBMIT"]);
+  });
+
+  it("returns nothing for a role with no valid action at that stage", () => {
+    expect(getAvailableActions("DRAFT", "state")).toEqual([]);
+  });
+
+  it("returns both APPROVE and REJECT for district on SCRUTINY", () => {
+    expect(getAvailableActions("SCRUTINY", "district")).toEqual(["APPROVE", "REJECT"]);
+  });
+
+  it("returns nothing at the terminal stage", () => {
+    expect(getAvailableActions("RR_COMPLETE", "district")).toEqual([]);
   });
 });
