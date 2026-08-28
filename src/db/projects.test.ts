@@ -90,4 +90,25 @@ describe("projects data layer", () => {
       applyProjectTransitionWith(testDb, id, "PASS_AWARD", "u-1", "district")
     ).rejects.toThrow(/no transition/i);
   });
+
+  it("returns stage history in chronological order", async () => {
+    const { createProjectWith, applyProjectTransitionWith, getStageHistoryWith } =
+      await import("./projects");
+    const id = await createProjectWith(testDb, {
+      name: "Test Bridge",
+      purpose: "Testing",
+      state: "Odisha",
+      district: "Koraput",
+      createdBy: "u-agency-1",
+    });
+    await applyProjectTransitionWith(testDb, id, "SUBMIT", "u-agency-1", "agency");
+    await applyProjectTransitionWith(testDb, id, "APPROVE", "u-district-1", "district");
+
+    const history = await getStageHistoryWith(testDb, id);
+    expect(history).toHaveLength(3);
+    expect(history.map((h) => h.action)).toEqual(["CREATE", "SUBMIT", "APPROVE"]);
+    expect(history[0].fromStage).toBeNull();
+    expect(history[1].fromStage).toBe("DRAFT");
+    expect(history[2].toStage).toBe("SIA");
+  });
 });

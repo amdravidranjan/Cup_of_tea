@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { eq, asc } from "drizzle-orm";
 import type { LibSQLDatabase } from "drizzle-orm/libsql";
 import { db as defaultDb } from "./client";
 import { projects, stageHistory } from "./schema";
@@ -54,6 +54,14 @@ export async function getProjectWith(database: Db, id: string) {
   return rows[0] ?? null;
 }
 
+export async function getStageHistoryWith(database: Db, projectId: string) {
+  return database
+    .select()
+    .from(stageHistory)
+    .where(eq(stageHistory.projectId, projectId))
+    .orderBy(asc(stageHistory.createdAt));
+}
+
 export async function applyProjectTransitionWith(
   database: Db,
   projectId: string,
@@ -88,6 +96,8 @@ export const createProject = (input: CreateProjectInput) =>
   createProjectWith(defaultDb, input);
 export const listProjects = () => listProjectsWith(defaultDb);
 export const getProject = (id: string) => getProjectWith(defaultDb, id);
+export const getStageHistory = (projectId: string) =>
+  getStageHistoryWith(defaultDb, projectId);
 export const applyProjectTransition = (
   projectId: string,
   action: Action,
