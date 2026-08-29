@@ -62,4 +62,21 @@ describe("can", () => {
     expect(can("agency", "compensation:assess")).toBe(false);
     expect(can("state", "compensation:assess")).toBe(false);
   });
+
+  it("allows district and field to manage families", () => {
+    expect(can("district", "family:manage")).toBe(true);
+    expect(can("field", "family:manage")).toBe(true);
+  });
+
+  it("does not allow agency, state, or central to manage families", () => {
+    expect(can("agency", "family:manage")).toBe(false);
+    expect(can("state", "family:manage")).toBe(false);
+    expect(can("central", "family:manage")).toBe(false);
+  });
+
+  it("only allows district to grant entitlements", () => {
+    expect(can("district", "entitlement:grant")).toBe(true);
+    expect(can("field", "entitlement:grant")).toBe(false);
+    expect(can("state", "entitlement:grant")).toBe(false);
+  });
 });
