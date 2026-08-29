@@ -17,6 +17,12 @@ export const DEMO_USERS: DemoUser[] = [
     state: "Odisha",
   },
   {
+    id: "u-state-2",
+    name: "Lakshmi Narayanan (State Govt, Tamil Nadu)",
+    role: "state",
+    state: "Tamil Nadu",
+  },
+  {
     id: "u-district-1",
     name: "Sub-Collector, Koraput",
     role: "district",
