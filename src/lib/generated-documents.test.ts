@@ -50,4 +50,31 @@ describe("renderDocumentPdf", () => {
     const reloaded = await PDFDocument.load(bytes);
     expect(reloaded.getPageCount()).toBe(1);
   });
+
+  it("spans multiple pages and summarizes rather than overflowing for a large parcel count", async () => {
+    const parcels = Array.from({ length: 600 }, (_, i) => ({
+      village: `Village ${i}`,
+      areaHectares: 1.1,
+    }));
+    const bytes = await renderDocumentPdf({
+      type: "AWARD_LETTER",
+      project: {
+        name: "Large Corridor Project",
+        purpose: "Testing",
+        state: "Tamil Nadu",
+        district: "Sivaganga",
+      },
+      issuedAt: new Date("2026-03-15T00:00:00.000Z"),
+      issuedBy: "u-district-1",
+      parcels,
+      compensationTotal: 50_000_000,
+    });
+    const reloaded = await PDFDocument.load(bytes);
+    // 600 parcels at ~15pt line height would run to 20+ pages if every
+    // single one were itemized (the old single-page, no-overflow-check
+    // behavior would have silently drawn most of them off the visible
+    // page instead) — the itemization cap keeps this small.
+    expect(reloaded.getPageCount()).toBeGreaterThan(1);
+    expect(reloaded.getPageCount()).toBeLessThan(5);
+  });
 });

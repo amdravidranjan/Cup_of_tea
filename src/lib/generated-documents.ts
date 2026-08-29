@@ -70,14 +70,23 @@ function formatLakh(amount: number): string {
   return `Rs. ${(amount / 100000).toFixed(2)} lakh`;
 }
 
+// Parcel-by-parcel itemization stops here and falls back to a summary
+// line — a real award can cover hundreds of parcels, and a flat text PDF
+// listing every one of them is neither how a real award schedule is
+// formatted (that's a tabular annexure) nor practical to read; the exact
+// per-parcel record already lives in the app itself.
+const MAX_ITEMIZED_PARCELS = 40;
+const PAGE_SIZE: [number, number] = [595.28, 841.89]; // A4
+
 export async function renderDocumentPdf(data: GeneratedDocumentData): Promise<Uint8Array> {
   const pdfDoc = await PDFDocument.create();
-  const page = pdfDoc.addPage([595.28, 841.89]); // A4
   const font = await pdfDoc.embedFont(StandardFonts.TimesRoman);
   const bold = await pdfDoc.embedFont(StandardFonts.TimesRomanBold);
 
   const margin = 56;
+  let page = pdfDoc.addPage(PAGE_SIZE);
   const width = page.getWidth();
+  const bottomLimit = margin;
   let y = page.getHeight() - margin;
 
   function line(
@@ -86,10 +95,17 @@ export async function renderDocumentPdf(data: GeneratedDocumentData): Promise<Ui
   ) {
     const size = opts.size ?? 11;
     const useFont = opts.useFont ?? font;
+    const gap = opts.gap ?? size + 8;
+
+    if (y - gap < bottomLimit) {
+      page = pdfDoc.addPage(PAGE_SIZE);
+      y = page.getHeight() - margin;
+    }
+
     const textWidth = useFont.widthOfTextAtSize(text, size);
     const x = opts.center ? (width - textWidth) / 2 : margin;
     page.drawText(text, { x, y, size, font: useFont, color: rgb(0.11, 0.14, 0.2) });
-    y -= (opts.gap ?? size + 8);
+    y -= gap;
   }
 
   line("GOVERNMENT OF INDIA", { size: 10, useFont: bold, center: true, gap: 14 });
@@ -113,9 +129,20 @@ export async function renderDocumentPdf(data: GeneratedDocumentData): Promise<Ui
   y -= 10;
 
   if (data.parcels && data.parcels.length > 0) {
-    line("Affected Parcels", { size: 12, useFont: bold, gap: 18 });
-    for (const parcel of data.parcels) {
+    const totalArea = data.parcels.reduce((sum, p) => sum + p.areaHectares, 0);
+    line(
+      `Affected Parcels — ${data.parcels.length} parcels, ${totalArea.toFixed(2)} ha total`,
+      { size: 12, useFont: bold, gap: 18 }
+    );
+    const itemized = data.parcels.slice(0, MAX_ITEMIZED_PARCELS);
+    for (const parcel of itemized) {
       line(`  ${parcel.village} — ${parcel.areaHectares.toFixed(2)} ha`, { gap: 15 });
+    }
+    if (data.parcels.length > itemized.length) {
+      line(
+        `  ...and ${data.parcels.length - itemized.length} more parcels (see full schedule in the project's parcel records)`,
+        { size: 10, gap: 15 }
+      );
     }
     y -= 8;
   }
