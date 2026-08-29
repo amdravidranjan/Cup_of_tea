@@ -16,6 +16,9 @@ import { ProjectMap } from "@/components/project-map";
 import { getCurrentCompensationRate, listCompensationsForProject } from "@/db/compensation";
 import { resolveCompensationDates } from "@/lib/compensation";
 import { CompensationPanel } from "@/components/compensation-panel";
+import { getRRStage, getRRHistory } from "@/db/rr";
+import { getAvailableRRActions } from "@/lib/rr-workflow";
+import { RRPanel } from "@/components/rr-panel";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -65,6 +68,11 @@ export default async function ProjectDetailPage({
       compensation: comp ? { id: comp.id, total: comp.total, status: comp.status } : null,
     };
   });
+
+  const showRRPanel = STAGES.indexOf(currentStage) >= STAGES.indexOf("RR_IN_PROGRESS");
+  const rrStage = showRRPanel ? await getRRStage(id) : null;
+  const rrHistory = showRRPanel ? await getRRHistory(id) : [];
+  const rrAvailableActions = showRRPanel ? getAvailableRRActions(rrStage, session.role) : [];
 
   return (
     <div className="space-y-6">
@@ -147,6 +155,22 @@ export default async function ProjectDetailPage({
           />
         </CardContent>
       </Card>
+
+      {showRRPanel && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm font-medium">Rehabilitation &amp; Resettlement</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <RRPanel
+              projectId={project.id}
+              stage={rrStage}
+              history={rrHistory}
+              availableActions={rrAvailableActions}
+            />
+          </CardContent>
+        </Card>
+      )}
 
       <Card>
         <CardHeader>

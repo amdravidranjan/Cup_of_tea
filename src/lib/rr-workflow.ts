@@ -1,4 +1,5 @@
 import type { Role } from "./workflow";
+export type { Role } from "./workflow";
 
 export type RRStage =
   | "SURVEYED"
