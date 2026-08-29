@@ -3,7 +3,7 @@ import type { LibSQLDatabase } from "drizzle-orm/libsql";
 import { db as defaultDb } from "./client";
 import { parcels } from "./schema";
 import * as schema from "./schema";
-import type { ParcelStatus } from "@/lib/parcel-status";
+import { nextParcelStatus, type ParcelStatus } from "@/lib/parcel-status";
 import type { PolygonGeometry } from "@/lib/geo";
 
 type Db = LibSQLDatabase<typeof schema>;
@@ -73,6 +73,21 @@ export async function getParcelWith(database: Db, id: string): Promise<Parcel | 
   return rows[0] ? toParcel(rows[0]) : null;
 }
 
+export async function advanceParcelStatusWith(database: Db, id: string): Promise<ParcelStatus> {
+  const rows = await database.select().from(parcels).where(eq(parcels.id, id));
+  const row = rows[0];
+  if (!row) {
+    throw new Error(`Parcel not found: ${id}`);
+  }
+  const next = nextParcelStatus(row.status as ParcelStatus);
+  if (!next) {
+    throw new Error(`Parcel ${id} is already POSSESSED`);
+  }
+  await database.update(parcels).set({ status: next }).where(eq(parcels.id, id));
+  return next;
+}
+
 export const createParcel = (input: CreateParcelInput) => createParcelWith(defaultDb, input);
 export const listParcels = (projectId: string) => listParcelsWith(defaultDb, projectId);
 export const getParcel = (id: string) => getParcelWith(defaultDb, id);
+export const advanceParcelStatus = (id: string) => advanceParcelStatusWith(defaultDb, id);

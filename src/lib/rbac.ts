@@ -10,7 +10,8 @@ export type Permission =
   | "compensation:manage-rate"
   | "compensation:assess"
   | "family:manage"
-  | "entitlement:grant";
+  | "entitlement:grant"
+  | "parcel:update-status";
 
 const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
   // "project:transition" here is the coarse gate ("can this role attempt
@@ -33,10 +34,11 @@ const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
     "compensation:assess",
     "family:manage",
     "entitlement:grant",
+    "parcel:update-status",
   ],
   state: ["project:view:all", "project:transition", "compensation:manage-rate"],
   central: ["project:view:all", "project:transition"],
-  field: ["project:view:own", "document:upload", "family:manage"],
+  field: ["project:view:own", "document:upload", "family:manage", "parcel:update-status"],
 };
 
 export function can(role: Role, permission: Permission): boolean {

@@ -84,4 +84,38 @@ describe("parcels data layer", () => {
     expect(parcel?.village).toBe("Similiguda");
     expect(parcel?.projectId).toBe("p-1");
   });
+
+  it("advances a parcel's status to the next stage", async () => {
+    const { createParcelWith, advanceParcelStatusWith, getParcelWith } = await import(
+      "./parcels"
+    );
+    const id = await createParcelWith(testDb, {
+      projectId: "p-1",
+      village: "Similiguda",
+      areaHectares: 1.2,
+      status: "NOTIFIED",
+      geometry: square,
+    });
+    const status = await advanceParcelStatusWith(testDb, id);
+    expect(status).toBe("ACQUIRED");
+    const parcel = await getParcelWith(testDb, id);
+    expect(parcel?.status).toBe("ACQUIRED");
+  });
+
+  it("rejects advancing a parcel that is already POSSESSED", async () => {
+    const { createParcelWith, advanceParcelStatusWith } = await import("./parcels");
+    const id = await createParcelWith(testDb, {
+      projectId: "p-1",
+      village: "Similiguda",
+      areaHectares: 1.2,
+      status: "POSSESSED",
+      geometry: square,
+    });
+    await expect(advanceParcelStatusWith(testDb, id)).rejects.toThrow();
+  });
+
+  it("rejects advancing a parcel that does not exist", async () => {
+    const { advanceParcelStatusWith } = await import("./parcels");
+    await expect(advanceParcelStatusWith(testDb, "does-not-exist")).rejects.toThrow();
+  });
 });

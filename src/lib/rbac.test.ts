@@ -79,4 +79,15 @@ describe("can", () => {
     expect(can("field", "entitlement:grant")).toBe(false);
     expect(can("state", "entitlement:grant")).toBe(false);
   });
+
+  it("allows district and field to update parcel status", () => {
+    expect(can("district", "parcel:update-status")).toBe(true);
+    expect(can("field", "parcel:update-status")).toBe(true);
+  });
+
+  it("does not allow agency, state, or central to update parcel status", () => {
+    expect(can("agency", "parcel:update-status")).toBe(false);
+    expect(can("state", "parcel:update-status")).toBe(false);
+    expect(can("central", "parcel:update-status")).toBe(false);
+  });
 });
