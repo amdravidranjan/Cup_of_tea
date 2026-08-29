@@ -3,6 +3,7 @@ import { getSession } from "@/lib/auth";
 import { can } from "@/lib/rbac";
 import { RoleSwitcher } from "@/components/role-switcher";
 import { NotificationBell } from "@/components/notification-bell";
+import { GlobalSearch } from "@/components/global-search";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 
@@ -46,7 +47,8 @@ export default async function DashboardLayout({
               </div>
             )}
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            {session && <GlobalSearch />}
             {session && can(session.role, "parcel:update-status") && (
               <Button variant="outline" asChild>
                 <Link href="/app/field">Field Verification</Link>
