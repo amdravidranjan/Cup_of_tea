@@ -1,8 +1,9 @@
+import Link from "next/link";
 import { getSession } from "@/lib/auth";
 import { can } from "@/lib/rbac";
 import { listProjects } from "@/db/projects";
 import { listParcels } from "@/db/parcels";
-import { FieldParcelCard } from "@/components/field-parcel-card";
+import { Card, CardContent } from "@/components/ui/card";
 
 export default async function FieldVerificationPage() {
   const session = await getSession();
@@ -10,13 +11,17 @@ export default async function FieldVerificationPage() {
 
   const canUpdate = can(session.role, "parcel:update-status");
   const projects = await listProjects();
-  const projectsWithParcels = await Promise.all(
-    projects.map(async (project) => ({
-      project,
-      parcels: await listParcels(project.id),
-    }))
+  const projectsWithCounts = await Promise.all(
+    projects.map(async (project) => {
+      const parcels = await listParcels(project.id);
+      return {
+        project,
+        total: parcels.length,
+        possessed: parcels.filter((p) => p.status === "POSSESSED").length,
+      };
+    })
   );
-  const nonEmpty = projectsWithParcels.filter((p) => p.parcels.length > 0);
+  const nonEmpty = projectsWithCounts.filter((p) => p.total > 0);
 
   return (
     <div className="mx-auto max-w-md space-y-6">
@@ -25,11 +30,11 @@ export default async function FieldVerificationPage() {
           Field Verification
         </p>
         <h2 className="font-heading text-xl font-semibold text-foreground">
-          Parcel Status Checklist
+          Select a project
         </h2>
         <p className="mt-1 text-sm text-muted-foreground">
           {canUpdate
-            ? "Tap a parcel to record on-ground progress."
+            ? "Pick a project to record on-ground parcel progress."
             : "Your role can view but not update parcel status."}
         </p>
       </div>
@@ -37,23 +42,21 @@ export default async function FieldVerificationPage() {
       {nonEmpty.length === 0 ? (
         <p className="text-sm text-muted-foreground">No parcels recorded yet.</p>
       ) : (
-        <div className="space-y-6">
-          {nonEmpty.map(({ project, parcels }) => (
-            <div key={project.id} className="space-y-3">
-              <h3 className="text-sm font-semibold text-foreground">{project.name}</h3>
-              {parcels.map((parcel) => (
-                <FieldParcelCard
-                  key={parcel.id}
-                  parcel={{
-                    id: parcel.id,
-                    village: parcel.village,
-                    areaHectares: parcel.areaHectares,
-                    status: parcel.status,
-                  }}
-                  canUpdate={canUpdate}
-                />
-              ))}
-            </div>
+        <div className="space-y-3">
+          {nonEmpty.map(({ project, total, possessed }) => (
+            <Link key={project.id} href={`/app/field/${project.id}`}>
+              <Card className="transition-colors hover:bg-muted/50">
+                <CardContent className="space-y-1 py-4">
+                  <p className="text-base font-medium">{project.name}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {project.district}, {project.state}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    {possessed} of {total} parcels possessed
+                  </p>
+                </CardContent>
+              </Card>
+            </Link>
           ))}
         </div>
       )}
