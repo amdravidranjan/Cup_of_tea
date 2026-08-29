@@ -126,3 +126,12 @@ export const notificationReads = sqliteTable("notification_reads", {
   userId: text("user_id").primaryKey(),
   lastSeenAt: integer("last_seen_at", { mode: "timestamp" }).notNull(),
 });
+
+export const infrastructureItems = sqliteTable("infrastructure_items", {
+  id: text("id").primaryKey(),
+  projectId: text("project_id").notNull(),
+  item: text("item").notNull(),
+  status: text("status").notNull().default("PENDING"),
+  completedBy: text("completed_by"),
+  completedAt: integer("completed_at", { mode: "timestamp" }),
+});
