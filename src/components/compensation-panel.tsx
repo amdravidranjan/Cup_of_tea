@@ -9,12 +9,21 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { compensationTone, toneBadgeClass } from "@/lib/status-colors";
+import { formatDateTime } from "@/lib/format";
 
 interface ParcelWithCompensation {
   id: string;
   village: string;
   areaHectares: number;
   compensation: { id: string; total: number; status: string } | null;
+}
+
+interface RateHistoryEntry {
+  id: string;
+  ratePerHectare: number;
+  multiplier: number;
+  setBy: string;
+  createdAt: Date;
 }
 
 export function CompensationPanel({
@@ -24,6 +33,7 @@ export function CompensationPanel({
   datesResolved,
   currentRate,
   parcels,
+  rateHistory,
 }: {
   projectId: string;
   canManageRate: boolean;
@@ -31,6 +41,7 @@ export function CompensationPanel({
   datesResolved: boolean;
   currentRate: { ratePerHectare: number; multiplier: number } | null;
   parcels: ParcelWithCompensation[];
+  rateHistory: RateHistoryEntry[];
 }) {
   const router = useRouter();
   const [pending, setPending] = useState<string | null>(null);
@@ -124,6 +135,22 @@ export function CompensationPanel({
             {pending === "rate" ? "Saving…" : "Set current rate"}
           </Button>
         </form>
+      )}
+
+      {rateHistory.length > 1 && (
+        <details className="rounded-lg border p-3 text-sm">
+          <summary className="cursor-pointer font-medium">
+            Rate history ({rateHistory.length} revisions)
+          </summary>
+          <ul className="mt-2 space-y-1 text-muted-foreground">
+            {rateHistory.map((r) => (
+              <li key={r.id}>
+                Rs {r.ratePerHectare.toLocaleString("en-IN")}/ha &times; {r.multiplier} — set by{" "}
+                {r.setBy} on {formatDateTime(r.createdAt)}
+              </li>
+            ))}
+          </ul>
+        </details>
       )}
 
       {!currentRate && (

@@ -14,7 +14,11 @@ import {
   IMPACT_BUFFER_METERS,
 } from "@/lib/geo";
 import { ProjectMap } from "@/components/project-map";
-import { getCurrentCompensationRate, listCompensationsForProject } from "@/db/compensation";
+import {
+  getCurrentCompensationRate,
+  listCompensationRates,
+  listCompensationsForProject,
+} from "@/db/compensation";
 import { resolveCompensationDates } from "@/lib/compensation";
 import { CompensationPanel } from "@/components/compensation-panel";
 import { getRRStage, getRRHistory } from "@/db/rr";
@@ -58,6 +62,7 @@ export default async function ProjectDetailPage({
   const parcelsWithImpact = computeParcelsWithImpact(alignment, parcelList);
 
   const compensationRate = await getCurrentCompensationRate(project.state, project.district);
+  const compensationRateHistory = await listCompensationRates(project.state, project.district);
   const compensationList = await listCompensationsForProject(id);
   const compensationDates = resolveCompensationDates(history);
   const canManageRate = can(session.role, "compensation:manage-rate");
@@ -149,6 +154,13 @@ export default async function ProjectDetailPage({
                 : null
             }
             parcels={parcelsWithCompensation}
+            rateHistory={compensationRateHistory.map((r) => ({
+              id: r.id,
+              ratePerHectare: r.ratePerHectare,
+              multiplier: r.multiplier,
+              setBy: r.setBy,
+              createdAt: r.createdAt,
+            }))}
           />
         </CardContent>
       </Card>

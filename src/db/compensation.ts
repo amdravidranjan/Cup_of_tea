@@ -45,6 +45,18 @@ export async function getCurrentCompensationRateWith(
   return rows[0] ?? null;
 }
 
+export async function listCompensationRatesWith(
+  database: Db,
+  state: string,
+  district: string
+) {
+  return database
+    .select()
+    .from(compensationRates)
+    .where(and(eq(compensationRates.state, state), eq(compensationRates.district, district)))
+    .orderBy(desc(compensationRates.createdAt));
+}
+
 export interface CreateCompensationInput {
   parcelId: string;
   projectId: string;
@@ -99,6 +111,8 @@ export const setCompensationRate = (input: SetCompensationRateInput) =>
   setCompensationRateWith(defaultDb, input);
 export const getCurrentCompensationRate = (state: string, district: string) =>
   getCurrentCompensationRateWith(defaultDb, state, district);
+export const listCompensationRates = (state: string, district: string) =>
+  listCompensationRatesWith(defaultDb, state, district);
 export const createCompensation = (input: CreateCompensationInput) =>
   createCompensationWith(defaultDb, input);
 export const listCompensationsForProject = (projectId: string) =>

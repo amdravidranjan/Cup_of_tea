@@ -61,6 +61,50 @@ describe("compensation rates", () => {
     expect(current?.ratePerHectare).toBe(1_500_000);
     expect(current?.multiplier).toBe(1.5);
   });
+
+  it("lists full rate history for a state/district, newest first", async () => {
+    const { setCompensationRateWith, listCompensationRatesWith } = await import("./compensation");
+    await setCompensationRateWith(testDb, {
+      state: "Odisha",
+      district: "Koraput",
+      ratePerHectare: 1_000_000,
+      multiplier: 1,
+      setBy: "u-district-1",
+    });
+    await new Promise((r) => setTimeout(r, 1100));
+    await setCompensationRateWith(testDb, {
+      state: "Odisha",
+      district: "Koraput",
+      ratePerHectare: 1_500_000,
+      multiplier: 1.5,
+      setBy: "u-district-2",
+    });
+    const history = await listCompensationRatesWith(testDb, "Odisha", "Koraput");
+    expect(history).toHaveLength(2);
+    expect(history[0].ratePerHectare).toBe(1_500_000);
+    expect(history[1].ratePerHectare).toBe(1_000_000);
+  });
+
+  it("scopes rate history to the given state/district", async () => {
+    const { setCompensationRateWith, listCompensationRatesWith } = await import("./compensation");
+    await setCompensationRateWith(testDb, {
+      state: "Odisha",
+      district: "Koraput",
+      ratePerHectare: 1_000_000,
+      multiplier: 1,
+      setBy: "u-district-1",
+    });
+    await setCompensationRateWith(testDb, {
+      state: "Tamil Nadu",
+      district: "Chennai",
+      ratePerHectare: 5_000_000,
+      multiplier: 2,
+      setBy: "u-district-2",
+    });
+    const history = await listCompensationRatesWith(testDb, "Odisha", "Koraput");
+    expect(history).toHaveLength(1);
+    expect(history[0].district).toBe("Koraput");
+  });
 });
 
 describe("compensation records", () => {
