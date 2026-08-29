@@ -7,6 +7,7 @@ import {
 import { DashboardStats } from "@/components/dashboard-stats";
 import { PublicProjectSearch } from "@/components/public-project-search";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { formatDate } from "@/lib/format";
 
 export default async function PublicLandingPage() {
   const [projects, stats, notices] = await Promise.all([
@@ -29,7 +30,7 @@ export default async function PublicLandingPage() {
           )}
         </div>
 
-        <Card>
+        <Card className="lg:sticky lg:top-6 lg:self-start">
           <CardHeader>
             <CardTitle className="text-sm font-medium">Recent notices</CardTitle>
           </CardHeader>
@@ -37,14 +38,14 @@ export default async function PublicLandingPage() {
             {notices.length === 0 ? (
               <p className="text-sm text-muted-foreground">No notices yet.</p>
             ) : (
-              <ul className="space-y-3">
+              <ul className="max-h-[32rem] space-y-3 overflow-y-auto pr-1">
                 {notices.map((n) => (
-                  <li key={n.id} className="text-sm">
+                  <li key={n.id} className="border-b pb-3 text-sm last:border-b-0 last:pb-0">
                     <Link href={`/projects/${n.projectId}`} className="font-medium hover:underline">
                       {n.projectName}
                     </Link>
                     <p className="text-muted-foreground">
-                      {n.label} — {n.occurredAt.toLocaleDateString()}
+                      {n.label} — {formatDate(n.occurredAt)}
                     </p>
                   </li>
                 ))}
