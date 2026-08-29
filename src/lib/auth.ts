@@ -5,6 +5,8 @@ export interface Session {
   userId: string;
   name: string;
   role: Role;
+  state?: string;
+  district?: string;
 }
 
 export const SESSION_COOKIE = "demo_session";

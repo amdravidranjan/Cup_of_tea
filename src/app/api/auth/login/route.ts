@@ -8,6 +8,12 @@ export async function POST(request: NextRequest) {
   if (!user) {
     return NextResponse.json({ error: "Unknown demo user" }, { status: 400 });
   }
-  await setSession({ userId: user.id, name: user.name, role: user.role });
+  await setSession({
+    userId: user.id,
+    name: user.name,
+    role: user.role,
+    state: user.state,
+    district: user.district,
+  });
   return NextResponse.json({ ok: true });
 }

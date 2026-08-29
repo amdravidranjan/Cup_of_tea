@@ -22,4 +22,19 @@ describe("parseSessionCookie", () => {
       role: "district",
     });
   });
+
+  it("preserves optional state and district fields when present", () => {
+    const raw = JSON.stringify({
+      userId: "u-state-2",
+      name: "Test State Official",
+      role: "state",
+      state: "Tamil Nadu",
+    });
+    expect(parseSessionCookie(raw)).toEqual({
+      userId: "u-state-2",
+      name: "Test State Official",
+      role: "state",
+      state: "Tamil Nadu",
+    });
+  });
 });
