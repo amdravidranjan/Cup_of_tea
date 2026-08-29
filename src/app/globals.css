@@ -7,9 +7,11 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-  --font-heading: var(--font-geist-sans);
+  --font-sans: var(--font-plex-sans);
+  --font-mono: var(--font-plex-mono);
+  --font-heading: var(--font-source-serif);
+  --color-brand: var(--brand);
+  --color-brand-foreground: var(--brand-foreground);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -49,38 +51,44 @@
 }
 
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.45 0.15 255);
-  --primary-foreground: oklch(0.98 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  /* Warm institutional palette: parchment paper, deep navy authority,
+     sandstone accent (drawn from the red-sandstone of Indian government
+     buildings — North/South Block, Rashtrapati Bhavan) used sparingly as
+     the one signature color rather than tinting every UI surface. */
+  --background: #faf7f1;
+  --foreground: #1b2333;
+  --card: #ffffff;
+  --card-foreground: #1b2333;
+  --popover: #ffffff;
+  --popover-foreground: #1b2333;
+  --primary: #16294d;
+  --primary-foreground: #faf7f1;
+  --secondary: #f0ebe0;
+  --secondary-foreground: #1b2333;
+  --muted: #f0ebe0;
+  --muted-foreground: #6b6255;
+  --accent: #f0ebe0;
+  --accent-foreground: #1b2333;
+  --brand: #be6a3b;
+  --brand-foreground: #ffffff;
+  --destructive: #b3261e;
+  --border: #e4ded2;
+  --input: #e4ded2;
+  --ring: #16294d;
+  --chart-1: #16294d;
+  --chart-2: #be6a3b;
+  --chart-3: #4b7a8f;
+  --chart-4: #8a7355;
+  --chart-5: #6b6255;
+  --radius: 0.4rem;
+  --sidebar: #faf7f1;
+  --sidebar-foreground: #1b2333;
+  --sidebar-primary: #16294d;
+  --sidebar-primary-foreground: #faf7f1;
+  --sidebar-accent: #f0ebe0;
+  --sidebar-accent-foreground: #1b2333;
+  --sidebar-border: #e4ded2;
+  --sidebar-ring: #16294d;
 }
 
 .dark {
@@ -126,5 +134,13 @@
   }
   html {
     @apply font-sans;
+  }
+  h1,
+  h2,
+  h3 {
+    @apply font-heading;
+  }
+  table {
+    font-variant-numeric: tabular-nums;
   }
 }
