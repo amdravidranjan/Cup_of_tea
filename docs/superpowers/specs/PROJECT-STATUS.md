@@ -80,6 +80,14 @@ Legend: ✅ done & verified · 🚧 partial · ⬜ not started. Priority tags (�
 - ⬜ Empty states that teach, smart defaults, drag-drop document upload w/ thumbnails, customizable dashboard widgets, saved filters/views, plain-language public summaries, offline banner for field officers
 - ⬜ ⚪ Demo role-switcher already exists (pre-existing `RoleSwitcher`) — undo window, high-contrast toggle, notification preferences, "my data" export not built
 
+## Seed data realism (found and fixed this session)
+User flagged that the map's parcels were 2-3 hand-typed arbitrary boxes per project with no relationship to the alignment or any land-record logic — a legitimate demo-credibility gap, not a UI bug. Fixed:
+- `src/lib/parcel-generation.ts`: real procedural generation — corridor projects get a ribbon of parcels along the actual alignment at a real 45m highway ROW width; area-footprint projects get a grid at India's actual average agricultural holding size (~1.2ha). Deterministic (seeded PRNG).
+- Reseeded: ~2,200 parcels total across 8 projects (up from ~17), 1,486 real compensation records.
+- Had to convert `CompensationPanel` and the field-verification page from card-per-parcel lists to paginated tables/lists — neither survived a 600-parcel project.
+- Had to fix `src/lib/generated-documents.ts`'s PDF generator, which had no page-overflow handling and would have silently drawn most of a 600-item parcel list off the bottom of a single page — now paginates real PDF pages and caps itemization at 40 with a summary note beyond that.
+- Verified: build clean, 171 tests passing, page loads under 1s even for the heaviest (600-parcel) pages.
+
 ## Bugs fixed this session (found incidentally, not spec items)
 - `next-themes` `useTheme()` called with no `ThemeProvider` ancestor in `sonner.tsx` — was producing a console error on every page load. Fixed by removing the unused hook call (app is light-only).
 - `toLocaleString()`/`toLocaleDateString()` called with no locale argument in 5 places — classic SSR/client hydration mismatch risk (server OS locale vs. browser locale). Fixed via `src/lib/format.ts` pinning `en-IN`/`Asia/Kolkata` explicitly.
