@@ -121,3 +121,8 @@ export const entitlements = sqliteTable("entitlements", {
   grantedAt: integer("granted_at", { mode: "timestamp" }),
   note: text("note"),
 });
+
+export const notificationReads = sqliteTable("notification_reads", {
+  userId: text("user_id").primaryKey(),
+  lastSeenAt: integer("last_seen_at", { mode: "timestamp" }).notNull(),
+});
