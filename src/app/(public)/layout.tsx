@@ -3,20 +3,28 @@ import { Button } from "@/components/ui/button";
 
 export default function PublicLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen bg-muted/30">
-      <header className="flex flex-col gap-3 border-b bg-background px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-base font-semibold">
-            National Land Acquisition &amp; Management System
-          </h1>
-          <p className="text-sm text-muted-foreground">
-            Public Portal — track land acquisition projects and statutory notices
-          </p>
+    <div className="min-h-screen bg-background">
+      <header className="border-b-2 border-brand bg-primary px-6 py-4 text-primary-foreground">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="text-[11px] font-semibold tracking-[0.18em] text-primary-foreground/60 uppercase">
+              Public Transparency Portal
+            </p>
+            <h1 className="font-heading text-lg font-semibold">
+              National Land Acquisition &amp; Management System
+            </h1>
+          </div>
+          <Button variant="outline" asChild>
+            <Link href="/app">Government Login →</Link>
+          </Button>
         </div>
-        <Button variant="outline" asChild>
-          <Link href="/app">Government Login →</Link>
-        </Button>
       </header>
+      <div className="border-b bg-secondary/60 px-6 py-8">
+        <p className="font-heading max-w-2xl text-xl leading-snug text-foreground">
+          Every notified land acquisition project, its statutory notices, and its
+          compensation record — open to the public it affects.
+        </p>
+      </div>
       <main className="p-6">{children}</main>
     </div>
   );
