@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { RR_STAGES, type RRAction, type RRStage } from "@/lib/rr-workflow";
 import type { Role } from "@/lib/workflow";
+import { formatDateTime } from "@/lib/format";
 
 const RR_STEP_LABELS: Record<RRStage, string> = {
   SURVEYED: "1. Survey of affected families",
@@ -98,7 +99,7 @@ export function RRPanel({
               </div>
               {entry && (
                 <p className="text-xs text-muted-foreground">
-                  {entry.actorRole} on {new Date(entry.createdAt).toLocaleString()}
+                  {entry.actorRole} on {formatDateTime(new Date(entry.createdAt))}
                   {entry.note ? ` — ${entry.note}` : ""}
                 </p>
               )}
