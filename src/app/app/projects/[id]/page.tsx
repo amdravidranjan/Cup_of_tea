@@ -6,6 +6,7 @@ import { ProjectActions } from "@/components/project-actions";
 import { listDocuments } from "@/db/documents";
 import { can } from "@/lib/rbac";
 import { DocumentUpload } from "@/components/document-upload";
+import { GenerateDocument } from "@/components/generate-document";
 import { listParcels } from "@/db/parcels";
 import {
   parseStoredGeometry,
@@ -196,6 +197,7 @@ export default async function ProjectDetailPage({
           <CardTitle className="text-sm font-medium">Documents</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
+          {canUpload && <GenerateDocument projectId={project.id} currentStage={currentStage} />}
           {canUpload ? (
             <DocumentUpload projectId={project.id} />
           ) : (
