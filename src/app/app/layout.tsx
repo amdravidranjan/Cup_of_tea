@@ -1,7 +1,10 @@
+import Link from "next/link";
 import { getSession } from "@/lib/auth";
+import { can } from "@/lib/rbac";
 import { RoleSwitcher } from "@/components/role-switcher";
 import { NotificationBell } from "@/components/notification-bell";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
 
 function initials(name: string): string {
   return name
@@ -44,6 +47,11 @@ export default async function DashboardLayout({
             )}
           </div>
           <div className="flex items-center gap-2">
+            {session && can(session.role, "parcel:update-status") && (
+              <Button variant="outline" asChild>
+                <Link href="/app/field">Field Verification</Link>
+              </Button>
+            )}
             {session && <NotificationBell />}
             <RoleSwitcher />
           </div>
