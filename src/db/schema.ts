@@ -135,3 +135,20 @@ export const infrastructureItems = sqliteTable("infrastructure_items", {
   completedBy: text("completed_by"),
   completedAt: integer("completed_at", { mode: "timestamp" }),
 });
+
+export const grievances = sqliteTable("grievances", {
+  id: text("id").primaryKey(),
+  trackingNumber: text("tracking_number").notNull().unique(),
+  type: text("type").notNull(),
+  projectId: text("project_id").notNull(),
+  compensationId: text("compensation_id"),
+  submitterName: text("submitter_name").notNull(),
+  submitterContact: text("submitter_contact"),
+  description: text("description").notNull(),
+  status: text("status").notNull().default("FILED"),
+  resolution: text("resolution"),
+  resolutionNote: text("resolution_note"),
+  resolvedBy: text("resolved_by"),
+  resolvedAt: integer("resolved_at", { mode: "timestamp" }),
+  createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
+});
