@@ -96,3 +96,28 @@ export const rrStageHistory = sqliteTable("rr_stage_history", {
   note: text("note"),
   createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
 });
+
+export const families = sqliteTable("families", {
+  id: text("id").primaryKey(),
+  projectId: text("project_id").notNull(),
+  parcelId: text("parcel_id"),
+  headOfHouseholdName: text("head_of_household_name").notNull(),
+  village: text("village").notNull(),
+  category: text("category").notNull(),
+  memberCount: integer("member_count").notNull(),
+  vulnerableGroup: integer("vulnerable_group", { mode: "boolean" }).notNull().default(false),
+  contactPhone: text("contact_phone"),
+  surveyedBy: text("surveyed_by").notNull(),
+  surveyedAt: integer("surveyed_at", { mode: "timestamp" }).notNull(),
+});
+
+export const entitlements = sqliteTable("entitlements", {
+  id: text("id").primaryKey(),
+  familyId: text("family_id").notNull(),
+  type: text("type").notNull(),
+  status: text("status").notNull().default("PENDING"),
+  amount: real("amount"),
+  grantedBy: text("granted_by"),
+  grantedAt: integer("granted_at", { mode: "timestamp" }),
+  note: text("note"),
+});
