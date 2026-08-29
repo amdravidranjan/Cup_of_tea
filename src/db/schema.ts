@@ -20,6 +20,7 @@ export const projects = sqliteTable("projects", {
   updatedAt: integer("updated_at", { mode: "timestamp" }).notNull(),
   geometryType: text("geometry_type"),
   geometryGeoJson: text("geometry_geo_json"),
+  rrStage: text("rr_stage"),
 });
 
 export const stageHistory = sqliteTable("stage_history", {
@@ -82,4 +83,16 @@ export const compensations = sqliteTable("compensations", {
   assessedBy: text("assessed_by").notNull(),
   assessedAt: integer("assessed_at", { mode: "timestamp" }).notNull(),
   paidAt: integer("paid_at", { mode: "timestamp" }),
+});
+
+export const rrStageHistory = sqliteTable("rr_stage_history", {
+  id: text("id").primaryKey(),
+  projectId: text("project_id").notNull(),
+  fromStage: text("from_stage"),
+  toStage: text("to_stage").notNull(),
+  action: text("action").notNull(),
+  actorId: text("actor_id").notNull(),
+  actorRole: text("actor_role").notNull(),
+  note: text("note"),
+  createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
 });
