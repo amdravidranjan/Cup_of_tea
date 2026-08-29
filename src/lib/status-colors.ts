@@ -37,3 +37,24 @@ const COMPENSATION_TONES: Record<string, StatusTone> = {
 export function compensationTone(status: string): StatusTone {
   return COMPENSATION_TONES[status] ?? "pending";
 }
+
+const TONE_HEX: Record<StatusTone, string> = {
+  pending: "#d97706",
+  success: "#16a34a",
+  danger: "#dc2626",
+  info: "#2563eb",
+};
+
+export function toneHex(tone: StatusTone): string {
+  return TONE_HEX[tone];
+}
+
+const SLA_STATUS_TONES: Record<string, StatusTone> = {
+  "on-track": "success",
+  "at-risk": "pending",
+  breached: "danger",
+};
+
+export function slaStatusTone(status: string): StatusTone {
+  return SLA_STATUS_TONES[status] ?? "pending";
+}
