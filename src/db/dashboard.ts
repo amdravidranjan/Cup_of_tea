@@ -63,7 +63,7 @@ function emptyStats(): PortfolioStats {
   };
 }
 
-async function aggregate(database: Db, projects: ProjectRow[]): Promise<PortfolioStats> {
+export async function aggregatePortfolioStatsWith(database: Db, projects: ProjectRow[]): Promise<PortfolioStats> {
   const stats = emptyStats();
   stats.projectCount = projects.length;
   for (const project of projects) {
@@ -94,7 +94,7 @@ export async function getPortfolioStatsWith(
   filter?: { state?: string }
 ): Promise<PortfolioStats> {
   const projects = scopeProjects(await listProjectsWith(database), filter);
-  return aggregate(database, projects);
+  return aggregatePortfolioStatsWith(database, projects);
 }
 
 export async function getStateBreakdownWith(database: Db): Promise<StateBreakdownRow[]> {
@@ -102,7 +102,7 @@ export async function getStateBreakdownWith(database: Db): Promise<StateBreakdow
   const states = Array.from(new Set(projects.map((p) => p.state))).sort();
   const rows: StateBreakdownRow[] = [];
   for (const state of states) {
-    const stats = await aggregate(
+    const stats = await aggregatePortfolioStatsWith(
       database,
       projects.filter((p) => p.state === state)
     );
