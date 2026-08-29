@@ -1,5 +1,12 @@
 import { describe, it, expect } from "vitest";
-import { toneBadgeClass, stageTone, compensationTone, toneHex, slaStatusTone } from "./status-colors";
+import {
+  toneBadgeClass,
+  stageTone,
+  compensationTone,
+  toneHex,
+  slaStatusTone,
+  parcelStatusTone,
+} from "./status-colors";
 
 describe("toneBadgeClass", () => {
   it("returns distinct classes for each tone", () => {
@@ -70,5 +77,17 @@ describe("slaStatusTone", () => {
 
   it("defaults unknown statuses to pending", () => {
     expect(slaStatusTone("not-applicable")).toBe("pending");
+  });
+});
+
+describe("parcelStatusTone", () => {
+  it("maps NOTIFIED/ACQUIRED/POSSESSED to info/pending/success", () => {
+    expect(parcelStatusTone("NOTIFIED")).toBe("info");
+    expect(parcelStatusTone("ACQUIRED")).toBe("pending");
+    expect(parcelStatusTone("POSSESSED")).toBe("success");
+  });
+
+  it("defaults unknown statuses to pending", () => {
+    expect(parcelStatusTone("UNKNOWN")).toBe("pending");
   });
 });

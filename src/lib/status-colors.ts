@@ -38,11 +38,14 @@ export function compensationTone(status: string): StatusTone {
   return COMPENSATION_TONES[status] ?? "pending";
 }
 
+// Muted to sit alongside the app's warm-parchment/navy palette (solid
+// fills for charts and map layers, where full-saturation Tailwind
+// palette colors read as too candy-bright against that background).
 const TONE_HEX: Record<StatusTone, string> = {
-  pending: "#d97706",
-  success: "#16a34a",
-  danger: "#dc2626",
-  info: "#2563eb",
+  pending: "#b6862c",
+  success: "#3f7d5c",
+  danger: "#a63a2e",
+  info: "#2f5fa3",
 };
 
 export function toneHex(tone: StatusTone): string {
@@ -57,4 +60,14 @@ const SLA_STATUS_TONES: Record<string, StatusTone> = {
 
 export function slaStatusTone(status: string): StatusTone {
   return SLA_STATUS_TONES[status] ?? "pending";
+}
+
+const PARCEL_STATUS_TONES: Record<string, StatusTone> = {
+  NOTIFIED: "info",
+  ACQUIRED: "pending",
+  POSSESSED: "success",
+};
+
+export function parcelStatusTone(status: string): StatusTone {
+  return PARCEL_STATUS_TONES[status] ?? "pending";
 }
