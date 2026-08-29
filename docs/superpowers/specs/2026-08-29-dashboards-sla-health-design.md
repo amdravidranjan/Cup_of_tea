@@ -25,7 +25,9 @@ The demo will be judged locally by a Tamil Nadu audience. The existing seed data
 - Customizable MIS report builder, cross-state comparison view (🟡 P1, parent spec 6.5).
 - Escalation matrix / auto-notify on breach (⚪ P2, parent spec 6.5) — this design computes and displays SLA status; it does not send anything.
 - Any change to per-project RBAC scoping (e.g. district users only seeing their own district's projects) — out of scope for this feature; the existing coarse role-based `can()` permission model is unchanged. This design only changes *what the dashboard page shows*, not who can act on what.
-- New demo login users — the existing 5 `DEMO_USERS` are reused for all seeded history rows; role scoping in this app is role-based, not state/district-scoped, so no new users are needed to seed cross-state history.
+- Historical seed data (stage/RR transitions, compensation records) is written directly with backdated timestamps rather than through a login session, so no new users are needed just to *seed* cross-state history.
+
+**Correction found while mapping exact signatures (see Section 5.1):** `Session` doesn't currently carry `state`, and the only existing `state`-role demo user is tied to Odisha — which would make it impossible to ever demo a Tamil-Nadu-scoped dashboard, the explicit point of weighting the seed data toward TN. One new demo user is added to fix this (see Section 6).
 
 ## 3. SLA Health Computation
 
@@ -122,6 +124,24 @@ In-memory libSQL, same harness pattern as `projects.test.ts`/`rr.test.ts`: seed 
 
 ## 5. Page & Component Changes
 
+### 5.1 Session gains `state`/`district`
+
+`Session` (`src/lib/auth.ts`) adds two optional fields:
+
+```ts
+export interface Session {
+  userId: string;
+  name: string;
+  role: Role;
+  state?: string;
+  district?: string;
+}
+```
+
+`src/app/api/auth/login/route.ts` passes `user.state`/`user.district` through to `setSession` (both already exist on `DemoUser`, they're just not threaded into the session today). No cookie-format migration concern — this is a demo-only cookie with no existing persisted sessions to preserve across the change.
+
+### 5.2 Dashboard page
+
 No new routes. `(dashboard)/page.tsx` (the existing `/` page) gains a role-scoped stats section above the existing project table:
 
 - **`central`**: national `getPortfolioStats()` + `getStateBreakdown()` table
@@ -141,6 +161,18 @@ New client component `src/components/dashboard-stats.tsx` (`"use client"`, requi
 No automated test for `dashboard-stats.tsx` — same rationale as every other chart/panel component in this codebase (`compensation-panel.tsx`, `rr-panel.tsx`): verified manually against the seeded data.
 
 ## 6. Seed Data
+
+### 6.1 New demo user
+
+`src/db/seed-data.ts`'s `DEMO_USERS` gains one entry:
+
+```ts
+{ id: "u-state-2", name: "Lakshmi Narayanan (State Govt, Tamil Nadu)", role: "state", state: "Tamil Nadu" },
+```
+
+Logging in as `u-state-2` is how the state-scoped Tamil Nadu dashboard actually gets demoed.
+
+### 6.2 Project timeline data
 
 `src/db/seed.ts` is rewritten around a small seed-only helper that mirrors the real transition functions but accepts an explicit historical timestamp instead of `new Date()`, so backdated SLA scenarios can be constructed deterministically:
 
@@ -182,7 +214,7 @@ Each new project gets 2-3 parcels (reusing `createParcel`) and a `compensationRa
 
 Coordinates are illustrative points near each named district's real location — synthetic demo geometry, not an actual survey of these real-world projects (consistent with the parent spec's Section 3.3 standing decision to seed synthetic-but-structurally-real data rather than fabricate precise real-world facts).
 
-### 6.1 Verification
+### 6.3 Verification
 
 Because this session's manual API testing already advanced the existing Koraput project's real local `local.db` state (it's now sitting at `POSSESSION`/`RR_AWARDED` from earlier verification steps, not the fresh `DRAFT` the seed script inserts), verification for this plan includes a full local database reset — delete `local.db`, `npm run db:push`, `npm run db:seed` — so the demo dataset is deterministic and doesn't depend on incidental prior manual testing.
 
