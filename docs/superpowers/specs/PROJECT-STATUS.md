@@ -19,8 +19,8 @@ Legend: ✅ done & verified · 🚧 partial · ⬜ not started. Priority tags (�
 - ✅ 🟢 Per-parcel compensation & disbursement tracking
 - ✅ 🟡 R&R Award workflow (6-step Chart 5.1)
 - ✅ 🟡 **Second Schedule entitlement tracker per household** (`src/db/families.ts`, `src/lib/entitlements.ts`, families panel on project detail page) — built this session
-- ⬜ 🟡 Third Schedule infrastructure checklist per R&R colony
-- ⬜ 🟡 Versioned entitlement-rate table (effective-date ranges)
+- ✅ 🟡 **Third Schedule infrastructure checklist per R&R colony** (`src/db/infrastructure.ts`, 18-item checklist auto-created at POSSESSION+, tracked per project) — built this session
+- ✅ 🟡 **Versioned entitlement-rate table** — the underlying `compensation_rates` table was already append-only; added `listCompensationRatesWith` + a "Rate history" panel so past revisions (who/when/what) are now actually visible, closing the CAG-audit-cited transparency gap — built this session
 - ⬜ 🟡 Dispute/appeal workflow
 - ⬜ ⚪ Mock bank/PFMS disbursement trail
 - ⬜ ⚪ Record of Rights (RoR) issuance tracking
@@ -40,12 +40,12 @@ Legend: ✅ done & verified · 🚧 partial · ⬜ not started. Priority tags (�
 - ✅ 🟢 Secure repository, version history, audit trail
 - ✅ 🟢 DPR & design/blueprint upload
 - ✅ 🟢 **Auto-generated official documents (notification, declaration, award letter, possession certificate) — PDF export** (`src/lib/generated-documents.ts`, pdf-lib) — built this session
-- ⬜ 🟡 Document checklist per stage with missing-doc flags
+- ✅ 🟡 **Document checklist per stage with missing-doc flags** (`src/lib/document-requirements.ts`, badges on project detail page) — built this session
 - ⬜ ⚪ E-signature stub
 
 ## 6.5 Dashboards & Reporting
 - ✅ 🟢 National dashboard, state-wise/project-wise drill-down
-- ✅ 🟢 SLA/timeline health (3 statutory deadlines)
+- ✅ 🟢 SLA/timeline health (3 statutory deadlines). Note: the 18-month infrastructural R&R deadline is still excluded from `src/lib/sla.ts` even though `src/db/infrastructure.ts` (built this session) now has real completion data it could compute against — a good next small addition, not yet done.
 - ⬜ 🟡 Customizable MIS report builder
 - ⬜ 🟡 Cross-state/cross-project comparison view
 - ⬜ ⚪ Escalation matrix (auto-flag + notify on SLA breach)
