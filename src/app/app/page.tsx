@@ -57,7 +57,7 @@ export default async function DashboardPage() {
                   <TableRow key={project.id}>
                     <TableCell>
                       <Link
-                        href={`/projects/${project.id}`}
+                        href={`/app/projects/${project.id}`}
                         className="font-medium hover:underline"
                       >
                         {project.name}
