@@ -45,9 +45,9 @@ Legend: ✅ done & verified · 🚧 partial · ⬜ not started. Priority tags (�
 
 ## 6.5 Dashboards & Reporting
 - ✅ 🟢 National dashboard, state-wise/project-wise drill-down
-- ✅ 🟢 SLA/timeline health (3 statutory deadlines). Note: the 18-month infrastructural R&R deadline is still excluded from `src/lib/sla.ts` even though `src/db/infrastructure.ts` (built this session) now has real completion data it could compute against — a good next small addition, not yet done.
+- ✅ 🟢 SLA/timeline health — now **4** statutory deadlines (declaration, compensation, R&R award, and the 18-month infrastructure metric added this session against real Third Schedule checklist data)
 - ⬜ 🟡 Customizable MIS report builder
-- ⬜ 🟡 Cross-state/cross-project comparison view
+- 🚧 🟡 Cross-state/cross-project comparison view — the central dashboard's state-breakdown table (`getStateBreakdown`, pre-existing) already covers cross-*state* comparison; side-by-side cross-*project* comparison is not built
 - ⬜ ⚪ Escalation matrix (auto-flag + notify on SLA breach)
 
 ## 6.6 Field & Mobile
