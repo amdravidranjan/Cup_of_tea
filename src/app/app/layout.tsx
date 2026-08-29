@@ -1,5 +1,6 @@
 import { getSession } from "@/lib/auth";
 import { RoleSwitcher } from "@/components/role-switcher";
+import { NotificationBell } from "@/components/notification-bell";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 function initials(name: string): string {
@@ -42,7 +43,10 @@ export default async function DashboardLayout({
               </div>
             )}
           </div>
-          <RoleSwitcher />
+          <div className="flex items-center gap-2">
+            {session && <NotificationBell />}
+            <RoleSwitcher />
+          </div>
         </div>
       </header>
       <main className="p-6">
