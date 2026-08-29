@@ -50,7 +50,7 @@ export function computeSLAMetrics(
   input: {
     stageHistory: { action: string; toStage: string; createdAt: Date }[];
     compensations: { paidAt: Date | null }[];
-    rrStage: string | null;
+    rrHistory: { toStage: string; createdAt: Date }[];
   },
   asOf: Date = new Date()
 ): SLAMetric[]
@@ -61,8 +61,12 @@ Three metrics, each independently computed:
 | id | Clock starts | Clock stops | Deadline |
 |---|---|---|---|
 | `declaration` | `NOTIFIED` stage timestamp (Section 11) | `DECLARED` stage timestamp (Section 19) | 12 months |
-| `compensation` | `AWARDED` stage timestamp | every row in `compensations` for the project has `paidAt` set | 3 months |
-| `rr-award` | `AWARDED` stage timestamp | `rrStage === "RR_AWARDED"` | 6 months |
+| `compensation` | `AWARDED` stage timestamp | every row in `compensations` (at least one row) has `paidAt` set; `completedAt` is the latest `paidAt` | 3 months |
+| `rr-award` | `AWARDED` stage timestamp | a row in `rrHistory` with `toStage === "RR_AWARDED"` exists; `completedAt` is that row's `createdAt` | 6 months |
+
+`rrHistory` is exactly what `getRRHistoryWith` (`src/db/rr.ts`, already built by the R&R Award workflow plan) already returns — no new query needed, just passed through. Using the current `rrStage` column alone (as an earlier draft of this design did) can't answer "was it on time," since it only tells you the current value, not when it was reached — the same reason `declaration` and `compensation` read from history rather than a bare column.
+
+An **empty `compensations` array counts as incomplete**, not vacuously complete — a project that reached `AWARDED` but has zero compensation records yet has clearly not paid anyone, so `compensation` is evaluated as `on-track`/`at-risk`/`breached` purely on elapsed time, never treated as done just because there's nothing to fail the "every row" check against.
 
 Status rules (evaluated at `asOf`, default `new Date()`):
 - **`not-applicable`** — the clock hasn't started (e.g. project hasn't reached `NOTIFIED"` yet for the `declaration` metric). No badge is shown for this in the UI.
@@ -80,7 +84,7 @@ Table-driven: for each of the 3 metrics, a case each for `not-applicable` (clock
 
 ## 4. Data Layer
 
-New `src/db/dashboard.ts`, following the existing `db/*.ts` convention (`*With(database, ...)` core + zero-arg `defaultDb` wrapper). Reuses existing accessors (`listProjectsWith`, `getStageHistoryWith`, `listCompensationsForProjectWith`, `getRRStageWith`) per project — N+1 queries are acceptable at this app's seeded scale (8 projects).
+New `src/db/dashboard.ts`, following the existing `db/*.ts` convention (`*With(database, ...)` core + zero-arg `defaultDb` wrapper). Reuses existing accessors (`listProjectsWith`, `getStageHistoryWith`, `listCompensationsForProjectWith`, `getRRHistoryWith`) per project — N+1 queries are acceptable at this app's seeded scale (8 projects).
 
 ```ts
 export interface ProjectSLASummary {
