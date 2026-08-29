@@ -90,4 +90,10 @@ describe("can", () => {
     expect(can("state", "parcel:update-status")).toBe(false);
     expect(can("central", "parcel:update-status")).toBe(false);
   });
+
+  it("only allows district to manage the infrastructure checklist", () => {
+    expect(can("district", "infrastructure:manage")).toBe(true);
+    expect(can("field", "infrastructure:manage")).toBe(false);
+    expect(can("state", "infrastructure:manage")).toBe(false);
+  });
 });

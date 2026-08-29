@@ -22,6 +22,8 @@ import { getAvailableRRActions } from "@/lib/rr-workflow";
 import { RRPanel } from "@/components/rr-panel";
 import { listFamiliesForProject } from "@/db/families";
 import { FamiliesPanel } from "@/components/families-panel";
+import { ensureInfrastructureChecklist, listInfrastructureChecklist } from "@/db/infrastructure";
+import { InfrastructureChecklist } from "@/components/infrastructure-checklist";
 import { StageTracker } from "@/components/stage-tracker";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -78,6 +80,13 @@ export default async function ProjectDetailPage({
   const families = showRRPanel ? await listFamiliesForProject(id) : [];
   const canManageFamilies = can(session.role, "family:manage");
   const canGrantEntitlements = can(session.role, "entitlement:grant");
+
+  const showInfrastructureChecklist = STAGES.indexOf(currentStage) >= STAGES.indexOf("POSSESSION");
+  if (showInfrastructureChecklist) await ensureInfrastructureChecklist(id);
+  const infrastructureItems = showInfrastructureChecklist
+    ? await listInfrastructureChecklist(id)
+    : [];
+  const canManageInfrastructure = can(session.role, "infrastructure:manage");
 
   return (
     <div className="space-y-6">
@@ -171,6 +180,22 @@ export default async function ProjectDetailPage({
               families={families}
               canManage={canManageFamilies}
               canGrant={canGrantEntitlements}
+            />
+          </CardContent>
+        </Card>
+      )}
+
+      {showInfrastructureChecklist && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm font-medium">
+              Resettlement Colony Infrastructure (Third Schedule)
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <InfrastructureChecklist
+              items={infrastructureItems}
+              canManage={canManageInfrastructure}
             />
           </CardContent>
         </Card>
