@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { drizzle, type LibSQLDatabase } from "drizzle-orm/libsql";
 import { createClient } from "@libsql/client";
-import { sql } from "drizzle-orm";
+import { sql, eq } from "drizzle-orm";
 import * as schema from "./schema";
 
 // Typed explicitly rather than `ReturnType<typeof drizzle>` — that resolves
@@ -24,7 +24,7 @@ beforeEach(async () => {
       id TEXT PRIMARY KEY, name TEXT NOT NULL, purpose TEXT NOT NULL,
       state TEXT NOT NULL, district TEXT NOT NULL, stage TEXT NOT NULL DEFAULT 'DRAFT',
       created_by TEXT NOT NULL, created_at INTEGER NOT NULL, updated_at INTEGER NOT NULL,
-      geometry_type TEXT, geometry_geo_json TEXT
+      geometry_type TEXT, geometry_geo_json TEXT, rr_stage TEXT
     );
   `);
   await testDb.run(sql`
@@ -141,5 +141,48 @@ describe("projects data layer", () => {
       [82.71, 18.81],
       [82.712, 18.815],
     ]);
+  });
+
+  it("rejects COMPLETE_RR until the R&R sub-workflow reaches RR_AWARDED, then allows it", async () => {
+    const { createProjectWith, applyProjectTransitionWith } = await import("./projects");
+    const id = await createProjectWith(testDb, {
+      name: "Test Bridge",
+      purpose: "Testing",
+      state: "Odisha",
+      district: "Koraput",
+      createdBy: "u-agency-1",
+    });
+    await applyProjectTransitionWith(testDb, id, "SUBMIT", "u-agency-1", "agency");
+    await applyProjectTransitionWith(testDb, id, "APPROVE", "u-district-1", "district");
+    await applyProjectTransitionWith(testDb, id, "COMPLETE", "u-district-1", "district");
+    await applyProjectTransitionWith(testDb, id, "STATE_APPROVE", "u-state-1", "state");
+    await applyProjectTransitionWith(testDb, id, "CENTRAL_APPROVE", "u-central-1", "central");
+    await applyProjectTransitionWith(
+      testDb,
+      id,
+      "PUBLISH_DECLARATION",
+      "u-district-1",
+      "district"
+    );
+    await applyProjectTransitionWith(testDb, id, "PASS_AWARD", "u-district-1", "district");
+    await applyProjectTransitionWith(testDb, id, "START_RR", "u-district-1", "district");
+
+    await expect(
+      applyProjectTransitionWith(testDb, id, "COMPLETE_RR", "u-district-1", "district")
+    ).rejects.toThrow(/r&r award workflow is not complete/i);
+
+    await testDb
+      .update(schema.projects)
+      .set({ rrStage: "RR_AWARDED" })
+      .where(eq(schema.projects.id, id));
+
+    const finalStage = await applyProjectTransitionWith(
+      testDb,
+      id,
+      "COMPLETE_RR",
+      "u-district-1",
+      "district"
+    );
+    expect(finalStage).toBe("POSSESSION");
   });
 });

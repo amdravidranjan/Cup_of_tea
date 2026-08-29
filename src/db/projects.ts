@@ -74,6 +74,13 @@ export async function applyProjectTransitionWith(
   if (!project) {
     throw new Error(`Project not found: ${projectId}`);
   }
+  if (action === "COMPLETE_RR" && project.rrStage !== "RR_AWARDED") {
+    throw new Error(
+      `R&R Award workflow is not complete yet (current R&R stage: ${
+        project.rrStage ?? "not started"
+      })`
+    );
+  }
   const nextStage = transitionProject(project.stage as Stage, action, actorRole);
   const now = new Date();
   await database
