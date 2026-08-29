@@ -1,7 +1,7 @@
 export type SLAStatus = "on-track" | "at-risk" | "breached" | "not-applicable";
 
 export interface SLAMetric {
-  id: "declaration" | "compensation" | "rr-award";
+  id: "declaration" | "compensation" | "rr-award" | "infrastructure";
   label: string;
   deadlineMonths: number;
   startedAt: Date | null;
@@ -19,10 +19,16 @@ interface CompensationLike {
   paidAt: Date | null;
 }
 
+interface InfrastructureItemLike {
+  status: string;
+  completedAt: Date | null;
+}
+
 export interface ComputeSLAInput {
   stageHistory: StageHistoryLike[];
   compensations: CompensationLike[];
   rrHistory: StageHistoryLike[];
+  infrastructureItems?: InfrastructureItemLike[];
 }
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
@@ -96,6 +102,19 @@ export function computeSLAMetrics(
 
   const rrAwardedAt = findByToStage(input.rrHistory, "RR_AWARDED");
 
+  const infrastructureItems = input.infrastructureItems ?? [];
+  const infrastructureCompletedDates = infrastructureItems
+    .filter((i) => i.status === "COMPLETE")
+    .map((i) => i.completedAt)
+    .filter((d): d is Date => d !== null);
+  const allInfrastructureComplete =
+    infrastructureItems.length > 0 &&
+    infrastructureItems.every((i) => i.status === "COMPLETE");
+  const infrastructureCompletedAt =
+    allInfrastructureComplete && infrastructureCompletedDates.length > 0
+      ? new Date(Math.max(...infrastructureCompletedDates.map((d) => d.getTime())))
+      : null;
+
   return [
     buildMetric(
       "declaration",
@@ -107,5 +126,13 @@ export function computeSLAMetrics(
     ),
     buildMetric("compensation", "Compensation Disbursement", 3, awardedAt, compensationCompletedAt, asOf),
     buildMetric("rr-award", "R&R Award", 6, awardedAt, rrAwardedAt, asOf),
+    buildMetric(
+      "infrastructure",
+      "Infrastructural R&R Entitlements (Third Schedule)",
+      18,
+      awardedAt,
+      infrastructureCompletedAt,
+      asOf
+    ),
   ];
 }

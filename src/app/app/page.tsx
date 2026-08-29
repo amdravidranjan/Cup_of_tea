@@ -18,6 +18,7 @@ const SLA_BADGE_LABELS: Record<SLAMetric["id"], string> = {
   declaration: "Declaration",
   compensation: "Compensation",
   "rr-award": "R&R Award",
+  infrastructure: "Infrastructure",
 };
 
 export default async function DashboardPage() {

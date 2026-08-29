@@ -5,6 +5,7 @@ import { listProjectsWith, getStageHistoryWith } from "./projects";
 import { listCompensationsForProjectWith } from "./compensation";
 import { getRRHistoryWith } from "./rr";
 import { listParcelsWith } from "./parcels";
+import { listInfrastructureChecklistWith } from "./infrastructure";
 import { computeSLAMetrics, type SLAMetric } from "@/lib/sla";
 import { STAGES, type Stage } from "@/lib/workflow";
 
@@ -30,12 +31,13 @@ export interface StateBreakdownRow extends PortfolioStats {
 }
 
 async function summarizeProject(database: Db, project: ProjectRow): Promise<ProjectSLASummary> {
-  const [stageHistory, compensations, rrHistory] = await Promise.all([
+  const [stageHistory, compensations, rrHistory, infrastructureItems] = await Promise.all([
     getStageHistoryWith(database, project.id),
     listCompensationsForProjectWith(database, project.id),
     getRRHistoryWith(database, project.id),
+    listInfrastructureChecklistWith(database, project.id),
   ]);
-  const metrics = computeSLAMetrics({ stageHistory, compensations, rrHistory });
+  const metrics = computeSLAMetrics({ stageHistory, compensations, rrHistory, infrastructureItems });
   return { project, metrics };
 }
 
@@ -68,18 +70,20 @@ export async function aggregatePortfolioStatsWith(database: Db, projects: Projec
   stats.projectCount = projects.length;
   for (const project of projects) {
     stats.stageCounts[project.stage as Stage] += 1;
-    const [parcels, compensations, rrHistory, stageHistory] = await Promise.all([
-      listParcelsWith(database, project.id),
-      listCompensationsForProjectWith(database, project.id),
-      getRRHistoryWith(database, project.id),
-      getStageHistoryWith(database, project.id),
-    ]);
+    const [parcels, compensations, rrHistory, stageHistory, infrastructureItems] =
+      await Promise.all([
+        listParcelsWith(database, project.id),
+        listCompensationsForProjectWith(database, project.id),
+        getRRHistoryWith(database, project.id),
+        getStageHistoryWith(database, project.id),
+        listInfrastructureChecklistWith(database, project.id),
+      ]);
     stats.totalAreaHectares += parcels.reduce((sum, p) => sum + p.areaHectares, 0);
     for (const c of compensations) {
       stats.compensationTotal += c.total;
       if (c.status === "PAID") stats.compensationPaid += c.total;
     }
-    const metrics = computeSLAMetrics({ stageHistory, compensations, rrHistory });
+    const metrics = computeSLAMetrics({ stageHistory, compensations, rrHistory, infrastructureItems });
     for (const m of metrics) {
       if (m.status === "on-track") stats.slaCounts.onTrack += 1;
       else if (m.status === "at-risk") stats.slaCounts.atRisk += 1;

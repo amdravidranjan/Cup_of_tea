@@ -175,7 +175,7 @@ describe("computeSLAMetrics — rr-award (6mo, AWARDED -> RR_AWARDED)", () => {
 });
 
 describe("computeSLAMetrics — full project integration", () => {
-  it("computes all three metrics together for one realistic timeline", () => {
+  it("computes all four metrics together for one realistic timeline", () => {
     const metrics = computeSLAMetrics({
       stageHistory: [
         { toStage: "NOTIFIED", createdAt: T0 },
@@ -186,9 +186,75 @@ describe("computeSLAMetrics — full project integration", () => {
       rrHistory: [],
     }, daysAfter(T0, 95));
 
-    expect(metrics.map((m) => m.id)).toEqual(["declaration", "compensation", "rr-award"]);
+    expect(metrics.map((m) => m.id)).toEqual([
+      "declaration",
+      "compensation",
+      "rr-award",
+      "infrastructure",
+    ]);
     expect(metricById(metrics, "declaration").status).toBe("on-track");
     expect(metricById(metrics, "compensation").status).toBe("on-track");
     expect(metricById(metrics, "rr-award").status).toBe("on-track");
+  });
+});
+
+describe("computeSLAMetrics — infrastructure (18mo, AWARDED -> all Third Schedule items complete)", () => {
+  it("is not-applicable before AWARDED", () => {
+    const metrics = computeSLAMetrics(
+      { stageHistory: [], compensations: [], rrHistory: [] },
+      T0
+    );
+    expect(metricById(metrics, "infrastructure").status).toBe("not-applicable");
+  });
+
+  it("is breached past the deadline with zero infrastructure items (not vacuously complete)", () => {
+    const metrics = computeSLAMetrics(
+      {
+        stageHistory: [{ toStage: "AWARDED", createdAt: T0 }],
+        compensations: [],
+        rrHistory: [],
+        infrastructureItems: [],
+      },
+      daysAfter(T0, 600)
+    );
+    const infrastructure = metricById(metrics, "infrastructure");
+    expect(infrastructure.status).toBe("breached");
+    expect(infrastructure.completedAt).toBeNull();
+  });
+
+  it("is on-track once every item is complete before the deadline", () => {
+    const metrics = computeSLAMetrics(
+      {
+        stageHistory: [{ toStage: "AWARDED", createdAt: T0 }],
+        compensations: [],
+        rrHistory: [],
+        infrastructureItems: [
+          { status: "COMPLETE", completedAt: daysAfter(T0, 200) },
+          { status: "COMPLETE", completedAt: daysAfter(T0, 300) },
+        ],
+      },
+      daysAfter(T0, 400)
+    );
+    const infrastructure = metricById(metrics, "infrastructure");
+    expect(infrastructure.status).toBe("on-track");
+    expect(infrastructure.completedAt).toEqual(daysAfter(T0, 300));
+  });
+
+  it("is not complete while any item is still PENDING", () => {
+    const metrics = computeSLAMetrics(
+      {
+        stageHistory: [{ toStage: "AWARDED", createdAt: T0 }],
+        compensations: [],
+        rrHistory: [],
+        infrastructureItems: [
+          { status: "COMPLETE", completedAt: daysAfter(T0, 200) },
+          { status: "PENDING", completedAt: null },
+        ],
+      },
+      daysAfter(T0, 250)
+    );
+    const infrastructure = metricById(metrics, "infrastructure");
+    expect(infrastructure.status).toBe("on-track");
+    expect(infrastructure.completedAt).toBeNull();
   });
 });

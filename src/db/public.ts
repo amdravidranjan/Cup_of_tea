@@ -5,6 +5,7 @@ import { listProjectsWith, getStageHistoryWith } from "./projects";
 import { listParcelsWith, type Parcel } from "./parcels";
 import { listCompensationsForProjectWith } from "./compensation";
 import { getRRHistoryWith } from "./rr";
+import { listInfrastructureChecklistWith } from "./infrastructure";
 import { computeSLAMetrics, type SLAMetric } from "@/lib/sla";
 import { STAGES, type Stage } from "@/lib/workflow";
 import { parseStoredGeometry, computeParcelsWithImpact, type Geometry } from "@/lib/geo";
@@ -60,12 +61,13 @@ export function isPublicStage(stage: Stage): boolean {
 }
 
 async function toSummary(database: Db, project: ProjectRow): Promise<PublicProjectSummary> {
-  const [stageHistory, compensations, rrHistory] = await Promise.all([
+  const [stageHistory, compensations, rrHistory, infrastructureItems] = await Promise.all([
     getStageHistoryWith(database, project.id),
     listCompensationsForProjectWith(database, project.id),
     getRRHistoryWith(database, project.id),
+    listInfrastructureChecklistWith(database, project.id),
   ]);
-  const metrics = computeSLAMetrics({ stageHistory, compensations, rrHistory });
+  const metrics = computeSLAMetrics({ stageHistory, compensations, rrHistory, infrastructureItems });
   return {
     id: project.id,
     name: project.name,

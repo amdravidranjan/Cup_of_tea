@@ -51,6 +51,12 @@ beforeEach(async () => {
       assessed_by TEXT NOT NULL, assessed_at INTEGER NOT NULL, paid_at INTEGER
     );
   `);
+  await testDb.run(sql`
+    CREATE TABLE infrastructure_items (
+      id TEXT PRIMARY KEY, project_id TEXT NOT NULL, item TEXT NOT NULL,
+      status TEXT NOT NULL DEFAULT 'PENDING', completed_by TEXT, completed_at INTEGER
+    );
+  `);
 
   await testDb.insert(schema.projects).values([
     {
