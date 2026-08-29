@@ -19,6 +19,8 @@ import { CompensationPanel } from "@/components/compensation-panel";
 import { getRRStage, getRRHistory } from "@/db/rr";
 import { getAvailableRRActions } from "@/lib/rr-workflow";
 import { RRPanel } from "@/components/rr-panel";
+import { listFamiliesForProject } from "@/db/families";
+import { FamiliesPanel } from "@/components/families-panel";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -73,6 +75,9 @@ export default async function ProjectDetailPage({
   const rrStage = showRRPanel ? await getRRStage(id) : null;
   const rrHistory = showRRPanel ? await getRRHistory(id) : [];
   const rrAvailableActions = showRRPanel ? getAvailableRRActions(rrStage, session.role) : [];
+  const families = showRRPanel ? await listFamiliesForProject(id) : [];
+  const canManageFamilies = can(session.role, "family:manage");
+  const canGrantEntitlements = can(session.role, "entitlement:grant");
 
   return (
     <div className="space-y-6">
@@ -167,6 +172,22 @@ export default async function ProjectDetailPage({
               stage={rrStage}
               history={rrHistory}
               availableActions={rrAvailableActions}
+            />
+          </CardContent>
+        </Card>
+      )}
+
+      {showRRPanel && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm font-medium">Affected Families</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <FamiliesPanel
+              projectId={project.id}
+              families={families}
+              canManage={canManageFamilies}
+              canGrant={canGrantEntitlements}
             />
           </CardContent>
         </Card>
