@@ -205,7 +205,7 @@ Both still call `transitionProject`/`transitionRR` for validation, so every seed
 
 | # | Project | State / District | Geometry | Ends at | Timeline (relative to seed run) | SLA outcome |
 |---|---|---|---|---|---|---|
-| 1 | Koraput River Bridge Project *(existing, unchanged)* | Odisha / Koraput | LineString | full lifecycle to `POSSESSION`/`RR_AWARDED`, all "today" | unchanged from current seed | on-track (trivial control case — instant transitions) |
+| 1 | Koraput River Bridge Project *(existing, unchanged)* | Odisha / Koraput | LineString | `DRAFT` | unchanged from current seed — no further transitions | not-applicable (too early for any metric; kept exactly as the current seed script leaves it) |
 | 2 | Chennai–Salem Green Corridor Expressway | Tamil Nadu / Krishnagiri | LineString | `NOTIFIED` | notified 14 months ago, never declared | **breached** — declaration |
 | 3 | Chennai Metro Phase 2 – Poonamallee Extension | Tamil Nadu / Chennai | LineString | `AWARDED`, 1 of 2 parcels' compensation paid | awarded 2.5 months ago | **at-risk** — compensation |
 | 4 | Cauvery–Vaigai–Gundar Link Canal (Sivaganga Reach) | Tamil Nadu / Sivaganga | Polygon | `RR_IN_PROGRESS`, R&R at `SUBMITTED_TO_COLLECTOR` | awarded 5 months ago; compensation fully paid within the first month | **at-risk** — rr-award (compensation metric on-track) |
