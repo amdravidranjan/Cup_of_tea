@@ -21,7 +21,7 @@ import { getAvailableRRActions } from "@/lib/rr-workflow";
 import { RRPanel } from "@/components/rr-panel";
 import { listFamiliesForProject } from "@/db/families";
 import { FamiliesPanel } from "@/components/families-panel";
-import { Badge } from "@/components/ui/badge";
+import { StageTracker } from "@/components/stage-tracker";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
@@ -31,7 +31,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { stageTone, toneBadgeClass } from "@/lib/status-colors";
+import { formatDateTime } from "@/lib/format";
 
 export default async function ProjectDetailPage({
   params,
@@ -48,7 +48,6 @@ export default async function ProjectDetailPage({
   const history = await getStageHistory(id);
   const currentStage = project.stage as Stage;
   const availableActions = getAvailableActions(currentStage, session.role);
-  const currentIndex = STAGES.indexOf(currentStage);
   const docs = await listDocuments(id);
   const canUpload = can(session.role, "document:upload");
   const alignment = parseStoredGeometry(project.geometryType, project.geometryGeoJson);
@@ -82,11 +81,11 @@ export default async function ProjectDetailPage({
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-lg font-semibold">{project.name}</h2>
-        <p className="text-sm text-muted-foreground">{project.purpose}</p>
-        <p className="text-sm text-muted-foreground">
+        <p className="text-[11px] font-semibold tracking-[0.18em] text-brand uppercase">
           {project.district}, {project.state}
         </p>
+        <h2 className="font-heading text-2xl font-semibold text-foreground">{project.name}</h2>
+        <p className="mt-1 text-sm text-muted-foreground">{project.purpose}</p>
       </div>
 
       <Card>
@@ -94,24 +93,7 @@ export default async function ProjectDetailPage({
           <CardTitle className="text-sm font-medium">Stage</CardTitle>
         </CardHeader>
         <CardContent>
-          <ol className="flex flex-wrap gap-2">
-            {STAGES.map((stage, i) => (
-              <li key={stage}>
-                <Badge
-                  variant="outline"
-                  className={
-                    i === currentIndex
-                      ? toneBadgeClass(stageTone(stage))
-                      : i < currentIndex
-                        ? "border-muted-foreground/20 bg-muted text-muted-foreground"
-                        : "border-dashed text-muted-foreground/60"
-                  }
-                >
-                  {stage}
-                </Badge>
-              </li>
-            ))}
-          </ol>
+          <StageTracker currentStage={currentStage} />
         </CardContent>
       </Card>
 
@@ -202,7 +184,7 @@ export default async function ProjectDetailPage({
             {history.map((h) => (
               <li key={h.id}>
                 {h.fromStage ?? "—"} → {h.toStage} ({h.action}) by {h.actorRole} on{" "}
-                {h.createdAt.toLocaleString()}
+                {formatDateTime(h.createdAt)}
               </li>
             ))}
           </ul>
@@ -251,7 +233,7 @@ export default async function ProjectDetailPage({
                       {(d.sizeBytes / 1024).toFixed(1)} KB
                     </TableCell>
                     <TableCell className="text-muted-foreground">
-                      {d.uploadedBy} on {d.uploadedAt.toLocaleString()}
+                      {d.uploadedBy} on {formatDateTime(d.uploadedAt)}
                     </TableCell>
                   </TableRow>
                 ))}

@@ -1,10 +1,11 @@
 import { notFound } from "next/navigation";
 import { getPublicProjectDetail } from "@/db/public";
-import { STAGES } from "@/lib/workflow";
 import { ProjectMap } from "@/components/project-map";
+import { StageTracker } from "@/components/stage-tracker";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { stageTone, toneBadgeClass, slaStatusTone } from "@/lib/status-colors";
+import { toneBadgeClass, slaStatusTone } from "@/lib/status-colors";
+import { formatDate } from "@/lib/format";
 
 function formatLakh(amount: number): string {
   return `₹${(amount / 100000).toFixed(1)}L`;
@@ -20,16 +21,15 @@ export default async function PublicProjectDetailPage({
   if (!detail) notFound();
 
   const { project } = detail;
-  const currentIndex = STAGES.indexOf(project.stage);
 
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-lg font-semibold">{project.name}</h2>
-        <p className="text-sm text-muted-foreground">{project.purpose}</p>
-        <p className="text-sm text-muted-foreground">
+        <p className="text-[11px] font-semibold tracking-[0.18em] text-brand uppercase">
           {project.district}, {project.state}
         </p>
+        <h2 className="font-heading text-2xl font-semibold text-foreground">{project.name}</h2>
+        <p className="mt-1 text-sm text-muted-foreground">{project.purpose}</p>
       </div>
 
       <Card>
@@ -37,24 +37,7 @@ export default async function PublicProjectDetailPage({
           <CardTitle className="text-sm font-medium">Stage</CardTitle>
         </CardHeader>
         <CardContent>
-          <ol className="flex flex-wrap gap-2">
-            {STAGES.map((stage, i) => (
-              <li key={stage}>
-                <Badge
-                  variant="outline"
-                  className={
-                    i === currentIndex
-                      ? toneBadgeClass(stageTone(stage))
-                      : i < currentIndex
-                        ? "border-muted-foreground/20 bg-muted text-muted-foreground"
-                        : "border-dashed text-muted-foreground/60"
-                  }
-                >
-                  {stage}
-                </Badge>
-              </li>
-            ))}
-          </ol>
+          <StageTracker currentStage={project.stage} />
         </CardContent>
       </Card>
 
@@ -132,7 +115,7 @@ export default async function PublicProjectDetailPage({
                 <li key={n.id}>
                   <span className="font-medium">{n.label}</span>{" "}
                   <span className="text-muted-foreground">
-                    — {n.occurredAt.toLocaleDateString()}
+                    — {formatDate(n.occurredAt)}
                   </span>
                 </li>
               ))}
