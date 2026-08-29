@@ -4,6 +4,8 @@ import { getProject, getStageHistory } from "@/db/projects";
 import { getAvailableActions, STAGES, type Stage } from "@/lib/workflow";
 import { ProjectActions } from "@/components/project-actions";
 import { listDocuments } from "@/db/documents";
+import { computeDocumentChecklist } from "@/lib/document-requirements";
+import type { DocumentCategory } from "@/lib/document-categories";
 import { can } from "@/lib/rbac";
 import { DocumentUpload } from "@/components/document-upload";
 import { GenerateDocument } from "@/components/generate-document";
@@ -30,6 +32,8 @@ import { ensureInfrastructureChecklist, listInfrastructureChecklist } from "@/db
 import { InfrastructureChecklist } from "@/components/infrastructure-checklist";
 import { StageTracker } from "@/components/stage-tracker";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { toneBadgeClass } from "@/lib/status-colors";
 import {
   Table,
   TableBody,
@@ -57,6 +61,8 @@ export default async function ProjectDetailPage({
   const availableActions = getAvailableActions(currentStage, session.role);
   const docs = await listDocuments(id);
   const canUpload = can(session.role, "document:upload");
+  const uploadedCategories = new Set(docs.map((d) => d.category as DocumentCategory));
+  const documentChecklist = computeDocumentChecklist(currentStage, uploadedCategories, STAGES);
   const alignment = parseStoredGeometry(project.geometryType, project.geometryGeoJson);
   const parcelList = await listParcels(id);
   const parcelsWithImpact = computeParcelsWithImpact(alignment, parcelList);
@@ -234,6 +240,19 @@ export default async function ProjectDetailPage({
           <CardTitle className="text-sm font-medium">Documents</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
+          {documentChecklist.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {documentChecklist.map((req) => (
+                <Badge
+                  key={req.category}
+                  variant="outline"
+                  className={toneBadgeClass(req.satisfied ? "success" : "danger")}
+                >
+                  {req.category} {req.satisfied ? "uploaded" : "missing"}
+                </Badge>
+              ))}
+            </div>
+          )}
           {canUpload && <GenerateDocument projectId={project.id} currentStage={currentStage} />}
           {canUpload ? (
             <DocumentUpload projectId={project.id} />
