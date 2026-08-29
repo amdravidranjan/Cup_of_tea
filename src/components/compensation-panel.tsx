@@ -1,13 +1,20 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useMemo, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { compensationTone, toneBadgeClass } from "@/lib/status-colors";
 import { formatDateTime } from "@/lib/format";
 
@@ -24,6 +31,123 @@ interface RateHistoryEntry {
   multiplier: number;
   setBy: string;
   createdAt: Date;
+}
+
+const PAGE_SIZE = 25;
+
+function ParcelRow({
+  projectId,
+  parcel,
+  canAssess,
+  datesResolved,
+  pending,
+  setPending,
+  onDone,
+}: {
+  projectId: string;
+  parcel: ParcelWithCompensation;
+  canAssess: boolean;
+  datesResolved: boolean;
+  pending: string | null;
+  setPending: (v: string | null) => void;
+  onDone: () => void;
+}) {
+  async function handleAssess(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setPending(parcel.id);
+    const formData = new FormData(event.currentTarget);
+    const res = await fetch(`/api/parcels/${parcel.id}/compensation`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        projectId,
+        assetsValue: Number(formData.get("assetsValue") ?? 0),
+      }),
+    });
+    const body = (await res.json()) as { error?: string };
+    setPending(null);
+    if (!res.ok) {
+      toast.error(body.error ?? "Failed to assess compensation");
+      return;
+    }
+    toast.success("Compensation assessed");
+    onDone();
+  }
+
+  async function handlePay() {
+    if (!parcel.compensation) return;
+    setPending(parcel.compensation.id);
+    const res = await fetch(`/api/compensation/${parcel.compensation.id}/pay`, {
+      method: "POST",
+    });
+    const body = (await res.json()) as { error?: string };
+    setPending(null);
+    if (!res.ok) {
+      toast.error(body.error ?? "Failed to mark paid");
+      return;
+    }
+    toast.success("Marked as paid");
+    onDone();
+  }
+
+  return (
+    <TableRow>
+      <TableCell className="font-medium">{parcel.village}</TableCell>
+      <TableCell className="text-muted-foreground">{parcel.areaHectares.toFixed(2)}</TableCell>
+      <TableCell>
+        {parcel.compensation ? (
+          <span>Rs {parcel.compensation.total.toLocaleString("en-IN")}</span>
+        ) : (
+          <span className="text-muted-foreground">—</span>
+        )}
+      </TableCell>
+      <TableCell>
+        {parcel.compensation ? (
+          <Badge
+            variant="outline"
+            className={toneBadgeClass(compensationTone(parcel.compensation.status))}
+          >
+            {parcel.compensation.status}
+          </Badge>
+        ) : (
+          <span className="text-muted-foreground">Unassessed</span>
+        )}
+      </TableCell>
+      <TableCell>
+        {parcel.compensation ? (
+          canAssess &&
+          parcel.compensation.status === "ASSESSED" && (
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={handlePay}
+              disabled={pending !== null}
+            >
+              {pending === parcel.compensation.id ? "Working…" : "Mark paid"}
+            </Button>
+          )
+        ) : (
+          canAssess &&
+          datesResolved && (
+            <form onSubmit={handleAssess} className="flex items-center gap-2">
+              <Input
+                aria-label="Assets value (Rs)"
+                name="assetsValue"
+                type="number"
+                step="any"
+                defaultValue={0}
+                className="h-8 w-28"
+              />
+              <Button type="submit" size="sm" variant="outline" disabled={pending !== null}>
+                {pending === parcel.id ? "…" : "Assess"}
+              </Button>
+            </form>
+          )
+        )}
+      </TableCell>
+    </TableRow>
+  );
 }
 
 export function CompensationPanel({
@@ -45,6 +169,19 @@ export function CompensationPanel({
 }) {
   const router = useRouter();
   const [pending, setPending] = useState<string | null>(null);
+  const [page, setPage] = useState(0);
+
+  const pageCount = Math.max(1, Math.ceil(parcels.length / PAGE_SIZE));
+  const pageParcels = useMemo(
+    () => parcels.slice(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE),
+    [parcels, page]
+  );
+
+  const paidTotal = parcels.reduce(
+    (sum, p) => sum + (p.compensation?.status === "PAID" ? p.compensation.total : 0),
+    0
+  );
+  const assessedTotal = parcels.reduce((sum, p) => sum + (p.compensation?.total ?? 0), 0);
 
   async function handleSetRate(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -68,38 +205,7 @@ export function CompensationPanel({
     router.refresh();
   }
 
-  async function handleAssess(event: FormEvent<HTMLFormElement>, parcelId: string) {
-    event.preventDefault();
-    setPending(parcelId);
-    const formData = new FormData(event.currentTarget);
-    const res = await fetch(`/api/parcels/${parcelId}/compensation`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        projectId,
-        assetsValue: Number(formData.get("assetsValue") ?? 0),
-      }),
-    });
-    const body = (await res.json()) as { error?: string };
-    setPending(null);
-    if (!res.ok) {
-      toast.error(body.error ?? "Failed to assess compensation");
-      return;
-    }
-    toast.success("Compensation assessed");
-    router.refresh();
-  }
-
-  async function handlePay(compensationId: string) {
-    setPending(compensationId);
-    const res = await fetch(`/api/compensation/${compensationId}/pay`, { method: "POST" });
-    const body = (await res.json()) as { error?: string };
-    setPending(null);
-    if (!res.ok) {
-      toast.error(body.error ?? "Failed to mark paid");
-      return;
-    }
-    toast.success("Marked as paid");
+  function onRowDone() {
     router.refresh();
   }
 
@@ -167,68 +273,63 @@ export function CompensationPanel({
       )}
 
       {currentRate && parcels.length > 0 && (
-        <div className="space-y-2">
-          {parcels.map((p) => (
-            <Card key={p.id}>
-              <CardContent className="p-3 text-sm">
-                <p className="font-medium">
-                  {p.village} &middot; {p.areaHectares} ha
-                </p>
-                {p.compensation ? (
-                  <div className="mt-1 flex items-center gap-3">
-                    <span>Total: Rs {p.compensation.total.toLocaleString("en-IN")}</span>
-                    <Badge
-                      variant="outline"
-                      className={toneBadgeClass(compensationTone(p.compensation.status))}
-                    >
-                      {p.compensation.status}
-                    </Badge>
-                    {canAssess && p.compensation.status === "ASSESSED" && (
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handlePay(p.compensation!.id)}
-                        disabled={pending !== null}
-                      >
-                        {pending === p.compensation.id ? "Working…" : "Mark paid"}
-                      </Button>
-                    )}
-                  </div>
-                ) : (
-                  canAssess &&
-                  datesResolved && (
-                    <form
-                      onSubmit={(e) => handleAssess(e, p.id)}
-                      className="mt-2 flex items-end gap-2"
-                    >
-                      <div className="space-y-1">
-                        <Label htmlFor={`assetsValue-${p.id}`} className="text-xs">
-                          Assets value (Rs)
-                        </Label>
-                        <Input
-                          id={`assetsValue-${p.id}`}
-                          name="assetsValue"
-                          type="number"
-                          step="any"
-                          defaultValue={0}
-                          className="w-32 h-8"
-                        />
-                      </div>
-                      <Button
-                        type="submit"
-                        size="sm"
-                        variant="outline"
-                        disabled={pending !== null}
-                      >
-                        {pending === p.id ? "Assessing…" : "Assess compensation"}
-                      </Button>
-                    </form>
-                  )
-                )}
-              </CardContent>
-            </Card>
-          ))}
+        <div className="space-y-3">
+          <p className="text-sm text-muted-foreground">
+            {parcels.length} parcels &middot; Rs {paidTotal.toLocaleString("en-IN")} paid of Rs{" "}
+            {assessedTotal.toLocaleString("en-IN")} assessed
+          </p>
+
+          <div className="rounded-lg border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Village</TableHead>
+                  <TableHead>Area (ha)</TableHead>
+                  <TableHead>Compensation</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Action</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {pageParcels.map((p) => (
+                  <ParcelRow
+                    key={p.id}
+                    projectId={projectId}
+                    parcel={p}
+                    canAssess={canAssess}
+                    datesResolved={datesResolved}
+                    pending={pending}
+                    setPending={setPending}
+                    onDone={onRowDone}
+                  />
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+
+          {pageCount > 1 && (
+            <div className="flex items-center justify-between text-sm">
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={page === 0}
+                onClick={() => setPage((p) => Math.max(0, p - 1))}
+              >
+                Previous
+              </Button>
+              <span className="text-muted-foreground">
+                Page {page + 1} of {pageCount}
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={page >= pageCount - 1}
+                onClick={() => setPage((p) => Math.min(pageCount - 1, p + 1))}
+              >
+                Next
+              </Button>
+            </div>
+          )}
         </div>
       )}
     </div>
