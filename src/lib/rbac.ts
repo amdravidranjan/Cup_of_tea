@@ -12,7 +12,8 @@ export type Permission =
   | "family:manage"
   | "entitlement:grant"
   | "parcel:update-status"
-  | "infrastructure:manage";
+  | "infrastructure:manage"
+  | "grievance:manage";
 
 const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
   // "project:transition" here is the coarse gate ("can this role attempt
@@ -37,8 +38,14 @@ const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
     "entitlement:grant",
     "parcel:update-status",
     "infrastructure:manage",
+    "grievance:manage",
   ],
-  state: ["project:view:all", "project:transition", "compensation:manage-rate"],
+  state: [
+    "project:view:all",
+    "project:transition",
+    "compensation:manage-rate",
+    "grievance:manage",
+  ],
   central: ["project:view:all", "project:transition"],
   field: ["project:view:own", "document:upload", "family:manage", "parcel:update-status"],
 };

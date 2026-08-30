@@ -96,4 +96,15 @@ describe("can", () => {
     expect(can("field", "infrastructure:manage")).toBe(false);
     expect(can("state", "infrastructure:manage")).toBe(false);
   });
+
+  it("allows district and state to manage grievances", () => {
+    expect(can("district", "grievance:manage")).toBe(true);
+    expect(can("state", "grievance:manage")).toBe(true);
+  });
+
+  it("does not allow agency, central, or field to manage grievances", () => {
+    expect(can("agency", "grievance:manage")).toBe(false);
+    expect(can("central", "grievance:manage")).toBe(false);
+    expect(can("field", "grievance:manage")).toBe(false);
+  });
 });
