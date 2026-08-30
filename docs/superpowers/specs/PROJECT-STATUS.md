@@ -52,7 +52,7 @@ Legend: ✅ done & verified · 🚧 partial · ⬜ not started. Priority tags (�
 
 ## 6.6 Field & Mobile
 - ✅ 🟢 **Mobile-responsive verification screens** (`/app/field`, parcel NOTIFIED→ACQUIRED→POSSESSED progression, one-thumb single-column layout, large tap targets) — built this session; previously the `field` role had no dedicated UI or any real action to perform
-- ⬜ 🟡 PWA offline mode
+- ✅ 🟡 **PWA offline mode** (`src/app/manifest.ts`, `public/sw.js` app-shell cache, `src/lib/offline-queue.ts` tested localStorage action queue with sync-on-reconnect, offline banner on both field pages) — built this session
 
 ## 6.7 Notifications & Comms
 - ✅ 🟢 **In-app notification center** (`src/db/notifications.ts`, bell dropdown with unread badge, scoped to visible projects) — built this session
