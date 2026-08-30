@@ -11,7 +11,7 @@ Legend: ✅ done & verified · 🚧 partial · ⬜ not started. Priority tags (�
 - ✅ 🟢 Multi-level approval chain (District → State → Central)
 - ⬜ 🟡 Configurable workflow per acquisition type (Section 40 urgency clause)
 - ⬜ 🟡 SIA stage with Expert Group review / cancellation-recommendation path
-- ⬜ 🟡 Public hearing / objection window (Section 21), objections logged
+- 🚧 🟡 Public hearing / objection window (Section 21) — citizens can file objections against any NOTIFIED+ project via the new grievance system, but nothing yet *blocks* workflow progression on unresolved objections (spec's "resolved before award" gate is not enforced)
 - ⬜ ⚪ Gram Sabha consultation record
 
 ## 6.2 Compensation & R&R
@@ -21,7 +21,7 @@ Legend: ✅ done & verified · 🚧 partial · ⬜ not started. Priority tags (�
 - ✅ 🟡 **Second Schedule entitlement tracker per household** (`src/db/families.ts`, `src/lib/entitlements.ts`, families panel on project detail page) — built this session
 - ✅ 🟡 **Third Schedule infrastructure checklist per R&R colony** (`src/db/infrastructure.ts`, 18-item checklist auto-created at POSSESSION+, tracked per project) — built this session
 - ✅ 🟡 **Versioned entitlement-rate table** — the underlying `compensation_rates` table was already append-only; added `listCompensationRatesWith` + a "Rate history" panel so past revisions (who/when/what) are now actually visible, closing the CAG-audit-cited transparency gap — built this session
-- ⬜ 🟡 Dispute/appeal workflow
+- ✅ 🟡 **Dispute/appeal workflow** (`src/db/grievances.ts`, `src/lib/grievance-workflow.ts` — FILED → UNDER_REVIEW → RESOLVED, district/state review, tracking number) — built this session as one unified system with the two 6.8 items below
 - ⬜ ⚪ Mock bank/PFMS disbursement trail
 - ⬜ ⚪ Record of Rights (RoR) issuance tracking
 
@@ -61,8 +61,8 @@ Legend: ✅ done & verified · 🚧 partial · ⬜ not started. Priority tags (�
 
 ## 6.8 Public / Transparency Portal
 - ✅ 🟢 **No-login public view: project status, notices, aggregate stats** (`/`, `/projects/[id]`) — built this session; portal is now the landing page, internal dashboard moved to `/app`
-- ⬜ 🟡 Landowner self-service (claim status, upload objection/document)
-- ⬜ 🟡 Grievance/RTI-style ticket submission + tracking number
+- 🚧 🟡 Landowner self-service — status tracking by tracking number is done (`/track`); document *upload* against an existing case is not
+- ✅ 🟡 **Grievance/RTI-style ticket submission + tracking number** (`GRV-YYYY-XXXXXX` format, `/track` public lookup, `/app/grievances` internal queue) — built this session
 
 ## 6.9 Platform-level
 - ✅ 🟢 RBAC enforced server-side
