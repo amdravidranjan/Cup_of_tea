@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { getPublicProjectDetail } from "@/db/public";
 import { ProjectMap } from "@/components/project-map";
 import { StageTracker } from "@/components/stage-tracker";
+import { FileGrievanceForm } from "@/components/file-grievance-form";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toneBadgeClass, slaStatusTone } from "@/lib/status-colors";
@@ -99,6 +100,15 @@ export default async function PublicProjectDetailPage({
         </CardHeader>
         <CardContent>
           <ProjectMap alignment={detail.alignment} parcels={detail.parcels} />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-sm font-medium">File an objection or grievance</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <FileGrievanceForm projectId={project.id} />
         </CardContent>
       </Card>
 

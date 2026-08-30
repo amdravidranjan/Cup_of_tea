@@ -14,9 +14,14 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
               National Land Acquisition &amp; Management System
             </h1>
           </div>
-          <Button variant="outline" asChild>
-            <Link href="/app">Government Login →</Link>
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" asChild>
+              <Link href="/track">Track a Grievance</Link>
+            </Button>
+            <Button variant="outline" asChild>
+              <Link href="/app">Government Login →</Link>
+            </Button>
+          </div>
         </div>
       </header>
       <div className="border-b bg-secondary/60 px-6 py-8">
