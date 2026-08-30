@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { MapLibreMap, NavigationControl, setWorkerUrl } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
-import type { Geometry, PolygonGeometry } from "@/lib/geo";
+import type { Geometry, PolygonGeometry, Position } from "@/lib/geo";
 import { SATELLITE_TILE_URL } from "@/components/project-map";
 import { parcelStatusTone, toneHex } from "@/lib/status-colors";
 
@@ -33,6 +33,25 @@ function statusHex(status: string): string {
   return toneHex(parcelStatusTone(status));
 }
 
+// Great-circle initial bearing from a to b, in degrees — used to orient
+// the fly-through camera along the alignment's actual direction rather
+// than a fixed angle.
+function bearingBetween(a: Position, b: Position): number {
+  const [lng1, lat1] = a.map((d) => (d * Math.PI) / 180);
+  const [lng2, lat2] = b.map((d) => (d * Math.PI) / 180);
+  const dLng = lng2 - lng1;
+  const y = Math.sin(dLng) * Math.cos(lat2);
+  const x = Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1) * Math.cos(lat2) * Math.cos(dLng);
+  return ((Math.atan2(y, x) * 180) / Math.PI + 360) % 360;
+}
+
+function flyToAsync(map: MapLibreMap, options: Parameters<MapLibreMap["flyTo"]>[0]): Promise<void> {
+  return new Promise((resolve) => {
+    map.once("moveend", () => resolve());
+    map.flyTo(options);
+  });
+}
+
 export function Project3DView({
   alignment,
   parcels,
@@ -43,6 +62,39 @@ export function Project3DView({
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MapLibreMap | null>(null);
   const [exaggeration, setExaggeration] = useState(1.5);
+  const [isFlying, setIsFlying] = useState(false);
+
+  async function flyAlongAlignment() {
+    const map = mapRef.current;
+    if (!map || alignment?.type !== "LineString" || alignment.coordinates.length < 2) return;
+    const coords = alignment.coordinates;
+    const mid = coords[Math.floor(coords.length / 2)];
+
+    setIsFlying(true);
+    try {
+      await flyToAsync(map, { center: mid, zoom: 15, pitch: 30, bearing: 0, duration: 1500 });
+      for (let i = 0; i < coords.length - 1; i++) {
+        const bearing = bearingBetween(coords[i], coords[i + 1]);
+        await flyToAsync(map, {
+          center: coords[i],
+          zoom: 18,
+          pitch: 72,
+          bearing,
+          duration: i === 0 ? 2200 : 2600,
+        });
+        await flyToAsync(map, {
+          center: coords[i + 1],
+          zoom: 18,
+          pitch: 72,
+          bearing,
+          duration: 3200,
+        });
+      }
+      await flyToAsync(map, { center: mid, zoom: 15, pitch: 45, bearing: 0, duration: 2200 });
+    } finally {
+      setIsFlying(false);
+    }
+  }
 
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return;
@@ -178,6 +230,17 @@ export function Project3DView({
           />
           <p className="text-muted-foreground">{exaggeration.toFixed(1)}×</p>
         </div>
+
+        {alignment?.type === "LineString" && (
+          <button
+            type="button"
+            onClick={flyAlongAlignment}
+            disabled={isFlying}
+            className="absolute right-3 top-3 z-10 rounded-lg border bg-background/95 px-3 py-1.5 text-xs font-medium shadow-sm backdrop-blur disabled:opacity-60"
+          >
+            {isFlying ? "Flying…" : "Fly along alignment"}
+          </button>
+        )}
       </div>
       <p className="text-[11px] text-muted-foreground/70">
         Real terrain: AWS Open Data Terrarium elevation tiles draped under Esri satellite
