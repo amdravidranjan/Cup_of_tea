@@ -4,6 +4,7 @@ import { can } from "@/lib/rbac";
 import { listProjects } from "@/db/projects";
 import { listParcels } from "@/db/parcels";
 import { Card, CardContent } from "@/components/ui/card";
+import { OfflineBanner } from "@/components/offline-banner";
 
 export default async function FieldVerificationPage() {
   const session = await getSession();
@@ -25,6 +26,7 @@ export default async function FieldVerificationPage() {
 
   return (
     <div className="mx-auto max-w-md space-y-6">
+      <OfflineBanner />
       <div>
         <p className="text-[11px] font-semibold tracking-[0.18em] text-brand uppercase">
           Field Verification

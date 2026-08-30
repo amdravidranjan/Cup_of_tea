@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { nextParcelStatus, type ParcelStatus } from "@/lib/parcel-status";
 import { toneBadgeClass, parcelStatusTone } from "@/lib/status-colors";
+import { enqueue, makeLocalStorageQueue } from "@/lib/offline-queue";
 
 interface FieldParcel {
   id: string;
@@ -25,20 +26,39 @@ export function FieldParcelCard({
 }) {
   const router = useRouter();
   const [pending, setPending] = useState(false);
+  const [optimisticStatus, setOptimisticStatus] = useState<ParcelStatus | null>(null);
+  const [queued, setQueued] = useState(false);
 
-  const next = nextParcelStatus(parcel.status);
+  const currentStatus = optimisticStatus ?? parcel.status;
+  const next = nextParcelStatus(currentStatus);
 
   async function advance() {
+    if (!next) return;
     setPending(true);
-    const res = await fetch(`/api/parcels/${parcel.id}/advance-status`, { method: "POST" });
-    const body = (await res.json()) as { error?: string };
-    setPending(false);
-    if (!res.ok) {
-      toast.error(body.error ?? "Failed to update parcel status");
-      return;
+    try {
+      const res = await fetch(`/api/parcels/${parcel.id}/advance-status`, { method: "POST" });
+      const body = (await res.json()) as { error?: string };
+      setPending(false);
+      if (!res.ok) {
+        toast.error(body.error ?? "Failed to update parcel status");
+        return;
+      }
+      toast.success(`${parcel.village} marked ${next}`);
+      router.refresh();
+    } catch {
+      // Network failure (offline) — queue for sync instead of losing the
+      // field officer's work. Update optimistically so the card still
+      // reflects what they just recorded.
+      enqueue(makeLocalStorageQueue(), {
+        url: `/api/parcels/${parcel.id}/advance-status`,
+        method: "POST",
+        label: `Mark ${parcel.village} as ${next}`,
+      });
+      setOptimisticStatus(next);
+      setQueued(true);
+      setPending(false);
+      toast.info(`Offline — queued "${parcel.village} → ${next}", will sync automatically`);
     }
-    toast.success(`${parcel.village} marked ${next}`);
-    router.refresh();
   }
 
   return (
@@ -49,14 +69,19 @@ export function FieldParcelCard({
             <p className="text-base font-medium">{parcel.village}</p>
             <p className="text-sm text-muted-foreground">{parcel.areaHectares.toFixed(2)} ha</p>
           </div>
-          <Badge
-            variant="outline"
-            className={`${toneBadgeClass(parcelStatusTone(parcel.status))} text-sm`}
-          >
-            {parcel.status}
-          </Badge>
+          <div className="flex flex-col items-end gap-1">
+            <Badge
+              variant="outline"
+              className={`${toneBadgeClass(parcelStatusTone(currentStatus))} text-sm`}
+            >
+              {currentStatus}
+            </Badge>
+            {queued && (
+              <span className="text-xs text-muted-foreground">Queued — pending sync</span>
+            )}
+          </div>
         </div>
-        {canUpdate && next && (
+        {canUpdate && next && !queued && (
           <Button className="h-11 w-full text-base" disabled={pending} onClick={advance}>
             {pending ? "Updating…" : `Mark as ${next}`}
           </Button>

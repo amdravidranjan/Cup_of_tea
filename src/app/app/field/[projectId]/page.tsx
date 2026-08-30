@@ -5,6 +5,7 @@ import { can } from "@/lib/rbac";
 import { getProject } from "@/db/projects";
 import { listParcels } from "@/db/parcels";
 import { FieldParcelList } from "@/components/field-parcel-list";
+import { OfflineBanner } from "@/components/offline-banner";
 
 export default async function FieldProjectParcelsPage({
   params,
@@ -23,6 +24,7 @@ export default async function FieldProjectParcelsPage({
 
   return (
     <div className="mx-auto max-w-md space-y-6">
+      <OfflineBanner />
       <div>
         <Link href="/app/field" className="text-sm text-brand hover:underline">
           ← All projects
