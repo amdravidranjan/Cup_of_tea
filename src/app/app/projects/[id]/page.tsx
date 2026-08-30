@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import Link from "next/link";
 import { getSession } from "@/lib/auth";
 import { getProject, getStageHistory } from "@/db/projects";
 import { getAvailableActions, STAGES, type Stage } from "@/lib/workflow";
@@ -35,6 +36,7 @@ import { ensureInfrastructureChecklist, listInfrastructureChecklist } from "@/db
 import { InfrastructureChecklist } from "@/components/infrastructure-checklist";
 import { StageTracker } from "@/components/stage-tracker";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toneBadgeClass } from "@/lib/status-colors";
 import {
@@ -153,6 +155,23 @@ export default async function ProjectDetailPage({
           <BeforeAfterSlider alignment={alignment} parcels={parcelsWithImpact} />
         </CardContent>
       </Card>
+
+      {project.id === "p-demo-bridge-1" && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm font-medium">3D terrain view</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground">
+              Real elevation terrain draped with satellite imagery, alignment and parcels shown
+              in 3D.
+            </p>
+            <Button asChild className="mt-3">
+              <Link href={`/app/projects/${project.id}/3d`}>Open 3D view →</Link>
+            </Button>
+          </CardContent>
+        </Card>
+      )}
 
       {elevationSamples && elevationSamples.length > 1 && (
         <Card>
