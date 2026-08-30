@@ -88,6 +88,13 @@ User flagged that the map's parcels were 2-3 hand-typed arbitrary boxes per proj
 - Had to fix `src/lib/generated-documents.ts`'s PDF generator, which had no page-overflow handling and would have silently drawn most of a 600-item parcel list off the bottom of a single page — now paginates real PDF pages and caps itemization at 40 with a summary note beyond that.
 - Verified: build clean, 171 tests passing, page loads under 1s even for the heaviest (600-parcel) pages.
 
+## Seed data geographic grounding (user follow-up, found and fixed)
+User correctly pushed back further on the realism fix above: parcels were still uniform rectangles (real cadastral parcels are irregular), and every alignment was a straight 2-point line with invented coordinates (the "ring road" was literally straight; the Koraput bridge sat ~12km from the real town it claims to connect). Fixed:
+- `src/lib/parcel-generation.ts`: both generators now jitter each corner independently (irregular quadrilaterals, shoelace-formula area) instead of uniform rectangles/grid cells.
+- `src/db/seed.ts`: every alignment rebuilt from real coordinates (via OSM Nominatim — free, keyless, no user action needed) for the villages/towns each project already named. Bengaluru PRR is now a real 56km arc curving north of the city center between Hoskote and Nelamangala; Coimbatore-Sathyamangalam bypass curves ~70km through real terrain near the tiger reserve; Koraput bridge moved from ~12km off-target to immediately next to the real town. Total parcels ~5,600 (several corridors are now their real, much longer length).
+- Verified: 190 tests passing, clean build, dashboard aggregation still ~1.2s even at this scale.
+- Not independently visually screenshotted (Playwright MCP was disconnected mid-session) — verified via data checks (real coordinate lookups, geometry persistence, irregularity assertions in tests) instead. Worth a visual spot-check next session.
+
 ## Bugs fixed this session (found incidentally, not spec items)
 - `next-themes` `useTheme()` called with no `ThemeProvider` ancestor in `sonner.tsx` — was producing a console error on every page load. Fixed by removing the unused hook call (app is light-only).
 - `toLocaleString()`/`toLocaleDateString()` called with no locale argument in 5 places — classic SSR/client hydration mismatch risk (server OS locale vs. browser locale). Fixed via `src/lib/format.ts` pinning `en-IN`/`Asia/Kolkata` explicitly.
