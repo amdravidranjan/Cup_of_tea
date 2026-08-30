@@ -33,6 +33,7 @@ interface GrievanceRow {
   projectName: string;
   submitterName: string;
   description: string;
+  attachmentFileName: string | null;
   status: GrievanceStatus;
   createdAt: string;
 }
@@ -151,6 +152,17 @@ export function GrievanceQueue({
               <TableCell>{g.submitterName}</TableCell>
               <TableCell className="max-w-64 truncate text-muted-foreground" title={g.description}>
                 {g.description}
+                {g.attachmentFileName && (
+                  <>
+                    {" "}
+                    <a
+                      href={`/api/grievances/${g.trackingNumber}/attachment`}
+                      className="text-brand hover:underline"
+                    >
+                      📎
+                    </a>
+                  </>
+                )}
               </TableCell>
               <TableCell>
                 <Badge variant="outline" className={toneBadgeClass(statusTone(g.status))}>

@@ -32,6 +32,7 @@ export default async function GrievancesPage() {
           projectName: g.projectName,
           submitterName: g.submitterName,
           description: g.description,
+          attachmentFileName: g.attachmentFileName,
           status: g.status,
           createdAt: g.createdAt.toISOString(),
         }))}

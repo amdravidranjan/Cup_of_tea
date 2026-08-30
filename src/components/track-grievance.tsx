@@ -15,6 +15,7 @@ interface Grievance {
   type: string;
   status: GrievanceStatus;
   description: string;
+  attachmentFileName: string | null;
   resolution: string | null;
   resolutionNote: string | null;
   createdAt: string;
@@ -82,6 +83,14 @@ export function TrackGrievance() {
               </Badge>
             </div>
             <p className="text-muted-foreground">{result.description}</p>
+            {result.attachmentFileName && (
+              <a
+                href={`/api/grievances/${result.trackingNumber}/attachment`}
+                className="inline-block text-brand hover:underline"
+              >
+                📎 {result.attachmentFileName}
+              </a>
+            )}
             <p className="text-xs text-muted-foreground">
               Filed {formatDateTime(new Date(result.createdAt))}
             </p>

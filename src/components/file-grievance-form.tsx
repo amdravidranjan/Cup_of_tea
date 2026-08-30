@@ -24,15 +24,10 @@ export function FileGrievanceForm({ projectId }: { projectId: string }) {
     event.preventDefault();
     setPending(true);
     const formData = new FormData(event.currentTarget);
+    formData.set("type", type);
     const res = await fetch(`/api/projects/${projectId}/grievances`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        type,
-        submitterName: String(formData.get("submitterName") ?? ""),
-        submitterContact: String(formData.get("submitterContact") ?? "") || undefined,
-        description: String(formData.get("description") ?? ""),
-      }),
+      body: formData,
     });
     const body = (await res.json()) as { trackingNumber?: string; error?: string };
     setPending(false);
@@ -83,6 +78,15 @@ export function FileGrievanceForm({ projectId }: { projectId: string }) {
       <div className="space-y-1">
         <Label htmlFor="description">Describe your objection or grievance</Label>
         <Textarea id="description" name="description" required rows={4} />
+      </div>
+      <div className="space-y-1">
+        <Label htmlFor="attachment">Supporting document (optional)</Label>
+        <input
+          id="attachment"
+          name="attachment"
+          type="file"
+          className="block text-sm file:mr-3 file:rounded-md file:border file:border-input file:bg-background file:px-3 file:py-1.5 file:text-sm"
+        />
       </div>
       <Button type="submit" disabled={pending}>
         {pending ? "Filing…" : "File"}

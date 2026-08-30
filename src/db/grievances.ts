@@ -22,6 +22,8 @@ export interface CreateGrievanceInput {
   submitterName: string;
   submitterContact?: string;
   description: string;
+  attachmentFileName?: string;
+  attachmentStoragePath?: string;
 }
 
 export interface Grievance {
@@ -33,6 +35,8 @@ export interface Grievance {
   submitterName: string;
   submitterContact: string | null;
   description: string;
+  attachmentFileName: string | null;
+  attachmentStoragePath: string | null;
   status: GrievanceStatus;
   resolution: GrievanceResolution | null;
   resolutionNote: string | null;
@@ -57,6 +61,8 @@ function toGrievance(row: typeof schema.grievances.$inferSelect): Grievance {
     submitterName: row.submitterName,
     submitterContact: row.submitterContact,
     description: row.description,
+    attachmentFileName: row.attachmentFileName,
+    attachmentStoragePath: row.attachmentStoragePath,
     status: row.status as GrievanceStatus,
     resolution: row.resolution as GrievanceResolution | null,
     resolutionNote: row.resolutionNote,
@@ -80,6 +86,8 @@ export async function createGrievanceWith(
     submitterName: input.submitterName,
     submitterContact: input.submitterContact ?? null,
     description: input.description,
+    attachmentFileName: input.attachmentFileName ?? null,
+    attachmentStoragePath: input.attachmentStoragePath ?? null,
     status: "FILED",
     createdAt: new Date(),
   });

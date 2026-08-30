@@ -21,7 +21,9 @@ beforeEach(async () => {
     CREATE TABLE grievances (
       id TEXT PRIMARY KEY, tracking_number TEXT NOT NULL UNIQUE, type TEXT NOT NULL,
       project_id TEXT NOT NULL, compensation_id TEXT, submitter_name TEXT NOT NULL,
-      submitter_contact TEXT, description TEXT NOT NULL, status TEXT NOT NULL DEFAULT 'FILED',
+      submitter_contact TEXT, description TEXT NOT NULL,
+      attachment_file_name TEXT, attachment_storage_path TEXT,
+      status TEXT NOT NULL DEFAULT 'FILED',
       resolution TEXT, resolution_note TEXT, resolved_by TEXT, resolved_at INTEGER,
       created_at INTEGER NOT NULL
     );
@@ -80,11 +82,29 @@ describe("getGrievanceByTrackingNumberWith", () => {
     const grievance = await getGrievanceByTrackingNumberWith(testDb, trackingNumber);
     expect(grievance?.submitterName).toBe("Lakshmi");
     expect(grievance?.status).toBe("FILED");
+    expect(grievance?.attachmentFileName).toBeNull();
   });
 
   it("returns null for an unknown tracking number", async () => {
     const { getGrievanceByTrackingNumberWith } = await import("./grievances");
     expect(await getGrievanceByTrackingNumberWith(testDb, "GRV-2026-ZZZZZZ")).toBeNull();
+  });
+
+  it("records an attachment when one is provided", async () => {
+    const { createGrievanceWith, getGrievanceByTrackingNumberWith } = await import(
+      "./grievances"
+    );
+    const trackingNumber = await createGrievanceWith(testDb, {
+      type: "GENERAL_GRIEVANCE",
+      projectId: "p-1",
+      submitterName: "A",
+      description: "Objection with supporting document",
+      attachmentFileName: "sale-deed.pdf",
+      attachmentStoragePath: "grievances/abc123-sale-deed.pdf",
+    });
+    const grievance = await getGrievanceByTrackingNumberWith(testDb, trackingNumber);
+    expect(grievance?.attachmentFileName).toBe("sale-deed.pdf");
+    expect(grievance?.attachmentStoragePath).toBe("grievances/abc123-sale-deed.pdf");
   });
 });
 

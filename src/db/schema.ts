@@ -145,6 +145,8 @@ export const grievances = sqliteTable("grievances", {
   submitterName: text("submitter_name").notNull(),
   submitterContact: text("submitter_contact"),
   description: text("description").notNull(),
+  attachmentFileName: text("attachment_file_name"),
+  attachmentStoragePath: text("attachment_storage_path"),
   status: text("status").notNull().default("FILED"),
   resolution: text("resolution"),
   resolutionNote: text("resolution_note"),
