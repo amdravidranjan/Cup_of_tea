@@ -1,6 +1,6 @@
 # Project Status — National Land Acquisition & Management System
 
-**Last updated:** 2026-08-30 (autonomous session, see [[autonomous_full_build_directive]] memory)
+**Last updated:** 2026-08-30 (autonomous session — GIS visual features, see [[autonomous_full_build_directive]] memory)
 
 Tracks implementation status against `docs/superpowers/specs/2026-08-28-land-acquisition-platform-design.md` Section 6 (Feature List). Update this file whenever a feature's status changes — it's the fastest way for a new session to see what's real without re-deriving it from commit history.
 
@@ -29,10 +29,11 @@ Legend: ✅ done & verified · 🚧 partial · ⬜ not started. Priority tags (�
 - ✅ 🟢 Interactive map, geo-tagged parcels, click-through
 - ✅ 🟢 Project alignment/footprint overlay
 - ✅ 🟢 **Layer toggle: alignment, parcels, impact buffer; status-based color coding (NOTIFIED/ACQUIRED/POSSESSED)** — rebuilt this session, was previously only impact-boolean-colored with no toggles/legend
+- ✅ 🟢 **Satellite imagery toggle** (Esri World Imagery raster layer, free/keyless) on the main project map
 - ✅ 🟡 Auto-computed impact (buffer-distance highlighting)
-- ⬜ 🟡 Before/after imagery slider
-- ⬜ 🟡 Elevation/terrain profile
-- ⬜ ⚪ Flagship 3D visualization
+- ✅ 🟡 **Before/after imagery slider** (`src/components/before-after-slider.tsx`) — two camera-synced MapLibre satellite maps with a CSS clip-path swipe divider; left pane raw Esri imagery, right pane the same imagery with alignment/parcel overlay — built this session
+- ✅ 🟡 **Elevation/terrain profile** (`src/lib/elevation.ts`, `src/db/elevation.ts`, `src/components/elevation-profile.tsx`) — real Open-Elevation samples fetched once at seed time and baked into the DB (no runtime third-party dependency), rendered as a Recharts area chart with climb/descent/range summary — built this session
+- ✅ ⚪ **Flagship 3D visualization** (`src/components/project-3d-view.tsx`, `/app/projects/[id]/3d`) — real AWS Terrarium terrain draped under satellite imagery, extruded parcels, adjustable exaggeration, and a cinematic fly-through camera along the real alignment bearing. Scoped to the single flagship project (Koraput bridge) per the parent spec's own framing, not built generically — built this session
 - ⬜ ⚪ QR code per parcel
 - ⬜ ⚪ Geo-tagged field photos on map
 
@@ -100,15 +101,25 @@ User correctly pushed back further on the realism fix above: parcels were still 
 - `toLocaleString()`/`toLocaleDateString()` called with no locale argument in 5 places — classic SSR/client hydration mismatch risk (server OS locale vs. browser locale). Fixed via `src/lib/format.ts` pinning `en-IN`/`Asia/Kolkata` explicitly.
 - Next.js requires sibling dynamic route segments at the same path level to share one param name — `/api/grievances/[id]/transition` vs. `/api/grievances/[trackingNumber]` crashed the dev server outright on startup. Fixed by unifying on `trackingNumber` throughout (see commit `acdcb62`). Worth remembering if a future route ever needs two different identifiers at the same nesting level: nest one level deeper instead of introducing a second param name.
 
+## GIS visual features (this session's follow-up work)
+User asked for the remaining GIS wishlist items from the parent spec — before/after slider, elevation profile, 3D visualization, satellite visual — plus "what and all fancy feature we can add for visual add it. it should make sense by the way." Built, in dependency order:
+- Added an `elevation_profiles` table + `src/lib/elevation.ts` (pure geometry: arc-length point sampling, climb/descent summary) + `src/db/elevation.ts` (upsert/read).
+- Wired real Open-Elevation fetches into `src/db/seed.ts` for all 6 LineString-alignment projects (the two Polygon footprint-type projects — CVG Canal, SIPCOT — don't have a meaningful "profile" and were deliberately skipped). Fetched once at seed time, baked into the DB — the live app makes no elevation API call at runtime. Verified real, geographically plausible results after reseeding: Koraput/Bengaluru plateau ~860-930m, Chennai-Salem/Coimbatore foothills ~230-480m, Chennai Metro/Ennore coastal ~0-32m.
+- Built `ElevationProfile` (Recharts area chart) and `BeforeAfterSlider` (two camera-synced MapLibre satellite maps, CSS clip-path swipe), wired into both the internal and public project detail pages, gated on `alignment.type === "LineString"` and a non-empty stored profile.
+- Built `Project3DView` (real AWS Terrarium terrain via `setTerrain`, Esri satellite drape, extruded parcels, exaggeration slider, cinematic alignment-bearing fly-through) as a single flagship showcase at `/app/projects/[id]/3d`, gated to the Koraput bridge project only, per the parent spec's own "polished showcase, not a generic feature" framing.
+- Deliberately did NOT add a matching public-portal 3D route: the bridge project stays at `DRAFT` stage and `isPublicStage()` excludes it, so a public 3D page would be unreachable dead code — added it, caught it, removed it (see git history `1ef3b61`).
+- Verified: 210 tests passing, clean `tsc --noEmit`, clean `npm run build` (all listed routes present, including `/app/projects/[id]/3d`), real elevation data spot-checked via a direct DB query.
+- Not independently visually screenshotted — Playwright MCP remained disconnected this session (both `plugin:github:github` and `plugin:playwright:playwright` failed to connect). Worth a live visual spot-check of the slider/3D view next session, same caveat as the geographic-grounding fix below.
+
 ## What's NOT done — the honest remaining gap list
-- **P1, real effort required:** configurable workflow per acquisition type (Section 40), SIA Expert Group review path, before/after imagery slider, elevation profile, multi-language UI (needs an actual i18n routing decision — retrofitting locale-prefixed routes onto the existing `(public)`/`app` route groups is a real restructure, not a quick add; deliberately not rushed this session).
+- **P1, real effort required:** configurable workflow per acquisition type (Section 40), SIA Expert Group review path, multi-language UI (needs an actual i18n routing decision — retrofitting locale-prefixed routes onto the existing `(public)`/`app` route groups is a real restructure, not a quick add; deliberately not rushed this session).
 - **P1, blocked on external provisioning the user explicitly said not to chase:** email alerts (Resend) — needs a real account/API key.
-- **P2, low effort if picked up:** e-signature stub, mock PFMS disbursement trail, RoR issuance tracking, SMS stub, QR code per parcel, geo-tagged field photos, 3D visualization, undo window, high-contrast toggle, notification preferences, "my data" export, command palette (Cmd/Ctrl+K overlay specifically — the search bar itself exists).
-- **Verification gap:** the geographic-grounding fix (real coordinates, curved alignments) was verified via data checks, not a live screenshot — Playwright MCP disconnected mid-session. Worth one visual spot-check.
+- **P2, low effort if picked up:** e-signature stub, mock PFMS disbursement trail, RoR issuance tracking, SMS stub, QR code per parcel, geo-tagged field photos, undo window, high-contrast toggle, notification preferences, "my data" export, command palette (Cmd/Ctrl+K overlay specifically — the search bar itself exists).
+- **Verification gap:** the geographic-grounding fix (real coordinates, curved alignments) and this session's GIS visual features (elevation chart, before/after slider, 3D fly-through) were verified via data checks and a production build, not a live screenshot — Playwright MCP has been disconnected since partway through this session. Worth one visual spot-check pass covering both.
 - **Accessibility:** re-run the `web-design-guidelines` audit — the last pass (`31c5b2f`) predates this session's full visual redesign.
 
 ## What a fresh session should do first
 1. Read this file, then `git log --oneline -60` to confirm nothing has drifted.
-2. Run `npm run test && npx tsc --noEmit && npm run build` to confirm the tree is still green (as of this update: 201 tests, clean build).
+2. Run `npm run test && npx tsc --noEmit && npm run build` to confirm the tree is still green (as of this update: 210 tests, clean build).
 3. Pick up the next ⬜ item in priority order (P1 before P2) from the gap list above, following the same pattern every feature this session used: brainstorm only for genuinely architectural pieces (new tables/entities), otherwise TDD directly; always `npm run db:push` after a schema change; always verify end-to-end against the running dev server (or a prod build, since this Next.js version's dev mode has a known first-hit-after-cold-compile hydration flake — see commits around `dd5f8c5`/`8e0cc56` for how to tell that apart from a real bug) before calling something done.
 4. Update this file's checkboxes as you go.
