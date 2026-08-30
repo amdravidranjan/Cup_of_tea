@@ -61,7 +61,7 @@ Legend: ✅ done & verified · 🚧 partial · ⬜ not started. Priority tags (�
 
 ## 6.8 Public / Transparency Portal
 - ✅ 🟢 **No-login public view: project status, notices, aggregate stats** (`/`, `/projects/[id]`) — built this session; portal is now the landing page, internal dashboard moved to `/app`
-- 🚧 🟡 Landowner self-service — status tracking by tracking number is done (`/track`); document *upload* against an existing case is not
+- ✅ 🟡 **Landowner self-service** — status tracking by tracking number (`/track`) and document upload/download on the grievance itself, both built this session
 - ✅ 🟡 **Grievance/RTI-style ticket submission + tracking number** (`GRV-YYYY-XXXXXX` format, `/track` public lookup, `/app/grievances` internal queue) — built this session
 
 ## 6.9 Platform-level
@@ -69,7 +69,7 @@ Legend: ✅ done & verified · 🚧 partial · ⬜ not started. Priority tags (�
 - ✅ 🟢 Full audit log (stage_history, rr_stage_history)
 - ✅ 🟡 **Global search across projects/parcels/families** (`src/db/search.ts`, header search bar) — built this session
 - ⬜ 🟡 Multi-language UI (next-intl)
-- ⬜ ⚪ "Interoperability" mock-API-contracts page
+- ✅ ⚪ **"Interoperability" mock-API-contracts page** (`/app/interoperability` — e-Gazette + PFMS contracts, named integration points in the actual codebase) — built this session
 - 🚧 ⚪ Accessibility pass — one earlier pass done (commit `31c5b2f`), not re-run since this session's visual redesign
 
 ## Section 7 — UX Features
@@ -98,9 +98,17 @@ User correctly pushed back further on the realism fix above: parcels were still 
 ## Bugs fixed this session (found incidentally, not spec items)
 - `next-themes` `useTheme()` called with no `ThemeProvider` ancestor in `sonner.tsx` — was producing a console error on every page load. Fixed by removing the unused hook call (app is light-only).
 - `toLocaleString()`/`toLocaleDateString()` called with no locale argument in 5 places — classic SSR/client hydration mismatch risk (server OS locale vs. browser locale). Fixed via `src/lib/format.ts` pinning `en-IN`/`Asia/Kolkata` explicitly.
+- Next.js requires sibling dynamic route segments at the same path level to share one param name — `/api/grievances/[id]/transition` vs. `/api/grievances/[trackingNumber]` crashed the dev server outright on startup. Fixed by unifying on `trackingNumber` throughout (see commit `acdcb62`). Worth remembering if a future route ever needs two different identifiers at the same nesting level: nest one level deeper instead of introducing a second param name.
+
+## What's NOT done — the honest remaining gap list
+- **P1, real effort required:** configurable workflow per acquisition type (Section 40), SIA Expert Group review path, before/after imagery slider, elevation profile, multi-language UI (needs an actual i18n routing decision — retrofitting locale-prefixed routes onto the existing `(public)`/`app` route groups is a real restructure, not a quick add; deliberately not rushed this session).
+- **P1, blocked on external provisioning the user explicitly said not to chase:** email alerts (Resend) — needs a real account/API key.
+- **P2, low effort if picked up:** e-signature stub, mock PFMS disbursement trail, RoR issuance tracking, SMS stub, QR code per parcel, geo-tagged field photos, 3D visualization, undo window, high-contrast toggle, notification preferences, "my data" export, command palette (Cmd/Ctrl+K overlay specifically — the search bar itself exists).
+- **Verification gap:** the geographic-grounding fix (real coordinates, curved alignments) was verified via data checks, not a live screenshot — Playwright MCP disconnected mid-session. Worth one visual spot-check.
+- **Accessibility:** re-run the `web-design-guidelines` audit — the last pass (`31c5b2f`) predates this session's full visual redesign.
 
 ## What a fresh session should do first
-1. Read this file, then `git log --oneline -30` to confirm nothing has drifted.
-2. Run `npm run test && npx tsc --noEmit && npm run build` to confirm the tree is still green.
-3. Pick up the next ⬜ item in priority order (P1 before P2), following the same pattern every feature above used: brainstorm only for genuinely architectural pieces (new tables/entities), otherwise TDD directly; always `npm run db:push` after a schema change; always verify end-to-end against the running dev server (or a prod build, since this Next.js version's dev mode has a known first-hit-after-cold-compile hydration flake — see commits around `dd5f8c5`/`8e0cc56` for how to tell that apart from a real bug) before calling something done.
+1. Read this file, then `git log --oneline -60` to confirm nothing has drifted.
+2. Run `npm run test && npx tsc --noEmit && npm run build` to confirm the tree is still green (as of this update: 201 tests, clean build).
+3. Pick up the next ⬜ item in priority order (P1 before P2) from the gap list above, following the same pattern every feature this session used: brainstorm only for genuinely architectural pieces (new tables/entities), otherwise TDD directly; always `npm run db:push` after a schema change; always verify end-to-end against the running dev server (or a prod build, since this Next.js version's dev mode has a known first-hit-after-cold-compile hydration flake — see commits around `dd5f8c5`/`8e0cc56` for how to tell that apart from a real bug) before calling something done.
 4. Update this file's checkboxes as you go.
