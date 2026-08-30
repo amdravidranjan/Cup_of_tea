@@ -59,6 +59,11 @@ export default async function DashboardLayout({
                 <Link href="/app/grievances">Grievances</Link>
               </Button>
             )}
+            {session && can(session.role, "project:view:all") && (
+              <Button variant="outline" asChild>
+                <Link href="/app/reports">Reports</Link>
+              </Button>
+            )}
             {session && <NotificationBell />}
             <RoleSwitcher />
           </div>
