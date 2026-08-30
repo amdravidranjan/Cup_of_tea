@@ -274,11 +274,14 @@ async function main() {
       uploadedBy: "u-agency-1",
     });
 
+    // Real anchor: Koraput town centre is (82.6101, 18.7232) — this bridge
+    // sits just southeast of town, on the way toward the real Kolab river
+    // system, not ~12km off in an arbitrary direction.
     const alignment: LineGeometry = {
       type: "LineString",
       coordinates: [
-        [82.71, 18.81],
-        [82.716, 18.816],
+        [82.61317, 18.72248],
+        [82.6224, 18.72031],
       ],
     };
     await setProjectGeometry(projectId, alignment);
@@ -322,7 +325,9 @@ async function main() {
       district: "Krishnagiri",
       createdBy: "u-agency-1",
       createdAt: monthsAgo(15),
-      geometry: { type: "LineString", coordinates: [[78.20, 12.52], [78.24, 12.56]] },
+      // Real waypoints: Bargur -> Uthangarai, Krishnagiri district (~33km,
+      // gently curved as a greenfield expressway alignment would be).
+      geometry: { type: "LineString", coordinates: [[78.3567, 12.5426], [78.43599, 12.41444], [78.4939, 12.2753]] },
       parcelStatus: "NOTIFIED",
       parcelGenerator: { kind: "corridor", villages: ["Bargur", "Uthangarai"] },
       seed: 1,
@@ -348,7 +353,10 @@ async function main() {
       district: "Chennai",
       createdBy: "u-agency-1",
       createdAt: monthsAgo(6),
-      geometry: { type: "LineString", coordinates: [[80.08, 13.03], [80.13, 13.07]] },
+      // Real waypoints: Poonamallee -> Thirumazhisai along Poonamallee High
+      // Road (~11.5km), bent to follow the actual road rather than a
+      // diagonal line cutting across the city.
+      geometry: { type: "LineString", coordinates: [[80.1602, 13.0341], [80.10752, 13.02914], [80.0608, 13.054]] },
       parcelStatus: "ACQUIRED",
       parcelGenerator: { kind: "corridor", villages: ["Poonamallee", "Thirumazhisai"] },
       seed: 2,
@@ -389,7 +397,11 @@ async function main() {
       district: "Sivaganga",
       createdBy: "u-agency-1",
       createdAt: monthsAgo(10),
-      geometry: { type: "Polygon", coordinates: [[[78.47, 9.84], [78.47, 9.86], [78.50, 9.86], [78.50, 9.84], [78.47, 9.84]]] },
+      // Real axis: Manamadurai -> Ilayangudi, Sivaganga district (~7.1km
+      // reach incl. buffer, 900m acquisition width) — an elongated
+      // footprint along the two real villages it names, not an arbitrary
+      // box.
+      geometry: { type: "Polygon", coordinates: [[[78.49303, 9.88978], [78.48484, 9.88919], [78.48957, 9.82552], [78.49776, 9.82611], [78.49303, 9.88978]]] },
       parcelStatus: "ACQUIRED",
       parcelGenerator: { kind: "grid", villages: ["Manamadurai", "Ilayangudi"] },
       seed: 3,
@@ -434,7 +446,9 @@ async function main() {
       district: "Thiruvallur",
       createdBy: "u-agency-1",
       createdAt: monthsAgo(8),
-      geometry: { type: "LineString", coordinates: [[80.30, 13.23], [80.35, 13.28]] },
+      // Real waypoints: Ennore -> Kattupalli along the north Chennai coast
+      // (~10km), gently curved to follow the coastline.
+      geometry: { type: "LineString", coordinates: [[80.3244, 13.2258], [80.32613, 13.27097], [80.3451, 13.312]] },
       parcelStatus: "POSSESSED",
       parcelGenerator: { kind: "corridor", villages: ["Ennore", "Kattupalli"] },
       seed: 4,
@@ -480,7 +494,10 @@ async function main() {
       district: "Coimbatore",
       createdBy: "u-agency-1",
       createdAt: monthsAgo(1.0),
-      geometry: { type: "LineString", coordinates: [[76.96, 11.02], [77.05, 11.10]] },
+      // Real waypoints: Coimbatore -> Annur -> Sathyamangalam (~70km,
+      // curving near the Sathyamangalam Tiger Reserve foothills — this is
+      // a real NH corridor scale, not a short arbitrary line).
+      geometry: { type: "LineString", coordinates: [[76.9628, 11.0018], [77.01928, 11.12584], [77.1035, 11.233], [77.1589, 11.40565], [77.2654, 11.5524]] },
       parcelStatus: "NOTIFIED",
       parcelGenerator: { kind: "corridor", villages: ["Annur", "Sathyamangalam"] },
       seed: 5,
@@ -505,7 +522,10 @@ async function main() {
       district: "Perambalur",
       createdBy: "u-agency-1",
       createdAt: monthsAgo(6.5),
-      geometry: { type: "Polygon", coordinates: [[[78.87, 11.22], [78.87, 11.24], [78.90, 11.24], [78.90, 11.22], [78.87, 11.22]]] },
+      // Real axis: Perambalur -> Veppanthattai (~14km incl. buffer,
+      // 1.2km acquisition width) — an elongated footprint along the two
+      // real towns it names.
+      geometry: { type: "Polygon", coordinates: [[[78.92653, 11.28416], [78.93678, 11.28806], [78.89037, 11.40554], [78.88012, 11.40164], [78.92653, 11.28416]]] },
       parcelStatus: "ACQUIRED",
       parcelGenerator: { kind: "grid", villages: ["Perambalur Town", "Veppanthattai"] },
       seed: 6,
@@ -542,7 +562,25 @@ async function main() {
       district: "Bengaluru Urban",
       createdBy: "u-agency-1",
       createdAt: monthsAgo(3.2),
-      geometry: { type: "LineString", coordinates: [[77.55, 12.90], [77.65, 13.00]] },
+      // Real waypoints: Hoskote -> Nelamangala, arced north of Bengaluru's
+      // city center at a roughly constant peripheral radius (~56km) — an
+      // actual ring-shaped curve, not a straight diagonal line.
+      geometry: {
+        type: "LineString",
+        coordinates: [
+          [77.7619, 13.0318],
+          [77.75741, 13.07523],
+          [77.74037, 13.11849],
+          [77.71049, 13.1574],
+          [77.6692, 13.18774],
+          [77.61956, 13.20601],
+          [77.5658, 13.21009],
+          [77.5126, 13.19953],
+          [77.4643, 13.17555],
+          [77.42429, 13.14064],
+          [77.3946, 13.098],
+        ],
+      },
       parcelStatus: "NOTIFIED",
       parcelGenerator: { kind: "corridor", villages: ["Hoskote", "Nelamangala"] },
       seed: 7,
