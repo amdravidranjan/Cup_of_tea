@@ -43,7 +43,7 @@ function statusTone(status: GrievanceStatus): "pending" | "info" | "success" {
   return "success";
 }
 
-function ResolveForm({ id, onDone }: { id: string; onDone: () => void }) {
+function ResolveForm({ trackingNumber, onDone }: { trackingNumber: string; onDone: () => void }) {
   const [resolution, setResolution] = useState<GrievanceResolution>("UPHELD");
   const [pending, setPending] = useState(false);
 
@@ -51,7 +51,7 @@ function ResolveForm({ id, onDone }: { id: string; onDone: () => void }) {
     event.preventDefault();
     setPending(true);
     const formData = new FormData(event.currentTarget);
-    const res = await fetch(`/api/grievances/${id}/transition`, {
+    const res = await fetch(`/api/grievances/${trackingNumber}/transition`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -83,10 +83,10 @@ function ResolveForm({ id, onDone }: { id: string; onDone: () => void }) {
         </SelectContent>
       </Select>
       <div className="space-y-1">
-        <Label htmlFor={`note-${id}`} className="text-xs">
+        <Label htmlFor={`note-${trackingNumber}`} className="text-xs">
           Note
         </Label>
-        <Input id={`note-${id}`} name="resolutionNote" className="h-8 w-48" />
+        <Input id={`note-${trackingNumber}`} name="resolutionNote" className="h-8 w-48" />
       </div>
       <Button type="submit" size="sm" disabled={pending}>
         {pending ? "…" : "Resolve"}
@@ -105,9 +105,9 @@ export function GrievanceQueue({
   const router = useRouter();
   const [pending, setPending] = useState<string | null>(null);
 
-  async function startReview(id: string) {
-    setPending(id);
-    const res = await fetch(`/api/grievances/${id}/transition`, {
+  async function startReview(trackingNumber: string) {
+    setPending(trackingNumber);
+    const res = await fetch(`/api/grievances/${trackingNumber}/transition`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ action: "START_REVIEW" }),
@@ -163,13 +163,13 @@ export function GrievanceQueue({
                     size="sm"
                     variant="outline"
                     disabled={pending !== null}
-                    onClick={() => startReview(g.id)}
+                    onClick={() => startReview(g.trackingNumber)}
                   >
-                    {pending === g.id ? "…" : "Start review"}
+                    {pending === g.trackingNumber ? "…" : "Start review"}
                   </Button>
                 )}
                 {canManage && g.status === "UNDER_REVIEW" && (
-                  <ResolveForm id={g.id} onDone={() => router.refresh()} />
+                  <ResolveForm trackingNumber={g.trackingNumber} onDone={() => router.refresh()} />
                 )}
               </TableCell>
             </TableRow>

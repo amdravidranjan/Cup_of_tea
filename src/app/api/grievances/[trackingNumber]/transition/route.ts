@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
 import { can } from "@/lib/rbac";
-import { transitionGrievanceStatus } from "@/db/grievances";
+import { getGrievanceByTrackingNumber, transitionGrievanceStatus } from "@/db/grievances";
 import type { GrievanceAction, GrievanceResolution } from "@/lib/grievance-workflow";
 
 interface TransitionBody {
@@ -12,7 +12,7 @@ interface TransitionBody {
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ trackingNumber: string }> }
 ) {
   const session = await getSession();
   if (!session) {
@@ -21,7 +21,7 @@ export async function POST(
   if (!can(session.role, "grievance:manage")) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
-  const { id } = await params;
+  const { trackingNumber } = await params;
   const body = (await request.json()) as TransitionBody;
   if (!body.action) {
     return NextResponse.json({ error: "Missing action" }, { status: 400 });
@@ -30,9 +30,14 @@ export async function POST(
     return NextResponse.json({ error: "Resolution is required to resolve a grievance" }, { status: 400 });
   }
 
+  const grievance = await getGrievanceByTrackingNumber(trackingNumber);
+  if (!grievance) {
+    return NextResponse.json({ error: "Grievance not found" }, { status: 404 });
+  }
+
   try {
     const status = await transitionGrievanceStatus(
-      id,
+      grievance.id,
       body.action,
       session.role,
       session.userId,
