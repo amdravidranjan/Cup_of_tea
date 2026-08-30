@@ -44,6 +44,11 @@ interface ParcelFeature {
 const ALIGNMENT_COLOR = "#2563eb";
 const IMPACT_OUTLINE_COLOR = "#ea580c";
 
+// Esri World Imagery: free, keyless satellite/aerial basemap (Esri, Maxar,
+// Earthstar Geographics — attribution required, shown in the legend).
+export const SATELLITE_TILE_URL =
+  "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}";
+
 function statusHex(status: string): string {
   return toneHex(parcelStatusTone(status));
 }
@@ -60,6 +65,7 @@ export function ProjectMap({
   const [showAlignment, setShowAlignment] = useState(true);
   const [showParcels, setShowParcels] = useState(true);
   const [showImpact, setShowImpact] = useState(true);
+  const [showSatellite, setShowSatellite] = useState(false);
 
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return;
@@ -90,6 +96,26 @@ export function ProjectMap({
     map.addControl(new ScaleControl({ unit: "metric" }), "bottom-right");
 
     map.on("load", () => {
+      map.addSource("satellite", {
+        type: "raster",
+        tiles: [SATELLITE_TILE_URL],
+        tileSize: 256,
+        attribution: "Esri, Maxar, Earthstar Geographics",
+      });
+      // No beforeId: appends on top of the vector basemap's own layers
+      // (which is everything that currently exists at this point in
+      // `load`) but every alignment/parcel layer added below will stack
+      // on top of this one in turn — satellite ends up sandwiched
+      // between the base map and this project's own overlays, exactly
+      // where a basemap swap belongs.
+      map.addLayer({
+        id: "satellite-raster",
+        type: "raster",
+        source: "satellite",
+        layout: { visibility: "none" },
+        paint: { "raster-opacity": 1 },
+      });
+
       if (alignment) {
         map.addSource("alignment", {
           type: "geojson",
@@ -199,12 +225,28 @@ export function ProjectMap({
     map.setLayoutProperty("parcels-impact-outline", "visibility", showImpact ? "visible" : "none");
   }, [showImpact]);
 
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map?.getLayer("satellite-raster")) return;
+    map.setLayoutProperty("satellite-raster", "visibility", showSatellite ? "visible" : "none");
+  }, [showSatellite]);
+
   return (
     <div className="relative">
       <div ref={containerRef} className="h-[28rem] w-full overflow-hidden rounded-lg border" />
 
       <div className="absolute left-3 top-3 z-10 w-48 space-y-2 rounded-lg border bg-background/95 p-3 text-xs shadow-sm backdrop-blur">
         <p className="font-semibold text-foreground">Layers</p>
+
+        <label className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            checked={showSatellite}
+            onChange={(e) => setShowSatellite(e.target.checked)}
+            className="h-3.5 w-3.5"
+          />
+          <span>Satellite imagery</span>
+        </label>
 
         {alignment && (
           <label className="flex items-center gap-2">
