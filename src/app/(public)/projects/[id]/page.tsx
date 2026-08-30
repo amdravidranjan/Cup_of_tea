@@ -1,6 +1,9 @@
 import { notFound } from "next/navigation";
 import { getPublicProjectDetail } from "@/db/public";
 import { ProjectMap } from "@/components/project-map";
+import { BeforeAfterSlider } from "@/components/before-after-slider";
+import { getElevationProfile } from "@/db/elevation";
+import { ElevationProfile } from "@/components/elevation-profile";
 import { StageTracker } from "@/components/stage-tracker";
 import { FileGrievanceForm } from "@/components/file-grievance-form";
 import { Badge } from "@/components/ui/badge";
@@ -22,6 +25,8 @@ export default async function PublicProjectDetailPage({
   if (!detail) notFound();
 
   const { project } = detail;
+  const elevationSamples =
+    detail.alignment?.type === "LineString" ? await getElevationProfile(project.id) : null;
 
   return (
     <div className="space-y-6">
@@ -102,6 +107,26 @@ export default async function PublicProjectDetailPage({
           <ProjectMap alignment={detail.alignment} parcels={detail.parcels} />
         </CardContent>
       </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-sm font-medium">Before / after compare</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <BeforeAfterSlider alignment={detail.alignment} parcels={detail.parcels} />
+        </CardContent>
+      </Card>
+
+      {elevationSamples && elevationSamples.length > 1 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm font-medium">Elevation profile</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ElevationProfile samples={elevationSamples} />
+          </CardContent>
+        </Card>
+      )}
 
       <Card>
         <CardHeader>

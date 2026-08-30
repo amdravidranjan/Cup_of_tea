@@ -16,6 +16,9 @@ import {
   IMPACT_BUFFER_METERS,
 } from "@/lib/geo";
 import { ProjectMap } from "@/components/project-map";
+import { BeforeAfterSlider } from "@/components/before-after-slider";
+import { getElevationProfile } from "@/db/elevation";
+import { ElevationProfile } from "@/components/elevation-profile";
 import {
   getCurrentCompensationRate,
   listCompensationRates,
@@ -66,6 +69,7 @@ export default async function ProjectDetailPage({
   const alignment = parseStoredGeometry(project.geometryType, project.geometryGeoJson);
   const parcelList = await listParcels(id);
   const parcelsWithImpact = computeParcelsWithImpact(alignment, parcelList);
+  const elevationSamples = alignment?.type === "LineString" ? await getElevationProfile(id) : null;
 
   const compensationRate = await getCurrentCompensationRate(project.state, project.district);
   const compensationRateHistory = await listCompensationRates(project.state, project.district);
@@ -140,6 +144,26 @@ export default async function ProjectDetailPage({
           </p>
         </CardContent>
       </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-sm font-medium">Before / after compare</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <BeforeAfterSlider alignment={alignment} parcels={parcelsWithImpact} />
+        </CardContent>
+      </Card>
+
+      {elevationSamples && elevationSamples.length > 1 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm font-medium">Elevation profile</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ElevationProfile samples={elevationSamples} />
+          </CardContent>
+        </Card>
+      )}
 
       <Card>
         <CardHeader>
