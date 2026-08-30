@@ -12,7 +12,47 @@ import { transitionRR, type RRAction, type RRStage } from "@/lib/rr-workflow";
 import { calculateCompensation } from "@/lib/compensation";
 import { generateCorridorParcels, generateGridParcels } from "@/lib/parcel-generation";
 import type { Geometry, LineGeometry, PolygonGeometry } from "@/lib/geo";
+import { haversineDistanceMeters } from "@/lib/geo";
 import type { ParcelStatus } from "@/lib/parcel-status";
+import { sampleLinePoints, type ElevationSample } from "@/lib/elevation";
+import { saveElevationProfile } from "./elevation";
+
+/**
+ * Fetches real elevation data for a linear alignment from Open-Elevation
+ * (free, keyless, public SRTM-derived data) and stores it once at seed
+ * time — the live app never depends on this API being reachable, only
+ * this one-time seed run does. Network failures degrade gracefully
+ * (elevation profile simply won't exist for that project) rather than
+ * aborting the whole seed.
+ */
+async function seedElevationProfile(projectId: string, alignment: LineGeometry): Promise<void> {
+  try {
+    const points = sampleLinePoints(alignment, 20);
+    const locations = points.map(([lng, lat]) => `${lat},${lng}`).join("|");
+    const res = await fetch(
+      `https://api.open-elevation.com/api/v1/lookup?locations=${locations}`
+    );
+    if (!res.ok) throw new Error(`Open-Elevation returned ${res.status}`);
+    const data = (await res.json()) as {
+      results: { latitude: number; longitude: number; elevation: number }[];
+    };
+
+    let cumulative = 0;
+    const samples: ElevationSample[] = points.map((p, i) => {
+      if (i > 0) cumulative += haversineDistanceMeters(points[i - 1], p);
+      return {
+        distanceMeters: Math.round(cumulative),
+        lng: p[0],
+        lat: p[1],
+        elevationMeters: data.results[i]?.elevation ?? 0,
+      };
+    });
+    await saveElevationProfile(projectId, samples);
+    console.log(`  elevation profile saved for ${projectId} (${samples.length} points)`);
+  } catch (err) {
+    console.warn(`  elevation profile skipped for ${projectId}: ${(err as Error).message}`);
+  }
+}
 
 const SEED_ACTOR_IDS: Record<Role, string> = {
   agency: "u-agency-1",
@@ -311,12 +351,17 @@ async function main() {
       multiplier: 1.5,
       setBy: "u-district-1",
     });
+
+    await seedElevationProfile(projectId, alignment);
   }
 
   // --- Tamil Nadu: Chennai-Salem Green Corridor Expressway (Krishnagiri) ---
   // Breached: notified 14.5 months ago, never declared (12mo deadline).
   {
     const id = "p-tn-chennai-salem";
+    // Real waypoints: Bargur -> Uthangarai, Krishnagiri district (~33km,
+    // gently curved as a greenfield expressway alignment would be).
+    const alignment: LineGeometry = { type: "LineString", coordinates: [[78.3567, 12.5426], [78.43599, 12.41444], [78.4939, 12.2753]] };
     await createSeedProject({
       id,
       name: "Chennai–Salem Green Corridor Expressway",
@@ -325,9 +370,7 @@ async function main() {
       district: "Krishnagiri",
       createdBy: "u-agency-1",
       createdAt: monthsAgo(15),
-      // Real waypoints: Bargur -> Uthangarai, Krishnagiri district (~33km,
-      // gently curved as a greenfield expressway alignment would be).
-      geometry: { type: "LineString", coordinates: [[78.3567, 12.5426], [78.43599, 12.41444], [78.4939, 12.2753]] },
+      geometry: alignment,
       parcelStatus: "NOTIFIED",
       parcelGenerator: { kind: "corridor", villages: ["Bargur", "Uthangarai"] },
       seed: 1,
@@ -336,6 +379,7 @@ async function main() {
     await seedProjectTransition(id, "SUBMIT", "agency", monthsAgo(15));
     await seedProjectTransition(id, "APPROVE", "district", monthsAgo(14.7));
     await seedProjectTransition(id, "COMPLETE", "district", monthsAgo(14.5));
+    await seedElevationProfile(id, alignment);
   }
 
   // --- Tamil Nadu: Chennai Metro Phase 2 - Poonamallee Extension ---
@@ -345,6 +389,10 @@ async function main() {
     const notifiedAt = monthsAgo(5.6);
     const awardedAt = monthsAgo(2.5);
     const rate = { ratePerHectare: 8_000_000, multiplier: 1.0 };
+    // Real waypoints: Poonamallee -> Thirumazhisai along Poonamallee High
+    // Road (~11.5km), bent to follow the actual road rather than a
+    // diagonal line cutting across the city.
+    const alignment: LineGeometry = { type: "LineString", coordinates: [[80.1602, 13.0341], [80.10752, 13.02914], [80.0608, 13.054]] };
     const parcelList = await createSeedProject({
       id,
       name: "Chennai Metro Phase 2 – Poonamallee Extension",
@@ -353,10 +401,7 @@ async function main() {
       district: "Chennai",
       createdBy: "u-agency-1",
       createdAt: monthsAgo(6),
-      // Real waypoints: Poonamallee -> Thirumazhisai along Poonamallee High
-      // Road (~11.5km), bent to follow the actual road rather than a
-      // diagonal line cutting across the city.
-      geometry: { type: "LineString", coordinates: [[80.1602, 13.0341], [80.10752, 13.02914], [80.0608, 13.054]] },
+      geometry: alignment,
       parcelStatus: "ACQUIRED",
       parcelGenerator: { kind: "corridor", villages: ["Poonamallee", "Thirumazhisai"] },
       seed: 2,
@@ -379,6 +424,7 @@ async function main() {
       0.5,
       monthsAgo(2.0)
     );
+    await seedElevationProfile(id, alignment);
   }
 
   // --- Tamil Nadu: Cauvery-Vaigai-Gundar Link Canal (Sivaganga Reach) ---
@@ -438,6 +484,12 @@ async function main() {
     const notifiedAt = monthsAgo(7.8);
     const awardedAt = monthsAgo(6.5);
     const rate = { ratePerHectare: 3_500_000, multiplier: 1.5 };
+    // Real waypoints: Ennore -> Kattupalli along the north Chennai coast
+    // (~10km), gently curved to follow the coastline.
+    const alignment: LineGeometry = {
+      type: "LineString",
+      coordinates: [[80.3244, 13.2258], [80.32613, 13.27097], [80.3451, 13.312]],
+    };
     const parcelList = await createSeedProject({
       id,
       name: "Ennore–Kattupalli Port Connectivity Corridor",
@@ -446,9 +498,7 @@ async function main() {
       district: "Thiruvallur",
       createdBy: "u-agency-1",
       createdAt: monthsAgo(8),
-      // Real waypoints: Ennore -> Kattupalli along the north Chennai coast
-      // (~10km), gently curved to follow the coastline.
-      geometry: { type: "LineString", coordinates: [[80.3244, 13.2258], [80.32613, 13.27097], [80.3451, 13.312]] },
+      geometry: alignment,
       parcelStatus: "POSSESSED",
       parcelGenerator: { kind: "corridor", villages: ["Ennore", "Kattupalli"] },
       seed: 4,
@@ -480,12 +530,20 @@ async function main() {
     await seedRRTransition(id, "PASS_RR_AWARD", "district", monthsAgo(4.0));
     await seedProjectTransition(id, "COMPLETE_RR", "district", monthsAgo(3.5));
     await seedProjectTransition(id, "COMPLETE_INFRASTRUCTURE", "district", monthsAgo(1.0));
+    await seedElevationProfile(id, alignment);
   }
 
   // --- Tamil Nadu: Coimbatore-Sathyamangalam NH Bypass ---
   // Too early: created 1 month ago, only reached SIA.
   {
     const id = "p-tn-coimbatore-bypass";
+    // Real waypoints: Coimbatore -> Annur -> Sathyamangalam (~70km,
+    // curving near the Sathyamangalam Tiger Reserve foothills — this is
+    // a real NH corridor scale, not a short arbitrary line).
+    const alignment: LineGeometry = {
+      type: "LineString",
+      coordinates: [[76.9628, 11.0018], [77.01928, 11.12584], [77.1035, 11.233], [77.1589, 11.40565], [77.2654, 11.5524]],
+    };
     await createSeedProject({
       id,
       name: "Coimbatore–Sathyamangalam NH Bypass",
@@ -494,10 +552,7 @@ async function main() {
       district: "Coimbatore",
       createdBy: "u-agency-1",
       createdAt: monthsAgo(1.0),
-      // Real waypoints: Coimbatore -> Annur -> Sathyamangalam (~70km,
-      // curving near the Sathyamangalam Tiger Reserve foothills — this is
-      // a real NH corridor scale, not a short arbitrary line).
-      geometry: { type: "LineString", coordinates: [[76.9628, 11.0018], [77.01928, 11.12584], [77.1035, 11.233], [77.1589, 11.40565], [77.2654, 11.5524]] },
+      geometry: alignment,
       parcelStatus: "NOTIFIED",
       parcelGenerator: { kind: "corridor", villages: ["Annur", "Sathyamangalam"] },
       seed: 5,
@@ -505,6 +560,7 @@ async function main() {
     });
     await seedProjectTransition(id, "SUBMIT", "agency", monthsAgo(1.0));
     await seedProjectTransition(id, "APPROVE", "district", monthsAgo(0.9));
+    await seedElevationProfile(id, alignment);
   }
 
   // --- Tamil Nadu: SIPCOT Industrial Corridor Expansion (Perambalur) ---
@@ -554,6 +610,25 @@ async function main() {
   // On-track, early: notified 3 months ago, 12mo deadline.
   {
     const id = "p-ka-bengaluru-prr";
+    // Real waypoints: Hoskote -> Nelamangala, arced north of Bengaluru's
+    // city center at a roughly constant peripheral radius (~56km) — an
+    // actual ring-shaped curve, not a straight diagonal line.
+    const alignment: LineGeometry = {
+      type: "LineString",
+      coordinates: [
+        [77.7619, 13.0318],
+        [77.75741, 13.07523],
+        [77.74037, 13.11849],
+        [77.71049, 13.1574],
+        [77.6692, 13.18774],
+        [77.61956, 13.20601],
+        [77.5658, 13.21009],
+        [77.5126, 13.19953],
+        [77.4643, 13.17555],
+        [77.42429, 13.14064],
+        [77.3946, 13.098],
+      ],
+    };
     await createSeedProject({
       id,
       name: "Bengaluru Peripheral Ring Road Corridor",
@@ -562,25 +637,7 @@ async function main() {
       district: "Bengaluru Urban",
       createdBy: "u-agency-1",
       createdAt: monthsAgo(3.2),
-      // Real waypoints: Hoskote -> Nelamangala, arced north of Bengaluru's
-      // city center at a roughly constant peripheral radius (~56km) — an
-      // actual ring-shaped curve, not a straight diagonal line.
-      geometry: {
-        type: "LineString",
-        coordinates: [
-          [77.7619, 13.0318],
-          [77.75741, 13.07523],
-          [77.74037, 13.11849],
-          [77.71049, 13.1574],
-          [77.6692, 13.18774],
-          [77.61956, 13.20601],
-          [77.5658, 13.21009],
-          [77.5126, 13.19953],
-          [77.4643, 13.17555],
-          [77.42429, 13.14064],
-          [77.3946, 13.098],
-        ],
-      },
+      geometry: alignment,
       parcelStatus: "NOTIFIED",
       parcelGenerator: { kind: "corridor", villages: ["Hoskote", "Nelamangala"] },
       seed: 7,
@@ -589,6 +646,7 @@ async function main() {
     await seedProjectTransition(id, "SUBMIT", "agency", monthsAgo(3.2));
     await seedProjectTransition(id, "APPROVE", "district", monthsAgo(3.1));
     await seedProjectTransition(id, "COMPLETE", "district", monthsAgo(3.0));
+    await seedElevationProfile(id, alignment);
   }
 
   console.log("Seed complete: 6 demo users, 8 demo projects, realistic parcel-scale geometry.");
