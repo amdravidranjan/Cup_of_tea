@@ -136,14 +136,26 @@ export function generateCorridorParcels(
     const perp = { x: -start.dir.y, y: start.dir.x };
     const half = options.rowWidthMeters / 2;
 
+    // Real adjoining survey plots along a corridor rarely all reach the
+    // full right-of-way depth on both sides and rarely meet their
+    // neighbor on a clean perpendicular line — each of the 4 corners gets
+    // an independent depth (55-100% of the ROW half-width) and a small
+    // along-line jitter, so the strip reads as a row of irregular
+    // adjoining plots rather than a ruled-off rectangle grid.
+    const depth = () => half * (0.55 + rng() * 0.45);
+    const alongJitter = () => (rng() - 0.5) * Math.min(step, options.rowWidthMeters) * 0.3;
+
+    const startPt = add(start.point, scale(start.dir, alongJitter()));
+    const endPt = add(end.point, scale(start.dir, alongJitter()));
+
     const corners: LocalPoint[] = [
-      add(start.point, scale(perp, half)),
-      add(end.point, scale(perp, half)),
-      add(end.point, scale(perp, -half)),
-      add(start.point, scale(perp, -half)),
+      add(startPt, scale(perp, depth())),
+      add(endPt, scale(perp, depth())),
+      add(endPt, scale(perp, -depth())),
+      add(startPt, scale(perp, -depth())),
     ];
     const ring = closeRing(corners.map((c) => fromLocalMeters(c, origin)));
-    const areaHectares = ((endAlong - along) * options.rowWidthMeters) / 10000;
+    const areaHectares = shoelaceAreaHectares(corners);
     const village = villageForFraction(options.villages, along / totalLength);
 
     parcels.push({
@@ -156,6 +168,16 @@ export function generateCorridorParcels(
   }
 
   return parcels;
+}
+
+function shoelaceAreaHectares(corners: LocalPoint[]): number {
+  let twice = 0;
+  for (let i = 0; i < corners.length; i++) {
+    const a = corners[i];
+    const b = corners[(i + 1) % corners.length];
+    twice += a.x * b.y - b.x * a.y;
+  }
+  return Math.abs(twice / 2) / 10000;
 }
 
 function pointInPolygonLocal(point: LocalPoint, ring: LocalPoint[]): boolean {
@@ -209,16 +231,18 @@ export function generateGridParcels(
       const cy = y + cellSize / 2;
       if (!pointInPolygonLocal({ x: cx, y: cy }, ring)) continue;
 
-      const w = cellSize * (0.82 + rng() * 0.32);
-      const h = cellSize * (0.82 + rng() * 0.32);
+      // Jitter each corner independently (not just a shared w/h scale) so
+      // cells come out as irregular quadrilaterals — real field
+      // boundaries, not a drafted grid.
+      const jitter = () => (rng() - 0.5) * cellSize * 0.36;
       const corners: LocalPoint[] = [
-        { x, y },
-        { x: x + w, y },
-        { x: x + w, y: y + h },
-        { x, y: y + h },
+        { x: x + jitter(), y: y + jitter() },
+        { x: x + cellSize + jitter(), y: y + jitter() },
+        { x: x + cellSize + jitter(), y: y + cellSize + jitter() },
+        { x: x + jitter(), y: y + cellSize + jitter() },
       ];
       const geoRing = closeRing(corners.map((c) => fromLocalMeters(c, origin)));
-      const areaHectares = (w * h) / 10000;
+      const areaHectares = shoelaceAreaHectares(corners);
       const village = villageForFraction(
         options.villages,
         totalSpanX === 0 ? 0 : (cx - minX) / totalSpanX
