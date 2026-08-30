@@ -6,6 +6,7 @@ import { listParcels } from "@/db/parcels";
 import { parseStoredGeometry, computeParcelsWithImpact } from "@/lib/geo";
 import { Project3DView } from "@/components/project-3d-view";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { canViewProject } from "@/lib/project-scope";
 
 // Flagship 3D terrain showcase — scoped to a single polished project
 // rather than built out generically for every project type.
@@ -24,6 +25,7 @@ export default async function Project3DPage({
 
   const project = await getProject(id);
   if (!project) notFound();
+  if (!canViewProject(session, project)) notFound();
 
   const alignment = parseStoredGeometry(project.geometryType, project.geometryGeoJson);
   const parcelList = await listParcels(id);

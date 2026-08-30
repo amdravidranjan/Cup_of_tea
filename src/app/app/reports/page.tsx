@@ -1,11 +1,20 @@
 import Link from "next/link";
 import { getSession } from "@/lib/auth";
+import { can } from "@/lib/rbac";
 import { getProjectReportRows } from "@/db/reports";
 import { ReportBuilder } from "@/components/report-builder";
 
 export default async function ReportsPage() {
   const session = await getSession();
   if (!session) return null;
+
+  if (!can(session.role, "project:view:all")) {
+    return (
+      <p className="text-sm text-muted-foreground">
+        Your role does not have access to cross-project reports.
+      </p>
+    );
+  }
 
   const filter = session.role === "state" ? { state: session.state } : undefined;
   const rows = await getProjectReportRows(filter);

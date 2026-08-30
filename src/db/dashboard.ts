@@ -8,6 +8,7 @@ import { listParcelsWith } from "./parcels";
 import { listInfrastructureChecklistWith } from "./infrastructure";
 import { computeSLAMetrics, type SLAMetric } from "@/lib/sla";
 import { STAGES, type Stage } from "@/lib/workflow";
+import { scopeProjects, type ProjectScopeFilter } from "@/lib/project-scope";
 
 type Db = LibSQLDatabase<typeof schema>;
 type ProjectRow = typeof schema.projects.$inferSelect;
@@ -41,13 +42,9 @@ async function summarizeProject(database: Db, project: ProjectRow): Promise<Proj
   return { project, metrics };
 }
 
-function scopeProjects(projects: ProjectRow[], filter?: { state?: string }): ProjectRow[] {
-  return filter?.state ? projects.filter((p) => p.state === filter.state) : projects;
-}
-
 export async function getProjectsWithSLAWith(
   database: Db,
-  filter?: { state?: string }
+  filter?: ProjectScopeFilter
 ): Promise<ProjectSLASummary[]> {
   const projects = scopeProjects(await listProjectsWith(database), filter);
   return Promise.all(projects.map((p) => summarizeProject(database, p)));
@@ -95,7 +92,7 @@ export async function aggregatePortfolioStatsWith(database: Db, projects: Projec
 
 export async function getPortfolioStatsWith(
   database: Db,
-  filter?: { state?: string }
+  filter?: ProjectScopeFilter
 ): Promise<PortfolioStats> {
   const projects = scopeProjects(await listProjectsWith(database), filter);
   return aggregatePortfolioStatsWith(database, projects);
@@ -115,8 +112,8 @@ export async function getStateBreakdownWith(database: Db): Promise<StateBreakdow
   return rows;
 }
 
-export const getProjectsWithSLA = (filter?: { state?: string }) =>
+export const getProjectsWithSLA = (filter?: ProjectScopeFilter) =>
   getProjectsWithSLAWith(defaultDb, filter);
-export const getPortfolioStats = (filter?: { state?: string }) =>
+export const getPortfolioStats = (filter?: ProjectScopeFilter) =>
   getPortfolioStatsWith(defaultDb, filter);
 export const getStateBreakdown = () => getStateBreakdownWith(defaultDb);

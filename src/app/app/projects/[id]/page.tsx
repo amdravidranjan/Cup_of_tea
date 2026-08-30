@@ -48,6 +48,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { formatDateTime } from "@/lib/format";
+import { canViewProject } from "@/lib/project-scope";
 
 export default async function ProjectDetailPage({
   params,
@@ -60,6 +61,7 @@ export default async function ProjectDetailPage({
   const { id } = await params;
   const project = await getProject(id);
   if (!project) notFound();
+  if (!canViewProject(session, project)) notFound();
 
   const history = await getStageHistory(id);
   const currentStage = project.stage as Stage;

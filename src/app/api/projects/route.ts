@@ -2,13 +2,14 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
 import { can } from "@/lib/rbac";
 import { createProject, listProjects } from "@/db/projects";
+import { projectScopeFor, scopeProjects } from "@/lib/project-scope";
 
 export async function GET() {
   const session = await getSession();
   if (!session) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-  const all = await listProjects();
+  const all = scopeProjects(await listProjects(), projectScopeFor(session));
   return NextResponse.json({ projects: all });
 }
 

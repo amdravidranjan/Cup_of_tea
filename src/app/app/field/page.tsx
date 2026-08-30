@@ -5,13 +5,14 @@ import { listProjects } from "@/db/projects";
 import { listParcels } from "@/db/parcels";
 import { Card, CardContent } from "@/components/ui/card";
 import { OfflineBanner } from "@/components/offline-banner";
+import { projectScopeFor, scopeProjects } from "@/lib/project-scope";
 
 export default async function FieldVerificationPage() {
   const session = await getSession();
   if (!session) return null;
 
   const canUpdate = can(session.role, "parcel:update-status");
-  const projects = await listProjects();
+  const projects = scopeProjects(await listProjects(), projectScopeFor(session));
   const projectsWithCounts = await Promise.all(
     projects.map(async (project) => {
       const parcels = await listParcels(project.id);

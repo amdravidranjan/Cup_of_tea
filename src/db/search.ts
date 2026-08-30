@@ -4,6 +4,7 @@ import * as schema from "./schema";
 import { listProjectsWith } from "./projects";
 import { listParcelsWith } from "./parcels";
 import { listFamiliesForProjectWith } from "./families";
+import { scopeProjects, type ProjectScopeFilter } from "@/lib/project-scope";
 
 type Db = LibSQLDatabase<typeof schema>;
 
@@ -22,13 +23,17 @@ function matches(haystack: string, query: string): boolean {
   return haystack.toLowerCase().includes(query.toLowerCase());
 }
 
-export async function searchWith(database: Db, query: string): Promise<SearchResults> {
+export async function searchWith(
+  database: Db,
+  query: string,
+  scope?: ProjectScopeFilter
+): Promise<SearchResults> {
   const q = query.trim();
   if (q.length === 0) {
     return { projects: [], parcels: [], families: [] };
   }
 
-  const allProjects = await listProjectsWith(database);
+  const allProjects = scopeProjects(await listProjectsWith(database), scope);
   const matchedProjects = allProjects.filter(
     (p) =>
       matches(p.name, q) ||
@@ -80,4 +85,5 @@ export async function searchWith(database: Db, query: string): Promise<SearchRes
   };
 }
 
-export const search = (query: string) => searchWith(defaultDb, query);
+export const search = (query: string, scope?: ProjectScopeFilter) =>
+  searchWith(defaultDb, query, scope);

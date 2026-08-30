@@ -107,7 +107,7 @@ export async function getGrievanceByTrackingNumberWith(
 
 export async function listGrievancesWith(
   database: Db,
-  filter?: { state?: string }
+  filter?: { state?: string; district?: string }
 ): Promise<GrievanceWithProject[]> {
   const [grievanceRows, projectRows] = await Promise.all([
     database.select().from(schema.grievances),
@@ -126,6 +126,7 @@ export async function listGrievancesWith(
       };
     })
     .filter((g) => !filter?.state || g.state === filter.state)
+    .filter((g) => !filter?.district || g.district === filter.district)
     .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
 }
 
@@ -166,7 +167,7 @@ export const createGrievance = (input: CreateGrievanceInput) =>
   createGrievanceWith(defaultDb, input);
 export const getGrievanceByTrackingNumber = (trackingNumber: string) =>
   getGrievanceByTrackingNumberWith(defaultDb, trackingNumber);
-export const listGrievances = (filter?: { state?: string }) =>
+export const listGrievances = (filter?: { state?: string; district?: string }) =>
   listGrievancesWith(defaultDb, filter);
 export const transitionGrievanceStatus = (
   id: string,

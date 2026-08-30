@@ -3,9 +3,9 @@ import type { LibSQLDatabase } from "drizzle-orm/libsql";
 import { db as defaultDb } from "./client";
 import * as schema from "./schema";
 import { listProjectsWith } from "./projects";
+import { scopeProjects, type ProjectScopeFilter } from "@/lib/project-scope";
 
 type Db = LibSQLDatabase<typeof schema>;
-type ProjectRow = typeof schema.projects.$inferSelect;
 
 export interface NotificationEvent {
   id: string;
@@ -21,13 +21,9 @@ export interface NotificationEvent {
   createdAt: Date;
 }
 
-function scopeProjects(projects: ProjectRow[], filter?: { state?: string }): ProjectRow[] {
-  return filter?.state ? projects.filter((p) => p.state === filter.state) : projects;
-}
-
 export async function listNotificationsWith(
   database: Db,
-  filter?: { state?: string },
+  filter?: ProjectScopeFilter,
   limit = 30
 ): Promise<NotificationEvent[]> {
   const projects = scopeProjects(await listProjectsWith(database), filter);
@@ -98,7 +94,7 @@ export async function markSeenWith(
     .onConflictDoUpdate({ target: schema.notificationReads.userId, set: { lastSeenAt: at } });
 }
 
-export const listNotifications = (filter?: { state?: string }, limit?: number) =>
+export const listNotifications = (filter?: ProjectScopeFilter, limit?: number) =>
   listNotificationsWith(defaultDb, filter, limit);
 export const getLastSeen = (userId: string) => getLastSeenWith(defaultDb, userId);
 export const markSeen = (userId: string, at?: Date) => markSeenWith(defaultDb, userId, at);

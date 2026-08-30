@@ -13,6 +13,7 @@ import {
 import { stageTone, toneBadgeClass, slaStatusTone } from "@/lib/status-colors";
 import { DashboardStats } from "@/components/dashboard-stats";
 import type { SLAMetric } from "@/lib/sla";
+import { projectScopeFor } from "@/lib/project-scope";
 
 const SLA_BADGE_LABELS: Record<SLAMetric["id"], string> = {
   declaration: "Declaration",
@@ -25,13 +26,11 @@ export default async function DashboardPage() {
   const session = await getSession();
   if (!session) return null;
 
-  const stateFilter = session.role === "state" ? session.state : undefined;
+  const scope = projectScopeFor(session);
   const showPortfolioStats = session.role === "central" || session.role === "state";
 
-  const summaries = await getProjectsWithSLA(stateFilter ? { state: stateFilter } : undefined);
-  const stats = showPortfolioStats
-    ? await getPortfolioStats(stateFilter ? { state: stateFilter } : undefined)
-    : null;
+  const summaries = await getProjectsWithSLA(scope);
+  const stats = showPortfolioStats ? await getPortfolioStats(scope) : null;
   const stateBreakdown = session.role === "central" ? await getStateBreakdown() : undefined;
 
   return (

@@ -7,9 +7,22 @@ export default async function GrievancesPage() {
   const session = await getSession();
   if (!session) return null;
 
-  const filter = session.role === "state" ? { state: session.state } : undefined;
-  const grievances = await listGrievances(filter);
   const canManage = can(session.role, "grievance:manage");
+  if (!canManage) {
+    return (
+      <p className="text-sm text-muted-foreground">
+        Your role does not have access to grievance management.
+      </p>
+    );
+  }
+
+  const filter =
+    session.role === "state"
+      ? { state: session.state }
+      : session.role === "district"
+        ? { district: session.district }
+        : undefined;
+  const grievances = await listGrievances(filter);
 
   return (
     <div className="space-y-6">
