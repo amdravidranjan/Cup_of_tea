@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { getSession } from "@/lib/auth";
 import { getProjectReportRows } from "@/db/reports";
 import { ReportBuilder } from "@/components/report-builder";
@@ -25,6 +26,11 @@ export default async function ReportsPage() {
       <ReportBuilder
         rows={rows.map((r) => ({ ...r, createdAt: r.createdAt.toISOString() }))}
       />
+      <p className="text-sm text-muted-foreground">
+        <Link href="/app/interoperability" className="text-brand hover:underline">
+          View platform interoperability contracts →
+        </Link>
+      </p>
     </div>
   );
 }
