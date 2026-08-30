@@ -31,9 +31,9 @@ export default async function DashboardLayout({
             <p className="text-[11px] font-semibold tracking-[0.18em] text-primary-foreground/60 uppercase">
               Department of Land Resources
             </p>
-            <h1 className="font-heading text-lg font-semibold">
+            <Link href="/app" className="font-heading text-lg font-semibold hover:underline">
               National Land Acquisition &amp; Management System
-            </h1>
+            </Link>
             {session && (
               <div className="mt-1.5 flex items-center gap-2">
                 <Avatar className="h-6 w-6 ring-1 ring-primary-foreground/30">
@@ -49,6 +49,11 @@ export default async function DashboardLayout({
           </div>
           <div className="flex flex-wrap items-center gap-2">
             {session && <GlobalSearch />}
+            {session && (
+              <Button variant="outline" asChild>
+                <Link href="/app">Dashboard</Link>
+              </Button>
+            )}
             {session && can(session.role, "parcel:update-status") && (
               <Button variant="outline" asChild>
                 <Link href="/app/field">Field Verification</Link>

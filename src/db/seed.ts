@@ -16,6 +16,7 @@ import { haversineDistanceMeters } from "@/lib/geo";
 import type { ParcelStatus } from "@/lib/parcel-status";
 import { sampleLinePoints, type ElevationSample } from "@/lib/elevation";
 import { saveElevationProfile } from "./elevation";
+import { surveyNumberFor, pattaNumberFor } from "@/lib/land-records";
 
 /**
  * Fetches real elevation data for a linear alignment from Open-Elevation
@@ -237,15 +238,22 @@ async function createSeedProject(input: SeedProjectInput): Promise<SeededParcel[
         });
 
   const now = new Date();
-  const rows = generated.map((p) => ({
-    id: crypto.randomUUID(),
-    projectId: input.id,
-    village: p.village,
-    areaHectares: p.areaHectares,
-    status: input.parcelStatus,
-    geometryGeoJson: JSON.stringify(p.geometry.coordinates),
-    createdAt: now,
-  }));
+  const villageCounters = new Map<string, number>();
+  const rows = generated.map((p, globalIndex) => {
+    const villageIndex = villageCounters.get(p.village) ?? 0;
+    villageCounters.set(p.village, villageIndex + 1);
+    return {
+      id: crypto.randomUUID(),
+      projectId: input.id,
+      village: p.village,
+      areaHectares: p.areaHectares,
+      status: input.parcelStatus,
+      geometryGeoJson: JSON.stringify(p.geometry.coordinates),
+      createdAt: now,
+      surveyNumber: surveyNumberFor(villageIndex),
+      pattaNumber: pattaNumberFor(input.district, globalIndex),
+    };
+  });
   await db.insert(parcels).values(rows);
 
   return rows.map((r) => ({ id: r.id, areaHectares: r.areaHectares }));
@@ -333,15 +341,22 @@ async function main() {
       villages: ["Similiguda", "Kotpad"],
       seed: 0,
     });
-    const parcelRows = generated.map((p) => ({
-      id: crypto.randomUUID(),
-      projectId,
-      village: p.village,
-      areaHectares: p.areaHectares,
-      status: "NOTIFIED" as ParcelStatus,
-      geometryGeoJson: JSON.stringify(p.geometry.coordinates),
-      createdAt: now,
-    }));
+    const bridgeVillageCounters = new Map<string, number>();
+    const parcelRows = generated.map((p, globalIndex) => {
+      const villageIndex = bridgeVillageCounters.get(p.village) ?? 0;
+      bridgeVillageCounters.set(p.village, villageIndex + 1);
+      return {
+        id: crypto.randomUUID(),
+        projectId,
+        village: p.village,
+        areaHectares: p.areaHectares,
+        status: "NOTIFIED" as ParcelStatus,
+        geometryGeoJson: JSON.stringify(p.geometry.coordinates),
+        createdAt: now,
+        surveyNumber: surveyNumberFor(villageIndex),
+        pattaNumber: pattaNumberFor("Koraput", globalIndex),
+      };
+    });
     await db.insert(parcels).values(parcelRows);
 
     await setCompensationRate({

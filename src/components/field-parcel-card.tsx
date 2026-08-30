@@ -15,6 +15,8 @@ interface FieldParcel {
   village: string;
   areaHectares: number;
   status: ParcelStatus;
+  surveyNumber?: string | null;
+  pattaNumber?: string | null;
 }
 
 export function FieldParcelCard({
@@ -68,6 +70,13 @@ export function FieldParcelCard({
           <div>
             <p className="text-base font-medium">{parcel.village}</p>
             <p className="text-sm text-muted-foreground">{parcel.areaHectares.toFixed(2)} ha</p>
+            {(parcel.surveyNumber || parcel.pattaNumber) && (
+              <p className="text-xs text-muted-foreground/80">
+                {parcel.surveyNumber && <>Sy. No. {parcel.surveyNumber}</>}
+                {parcel.surveyNumber && parcel.pattaNumber && " · "}
+                {parcel.pattaNumber && <>Patta {parcel.pattaNumber}</>}
+              </p>
+            )}
           </div>
           <div className="flex flex-col items-end gap-1">
             <Badge

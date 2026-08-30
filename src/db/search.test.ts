@@ -21,7 +21,7 @@ beforeEach(async () => {
     CREATE TABLE parcels (
       id TEXT PRIMARY KEY, project_id TEXT NOT NULL, village TEXT NOT NULL,
       area_hectares REAL NOT NULL, status TEXT NOT NULL, geometry_geo_json TEXT NOT NULL,
-      created_at INTEGER NOT NULL
+      created_at INTEGER NOT NULL, survey_number TEXT, patta_number TEXT
     );
   `);
   await testDb.run(sql`

@@ -36,6 +36,7 @@ function satelliteOnlyStyle(): StyleSpecification {
         type: "raster",
         tiles: [SATELLITE_TILE_URL],
         tileSize: 256,
+        maxzoom: 19,
         attribution: "Esri, Maxar, Earthstar Geographics",
       },
     },
@@ -60,6 +61,8 @@ export function BeforeAfterSlider({
   const beforeMapRef = useRef<MapLibreMap | null>(null);
   const afterMapRef = useRef<MapLibreMap | null>(null);
   const [percent, setPercent] = useState(50);
+  const [status, setStatus] = useState<"loading" | "ready" | "error">("loading");
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
     if (!beforeContainerRef.current || !afterContainerRef.current || beforeMapRef.current) return;
@@ -89,6 +92,15 @@ export function BeforeAfterSlider({
     });
     beforeMapRef.current = before;
     afterMapRef.current = after;
+
+    const onError = (e: { error?: { message?: string } }) => {
+      console.error("Before/after slider map error:", e.error);
+      setStatus("error");
+      setErrorMessage(e.error?.message ?? "Satellite tiles failed to load.");
+    };
+    before.on("error", onError);
+    after.on("error", onError);
+    before.on("load", () => setStatus((s) => (s === "error" ? s : "ready")));
 
     before.on("move", () => {
       after.jumpTo({
@@ -156,6 +168,20 @@ export function BeforeAfterSlider({
         >
           <div ref={afterContainerRef} className="absolute inset-0" />
         </div>
+
+        {status === "loading" && (
+          <div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center bg-background/60">
+            <p className="text-sm text-muted-foreground">Loading satellite imagery…</p>
+          </div>
+        )}
+        {status === "error" && (
+          <div className="absolute inset-0 z-20 flex items-center justify-center bg-background/90 p-6 text-center">
+            <p className="max-w-xs text-sm text-muted-foreground">
+              Couldn&apos;t load satellite imagery ({errorMessage}). This view needs a live
+              connection to Esri&apos;s tile service — check your network and reload.
+            </p>
+          </div>
+        )}
 
         <div
           className="pointer-events-none absolute top-0 bottom-0 z-10 w-0.5 bg-white"

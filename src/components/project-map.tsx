@@ -100,6 +100,7 @@ export function ProjectMap({
         type: "raster",
         tiles: [SATELLITE_TILE_URL],
         tileSize: 256,
+        maxzoom: 19,
         attribution: "Esri, Maxar, Earthstar Geographics",
       });
       // No beforeId: appends on top of the vector basemap's own layers

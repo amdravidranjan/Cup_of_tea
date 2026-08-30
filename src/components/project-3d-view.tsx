@@ -63,6 +63,8 @@ export function Project3DView({
   const mapRef = useRef<MapLibreMap | null>(null);
   const [exaggeration, setExaggeration] = useState(1.5);
   const [isFlying, setIsFlying] = useState(false);
+  const [status, setStatus] = useState<"loading" | "ready" | "error">("loading");
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   async function flyAlongAlignment() {
     const map = mapRef.current;
@@ -116,12 +118,18 @@ export function Project3DView({
             type: "raster",
             tiles: [SATELLITE_TILE_URL],
             tileSize: 256,
+            maxzoom: 19,
             attribution: "Esri, Maxar, Earthstar Geographics",
           },
           "terrain-dem": {
             type: "raster-dem",
             tiles: [TERRAIN_TILE_URL],
             tileSize: 256,
+            // AWS's Terrarium tile bucket only has coverage up to z15 —
+            // without this, MapLibre requests nonexistent higher-zoom
+            // tiles, gets S3's XML error body back, and floods the
+            // console trying (and failing) to decode it as an image.
+            maxzoom: 15,
             encoding: "terrarium",
             attribution: "AWS Open Data Terrain Tiles",
           },
@@ -144,6 +152,12 @@ export function Project3DView({
     });
     mapRef.current = map;
     map.addControl(new NavigationControl({ visualizePitch: true }), "top-right");
+
+    map.on("error", (e) => {
+      console.error("3D view map error:", e.error);
+      setStatus("error");
+      setErrorMessage(e.error?.message ?? "Map tiles failed to load.");
+    });
 
     map.on("load", () => {
       map.setTerrain({ source: "terrain-dem", exaggeration });
@@ -197,6 +211,8 @@ export function Project3DView({
           "fill-extrusion-opacity": 0.75,
         },
       });
+
+      setStatus("ready");
     });
 
     return () => {
@@ -216,6 +232,20 @@ export function Project3DView({
     <div className="space-y-2">
       <div className="relative h-[32rem] w-full overflow-hidden rounded-lg border">
         <div ref={containerRef} className="absolute inset-0" />
+
+        {status === "loading" && (
+          <div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center bg-background/60">
+            <p className="text-sm text-muted-foreground">Loading satellite imagery and terrain…</p>
+          </div>
+        )}
+        {status === "error" && (
+          <div className="absolute inset-0 z-20 flex items-center justify-center bg-background/90 p-6 text-center">
+            <p className="max-w-xs text-sm text-muted-foreground">
+              Couldn&apos;t load map tiles ({errorMessage}). This view needs a live connection to
+              Esri and AWS Open Data — check your network and reload.
+            </p>
+          </div>
+        )}
 
         <div className="absolute left-3 top-3 z-10 space-y-2 rounded-lg border bg-background/95 p-3 text-xs shadow-sm backdrop-blur">
           <p className="font-semibold text-foreground">Terrain exaggeration</p>

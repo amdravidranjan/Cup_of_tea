@@ -55,6 +55,8 @@ export const parcels = sqliteTable("parcels", {
   status: text("status").notNull(),
   geometryGeoJson: text("geometry_geo_json").notNull(),
   createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
+  surveyNumber: text("survey_number"),
+  pattaNumber: text("patta_number"),
 });
 
 export const compensationRates = sqliteTable("compensation_rates", {

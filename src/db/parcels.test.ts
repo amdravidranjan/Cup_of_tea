@@ -15,7 +15,8 @@ beforeEach(async () => {
     CREATE TABLE parcels (
       id TEXT PRIMARY KEY, project_id TEXT NOT NULL, village TEXT NOT NULL,
       area_hectares REAL NOT NULL, status TEXT NOT NULL,
-      geometry_geo_json TEXT NOT NULL, created_at INTEGER NOT NULL
+      geometry_geo_json TEXT NOT NULL, created_at INTEGER NOT NULL,
+      survey_number TEXT, patta_number TEXT
     );
   `);
 });
@@ -48,6 +49,30 @@ describe("parcels data layer", () => {
     expect(list[0].village).toBe("Similiguda");
     expect(list[0].status).toBe("NOTIFIED");
     expect(list[0].geometry).toEqual(square);
+  });
+
+  it("stores survey/patta numbers and defaults them to null when omitted", async () => {
+    const { createParcelWith, getParcelWith } = await import("./parcels");
+    const withNumbers = await createParcelWith(testDb, {
+      projectId: "p-1",
+      village: "Similiguda",
+      areaHectares: 1.2,
+      status: "NOTIFIED",
+      geometry: square,
+      surveyNumber: "101/2",
+      pattaNumber: "KOR-PTA-00001",
+    });
+    const withoutNumbers = await createParcelWith(testDb, {
+      projectId: "p-1",
+      village: "Similiguda",
+      areaHectares: 1.2,
+      status: "NOTIFIED",
+      geometry: square,
+    });
+    expect((await getParcelWith(testDb, withNumbers))?.surveyNumber).toBe("101/2");
+    expect((await getParcelWith(testDb, withNumbers))?.pattaNumber).toBe("KOR-PTA-00001");
+    expect((await getParcelWith(testDb, withoutNumbers))?.surveyNumber).toBeNull();
+    expect((await getParcelWith(testDb, withoutNumbers))?.pattaNumber).toBeNull();
   });
 
   it("scopes parcels to their project", async () => {

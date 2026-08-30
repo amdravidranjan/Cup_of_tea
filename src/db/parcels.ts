@@ -14,6 +14,8 @@ export interface CreateParcelInput {
   areaHectares: number;
   status: ParcelStatus;
   geometry: PolygonGeometry;
+  surveyNumber?: string;
+  pattaNumber?: string;
 }
 
 export interface Parcel {
@@ -24,6 +26,8 @@ export interface Parcel {
   status: ParcelStatus;
   geometry: PolygonGeometry;
   createdAt: Date;
+  surveyNumber: string | null;
+  pattaNumber: string | null;
 }
 
 function toParcel(row: {
@@ -34,6 +38,8 @@ function toParcel(row: {
   status: string;
   geometryGeoJson: string;
   createdAt: Date;
+  surveyNumber: string | null;
+  pattaNumber: string | null;
 }): Parcel {
   return {
     id: row.id,
@@ -43,6 +49,8 @@ function toParcel(row: {
     status: row.status as ParcelStatus,
     geometry: { type: "Polygon", coordinates: JSON.parse(row.geometryGeoJson) },
     createdAt: row.createdAt,
+    surveyNumber: row.surveyNumber,
+    pattaNumber: row.pattaNumber,
   };
 }
 
@@ -59,6 +67,8 @@ export async function createParcelWith(
     status: input.status,
     geometryGeoJson: JSON.stringify(input.geometry.coordinates),
     createdAt: new Date(),
+    surveyNumber: input.surveyNumber ?? null,
+    pattaNumber: input.pattaNumber ?? null,
   });
   return id;
 }
