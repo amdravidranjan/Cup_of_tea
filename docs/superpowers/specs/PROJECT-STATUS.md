@@ -46,8 +46,8 @@ Legend: ✅ done & verified · 🚧 partial · ⬜ not started. Priority tags (�
 ## 6.5 Dashboards & Reporting
 - ✅ 🟢 National dashboard, state-wise/project-wise drill-down
 - ✅ 🟢 SLA/timeline health — now **4** statutory deadlines (declaration, compensation, R&R award, and the 18-month infrastructure metric added this session against real Third Schedule checklist data)
-- ⬜ 🟡 Customizable MIS report builder
-- 🚧 🟡 Cross-state/cross-project comparison view — the central dashboard's state-breakdown table (`getStateBreakdown`, pre-existing) already covers cross-*state* comparison; side-by-side cross-*project* comparison is not built
+- ✅ 🟡 **Customizable MIS report builder** (`/app/reports`, field checkboxes, live table, CSV export) — built this session
+- ✅ 🟡 **Cross-state/cross-project comparison view** — cross-state via the pre-existing `getStateBreakdown` table on the dashboard; cross-project via the new `/app/reports` comparison table — built this session
 - ⬜ ⚪ Escalation matrix (auto-flag + notify on SLA breach)
 
 ## 6.6 Field & Mobile
