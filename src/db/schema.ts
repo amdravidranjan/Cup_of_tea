@@ -154,3 +154,10 @@ export const grievances = sqliteTable("grievances", {
   resolvedAt: integer("resolved_at", { mode: "timestamp" }),
   createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
 });
+
+export const elevationProfiles = sqliteTable("elevation_profiles", {
+  id: text("id").primaryKey(),
+  projectId: text("project_id").notNull().unique(),
+  samplesJson: text("samples_json").notNull(),
+  createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
+});
