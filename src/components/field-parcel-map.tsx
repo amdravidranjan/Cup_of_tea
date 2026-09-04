@@ -210,7 +210,11 @@ export function FieldParcelMap({
       )}
 
       <div className="relative h-[24rem] w-full overflow-hidden rounded-lg border">
-        <div ref={containerRef} className="absolute inset-0" />
+        {/* Inline positioning, not `absolute inset-0` — MapLibre's own
+            `.maplibregl-map { position: relative }` rule ties with Tailwind's
+            `.absolute` on specificity and is injected later, so it wins and
+            the container collapses to height 0. See before-after-slider. */}
+        <div ref={containerRef} style={{ position: "absolute", inset: 0 }} />
         {status === "loading" && (
           <div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center bg-background/60">
             <p className="text-sm text-muted-foreground">Loading map…</p>

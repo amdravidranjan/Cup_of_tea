@@ -1,33 +1,12 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { drizzle, type LibSQLDatabase } from "drizzle-orm/libsql";
-import { createClient } from "@libsql/client";
-import { sql } from "drizzle-orm";
+import type { LibSQLDatabase } from "drizzle-orm/libsql";
 import * as schema from "./schema";
+import { createTestDb } from "./test-helpers";
 
 let testDb: LibSQLDatabase<typeof schema>;
 
 beforeEach(async () => {
-  const client = createClient({ url: ":memory:" });
-  testDb = drizzle(client, { schema });
-  await testDb.run(sql`
-    CREATE TABLE projects (
-      id TEXT PRIMARY KEY, name TEXT NOT NULL, purpose TEXT NOT NULL,
-      state TEXT NOT NULL, district TEXT NOT NULL, stage TEXT NOT NULL DEFAULT 'DRAFT',
-      created_by TEXT NOT NULL, created_at INTEGER NOT NULL, updated_at INTEGER NOT NULL,
-      geometry_type TEXT, geometry_geo_json TEXT, rr_stage TEXT
-    );
-  `);
-  await testDb.run(sql`
-    CREATE TABLE grievances (
-      id TEXT PRIMARY KEY, tracking_number TEXT NOT NULL UNIQUE, type TEXT NOT NULL,
-      project_id TEXT NOT NULL, compensation_id TEXT, submitter_name TEXT NOT NULL,
-      submitter_contact TEXT, description TEXT NOT NULL,
-      attachment_file_name TEXT, attachment_storage_path TEXT,
-      status TEXT NOT NULL DEFAULT 'FILED',
-      resolution TEXT, resolution_note TEXT, resolved_by TEXT, resolved_at INTEGER,
-      created_at INTEGER NOT NULL
-    );
-  `);
+  testDb = await createTestDb();
 
   await testDb.insert(schema.projects).values([
     {

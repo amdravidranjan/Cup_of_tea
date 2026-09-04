@@ -40,6 +40,8 @@ export interface FamilyWithEntitlements {
   contactPhone: string | null;
   surveyedBy: string;
   surveyedAt: Date;
+  deceasedAt: Date | null;
+  successionNote: string | null;
   entitlements: FamilyEntitlement[];
 }
 
@@ -97,6 +99,8 @@ export async function listFamiliesForProjectWith(
         contactPhone: f.contactPhone,
         surveyedBy: f.surveyedBy,
         surveyedAt: f.surveyedAt,
+        deceasedAt: f.deceasedAt,
+        successionNote: f.successionNote,
         entitlements: entitlementRows.map((e) => ({
           id: e.id,
           type: e.type as EntitlementType,
@@ -109,6 +113,21 @@ export async function listFamiliesForProjectWith(
       };
     })
   );
+}
+
+export async function getFamilyByIdWith(database: Db, id: string) {
+  const rows = await database.select().from(schema.families).where(eq(schema.families.id, id));
+  return rows[0] ?? null;
+}
+
+export async function getFamilyByEntitlementIdWith(database: Db, entitlementId: string) {
+  const entitlementRows = await database
+    .select()
+    .from(schema.entitlements)
+    .where(eq(schema.entitlements.id, entitlementId));
+  const entitlement = entitlementRows[0];
+  if (!entitlement) return null;
+  return getFamilyByIdWith(database, entitlement.familyId);
 }
 
 export async function grantEntitlementWith(
@@ -142,6 +161,9 @@ export async function grantEntitlementWith(
 export const createFamily = (input: CreateFamilyInput) => createFamilyWith(defaultDb, input);
 export const listFamiliesForProject = (projectId: string) =>
   listFamiliesForProjectWith(defaultDb, projectId);
+export const getFamilyById = (id: string) => getFamilyByIdWith(defaultDb, id);
+export const getFamilyByEntitlementId = (entitlementId: string) =>
+  getFamilyByEntitlementIdWith(defaultDb, entitlementId);
 export const grantEntitlement = (
   entitlementId: string,
   input: { amount: number; grantedBy: string; note?: string }

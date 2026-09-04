@@ -37,7 +37,7 @@ export function PublicFooter() {
               { icon: 'mdi:youtube', label: 'YouTube' },
               { icon: 'mdi:instagram', label: 'Instagram' },
             ].map(s => (
-              <a key={s.label} href="#" className="social-btn" title={s.label}>
+              <a key={s.label} href="/contact" className="social-btn" title={s.label}>
                 <Icon icon={s.icon} width={15} />
               </a>
             ))}
@@ -45,28 +45,53 @@ export function PublicFooter() {
         </div>
         {/* Services */}
         <div className="footer-col">
-          <div className="footer-head">Quick Services</div>
+          <div className="footer-head">Quick Services · சேவைகள்</div>
           <ul>
-            {['Project Discovery', 'Compensation Calculator', 'R&R Entitlement Status', 'Grievance Submission', 'Document Repository', 'GIS Parcel Map'].map(l => (
-              <li key={l}><a href="#"><Icon icon="mdi:chevron-right" width={12} color="#e56b00" />{l}</a></li>
+            {[
+              { label: 'Project Discovery', href: '/projects' },
+              { label: 'Compensation Calculator', href: '/compensation' },
+              { label: 'R&R Entitlement Status', href: '/rr' },
+              { label: 'Grievance Submission', href: '/grievances' },
+              { label: 'Document Repository', href: '/documents' },
+              { label: 'GIS Parcel Map', href: '/projects' },
+            ].map(l => (
+              <li key={l.label}><a href={l.href}><Icon icon="mdi:chevron-right" width={12} color="#e56b00" />{l.label}</a></li>
             ))}
           </ul>
         </div>
         {/* Help */}
         <div className="footer-col">
-          <div className="footer-head">Help & Support</div>
+          <div className="footer-head">Help & Support · உதவி</div>
           <ul>
-            {['About the Portal', 'RFCTLARR Act 2013 Guide', 'FAQ', 'Contact Us', 'Grievance Portal', 'RTI Application', 'Landowner User Guide', 'Accessibility'].map(l => (
-              <li key={l}><a href="#"><Icon icon="mdi:chevron-right" width={12} color="#e56b00" />{l}</a></li>
+            {[
+              { label: 'About the Portal', href: '/about' },
+              { label: 'RFCTLARR Act 2013 Guide', href: '/about#act' },
+              { label: 'FAQ', href: '/grievances' },
+              { label: 'Contact Us', href: '/contact' },
+              { label: 'Grievance Portal', href: '/grievances' },
+              { label: 'Government Schemes', href: '/schemes' },
+              { label: 'Landowner User Guide', href: '/documents' },
+              { label: 'Accessibility', href: '/about' },
+            ].map(l => (
+              <li key={l.label}><a href={l.href}><Icon icon="mdi:chevron-right" width={12} color="#e56b00" />{l.label}</a></li>
             ))}
           </ul>
         </div>
         {/* Links */}
         <div className="footer-col">
-          <div className="footer-head">Related Links</div>
+          <div className="footer-head">Related Links · இணைப்புகள்</div>
           <ul>
-            {['india.gov.in', 'tn.gov.in', 'Bhoomi Rashi Portal', 'Ministry of Rural Dev.', 'Open Govt. Data (OGD)', 'NIC India', 'Revenue Dept GoTN', 'DoLR — Dept. of Land Resources'].map(l => (
-              <li key={l}><a href="#"><Icon icon="mdi:open-in-new" width={11} color="#e56b00" />{l}</a></li>
+            {[
+              { label: 'TN Revenue Department', href: 'https://tnrd.gov.in' },
+              { label: 'Bhoomi Rashi Portal', href: 'https://bhoomirashi.gov.in' },
+              { label: 'Dept. of Land Resources', href: 'https://dolr.gov.in' },
+              { label: 'e-District Tamil Nadu', href: 'https://edistrict.tn.gov.in' },
+              { label: 'Open Govt. Data (OGD)', href: 'https://data.gov.in' },
+              { label: 'NIC Tamil Nadu', href: 'https://tn.nic.in' },
+              { label: 'TN State Portal', href: 'https://tn.gov.in' },
+              { label: 'CLA — About Us', href: '/about' },
+            ].map(l => (
+              <li key={l.label}><a href={l.href} {...(l.href.startsWith('http') ? { target: '_blank', rel: 'noreferrer' } : {})}><Icon icon={l.href.startsWith('http') ? 'mdi:open-in-new' : 'mdi:chevron-right'} width={11} color="#e56b00" />{l.label}</a></li>
             ))}
           </ul>
         </div>
@@ -77,7 +102,7 @@ export function PublicFooter() {
           <div className="footer-copy">
             © 2026 Commissionerate of Land Administration, Govt. of Tamil Nadu. All rights reserved. &nbsp;|&nbsp;
             Last Updated: 04 Sep 2026 &nbsp;|&nbsp;
-            <a href="#">Policies</a> <a href="#">Disclaimer</a> <a href="#">Privacy</a>
+            <a href="/about">Policies</a> <a href="/about">Disclaimer</a> <a href="/about">Privacy</a>
           </div>
           <div className="badge-row">
             <div className="visitor-stat">

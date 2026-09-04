@@ -1,44 +1,12 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { drizzle, type LibSQLDatabase } from "drizzle-orm/libsql";
-import { createClient } from "@libsql/client";
-import { sql } from "drizzle-orm";
+import type { LibSQLDatabase } from "drizzle-orm/libsql";
 import * as schema from "./schema";
+import { createTestDb } from "./test-helpers";
 
 let testDb: LibSQLDatabase<typeof schema>;
 
 beforeEach(async () => {
-  const client = createClient({ url: ":memory:" });
-  testDb = drizzle(client, { schema });
-  await testDb.run(sql`
-    CREATE TABLE projects (
-      id TEXT PRIMARY KEY, name TEXT NOT NULL, purpose TEXT NOT NULL,
-      state TEXT NOT NULL, district TEXT NOT NULL, stage TEXT NOT NULL DEFAULT 'DRAFT',
-      created_by TEXT NOT NULL, created_at INTEGER NOT NULL, updated_at INTEGER NOT NULL,
-      geometry_type TEXT, geometry_geo_json TEXT, rr_stage TEXT
-    );
-  `);
-  await testDb.run(sql`
-    CREATE TABLE parcels (
-      id TEXT PRIMARY KEY, project_id TEXT NOT NULL, village TEXT NOT NULL,
-      area_hectares REAL NOT NULL, status TEXT NOT NULL, geometry_geo_json TEXT NOT NULL,
-      created_at INTEGER NOT NULL, survey_number TEXT, patta_number TEXT
-    );
-  `);
-  await testDb.run(sql`
-    CREATE TABLE families (
-      id TEXT PRIMARY KEY, project_id TEXT NOT NULL, parcel_id TEXT,
-      head_of_household_name TEXT NOT NULL, village TEXT NOT NULL, category TEXT NOT NULL,
-      member_count INTEGER NOT NULL, vulnerable_group INTEGER NOT NULL DEFAULT 0,
-      contact_phone TEXT, surveyed_by TEXT NOT NULL, surveyed_at INTEGER NOT NULL
-    );
-  `);
-  await testDb.run(sql`
-    CREATE TABLE entitlements (
-      id TEXT PRIMARY KEY, family_id TEXT NOT NULL, type TEXT NOT NULL,
-      status TEXT NOT NULL DEFAULT 'PENDING', amount REAL, granted_by TEXT,
-      granted_at INTEGER, note TEXT
-    );
-  `);
+  testDb = await createTestDb();
 
   await testDb.insert(schema.projects).values({
     id: "p-1",

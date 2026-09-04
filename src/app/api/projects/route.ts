@@ -36,6 +36,7 @@ export async function POST(request: NextRequest) {
     state: body.state,
     district: body.district,
     createdBy: session.userId,
+    createdByRole: session.role,
   });
   return NextResponse.json({ id }, { status: 201 });
 }

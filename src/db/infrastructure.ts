@@ -53,6 +53,26 @@ export async function listInfrastructureChecklistWith(
   }));
 }
 
+export async function getInfrastructureItemByIdWith(
+  database: Db,
+  id: string
+): Promise<InfrastructureChecklistItem | null> {
+  const rows = await database
+    .select()
+    .from(schema.infrastructureItems)
+    .where(eq(schema.infrastructureItems.id, id));
+  const row = rows[0];
+  if (!row) return null;
+  return {
+    id: row.id,
+    projectId: row.projectId,
+    item: row.item as InfrastructureItem,
+    status: row.status as "PENDING" | "COMPLETE",
+    completedBy: row.completedBy,
+    completedAt: row.completedAt,
+  };
+}
+
 export async function completeInfrastructureItemWith(
   database: Db,
   id: string,
@@ -81,3 +101,5 @@ export const listInfrastructureChecklist = (projectId: string) =>
   listInfrastructureChecklistWith(defaultDb, projectId);
 export const completeInfrastructureItem = (id: string, actorId: string) =>
   completeInfrastructureItemWith(defaultDb, id, actorId);
+export const getInfrastructureItemById = (id: string) =>
+  getInfrastructureItemByIdWith(defaultDb, id);

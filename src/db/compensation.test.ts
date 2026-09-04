@@ -1,31 +1,12 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { drizzle, type LibSQLDatabase } from "drizzle-orm/libsql";
-import { createClient } from "@libsql/client";
-import { sql } from "drizzle-orm";
+import type { LibSQLDatabase } from "drizzle-orm/libsql";
 import * as schema from "./schema";
+import { createTestDb } from "./test-helpers";
 
 let testDb: LibSQLDatabase<typeof schema>;
 
 beforeEach(async () => {
-  const client = createClient({ url: ":memory:" });
-  testDb = drizzle(client, { schema });
-  await testDb.run(sql`
-    CREATE TABLE compensation_rates (
-      id TEXT PRIMARY KEY, state TEXT NOT NULL, district TEXT NOT NULL,
-      rate_per_hectare REAL NOT NULL, multiplier REAL NOT NULL,
-      set_by TEXT NOT NULL, created_at INTEGER NOT NULL
-    );
-  `);
-  await testDb.run(sql`
-    CREATE TABLE compensations (
-      id TEXT PRIMARY KEY, parcel_id TEXT NOT NULL, project_id TEXT NOT NULL,
-      rate_per_hectare REAL NOT NULL, multiplier REAL NOT NULL, assets_value REAL NOT NULL,
-      market_value REAL NOT NULL, multiplied_market_value REAL NOT NULL,
-      solatium REAL NOT NULL, interest REAL NOT NULL, total REAL NOT NULL,
-      status TEXT NOT NULL, assessed_by TEXT NOT NULL, assessed_at INTEGER NOT NULL,
-      paid_at INTEGER
-    );
-  `);
+  testDb = await createTestDb();
 });
 
 describe("compensation rates", () => {

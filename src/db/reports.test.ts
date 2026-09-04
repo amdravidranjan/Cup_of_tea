@@ -1,8 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { drizzle, type LibSQLDatabase } from "drizzle-orm/libsql";
-import { createClient } from "@libsql/client";
-import { sql } from "drizzle-orm";
+import type { LibSQLDatabase } from "drizzle-orm/libsql";
 import * as schema from "./schema";
+import { createTestDb } from "./test-helpers";
 
 let testDb: LibSQLDatabase<typeof schema>;
 
@@ -12,51 +11,7 @@ function daysAgo(n: number): Date {
 }
 
 beforeEach(async () => {
-  const client = createClient({ url: ":memory:" });
-  testDb = drizzle(client, { schema });
-  await testDb.run(sql`
-    CREATE TABLE projects (
-      id TEXT PRIMARY KEY, name TEXT NOT NULL, purpose TEXT NOT NULL,
-      state TEXT NOT NULL, district TEXT NOT NULL, stage TEXT NOT NULL DEFAULT 'DRAFT',
-      created_by TEXT NOT NULL, created_at INTEGER NOT NULL, updated_at INTEGER NOT NULL,
-      geometry_type TEXT, geometry_geo_json TEXT, rr_stage TEXT
-    );
-  `);
-  await testDb.run(sql`
-    CREATE TABLE stage_history (
-      id TEXT PRIMARY KEY, project_id TEXT NOT NULL, from_stage TEXT, to_stage TEXT NOT NULL,
-      action TEXT NOT NULL, actor_id TEXT NOT NULL, actor_role TEXT NOT NULL, created_at INTEGER NOT NULL
-    );
-  `);
-  await testDb.run(sql`
-    CREATE TABLE rr_stage_history (
-      id TEXT PRIMARY KEY, project_id TEXT NOT NULL, from_stage TEXT, to_stage TEXT NOT NULL,
-      action TEXT NOT NULL, actor_id TEXT NOT NULL, actor_role TEXT NOT NULL, note TEXT,
-      created_at INTEGER NOT NULL
-    );
-  `);
-  await testDb.run(sql`
-    CREATE TABLE parcels (
-      id TEXT PRIMARY KEY, project_id TEXT NOT NULL, village TEXT NOT NULL,
-      area_hectares REAL NOT NULL, status TEXT NOT NULL, geometry_geo_json TEXT NOT NULL,
-      created_at INTEGER NOT NULL, survey_number TEXT, patta_number TEXT
-    );
-  `);
-  await testDb.run(sql`
-    CREATE TABLE compensations (
-      id TEXT PRIMARY KEY, parcel_id TEXT NOT NULL, project_id TEXT NOT NULL,
-      rate_per_hectare REAL NOT NULL, multiplier REAL NOT NULL, assets_value REAL NOT NULL,
-      market_value REAL NOT NULL, multiplied_market_value REAL NOT NULL, solatium REAL NOT NULL,
-      interest REAL NOT NULL, total REAL NOT NULL, status TEXT NOT NULL,
-      assessed_by TEXT NOT NULL, assessed_at INTEGER NOT NULL, paid_at INTEGER
-    );
-  `);
-  await testDb.run(sql`
-    CREATE TABLE infrastructure_items (
-      id TEXT PRIMARY KEY, project_id TEXT NOT NULL, item TEXT NOT NULL,
-      status TEXT NOT NULL DEFAULT 'PENDING', completed_by TEXT, completed_at INTEGER
-    );
-  `);
+  testDb = await createTestDb();
 
   await testDb.insert(schema.projects).values([
     {

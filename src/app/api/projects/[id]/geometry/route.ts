@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
 import { can } from "@/lib/rbac";
-import { setProjectGeometry } from "@/db/projects";
+import { getProject, setProjectGeometry } from "@/db/projects";
+import { canViewProject } from "@/lib/project-scope";
 import type { Geometry } from "@/lib/geo";
 
 export async function PATCH(
@@ -16,6 +17,10 @@ export async function PATCH(
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
   const { id } = await params;
+  const project = await getProject(id);
+  if (!project || !canViewProject(session, project)) {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
   const body = (await request.json()) as Partial<Geometry>;
   if (
     (body.type !== "LineString" && body.type !== "Polygon") ||

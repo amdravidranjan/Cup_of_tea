@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { getPublicProjectDetail } from "@/db/public";
+import { listLegalDisputesForProject } from "@/db/legal-disputes";
 import { ProjectMap } from "@/components/project-map";
 import { BeforeAfterSlider } from "@/components/before-after-slider";
 import { getElevationProfile } from "@/db/elevation";
@@ -8,8 +9,16 @@ import { StageTracker } from "@/components/stage-tracker";
 import { FileGrievanceForm } from "@/components/file-grievance-form";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { toneBadgeClass, slaStatusTone } from "@/lib/status-colors";
+import { toneBadgeClass, slaStatusTone, type StatusTone } from "@/lib/status-colors";
 import { formatDate } from "@/lib/format";
+import type { DisputeStatus } from "@/db/legal-disputes";
+
+const DISPUTE_TONE: Record<DisputeStatus, StatusTone> = {
+  FILED: "info",
+  HEARING: "pending",
+  STAYED: "danger",
+  DISPOSED: "success",
+};
 
 function formatLakh(amount: number): string {
   return `₹${(amount / 100000).toFixed(1)}L`;
@@ -27,15 +36,37 @@ export default async function PublicProjectDetailPage({
   const { project } = detail;
   const elevationSamples =
     detail.alignment?.type === "LineString" ? await getElevationProfile(project.id) : null;
+  const legalDisputes = await listLegalDisputesForProject(project.id);
 
   return (
     <div className="space-y-6">
-      <div>
+      {project.coverPhotoUrl && (
+        <div className="relative -mx-6 -mt-6 h-56 overflow-hidden sm:h-64">
+          {/* eslint-disable-next-line @next/next/no-img-element -- external, swappable placeholder photo */}
+          <img
+            src={project.coverPhotoUrl}
+            alt=""
+            className="h-full w-full object-cover opacity-25"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
+          <div className="absolute inset-x-6 bottom-4">
+            <p className="text-[11px] font-semibold tracking-[0.18em] text-brand uppercase">
+              {project.district}, {project.state}
+            </p>
+            <h2 className="font-heading text-2xl leading-tight font-semibold text-foreground sm:text-3xl">
+              {project.name}
+            </h2>
+          </div>
+        </div>
+      )}
+      <div className={project.coverPhotoUrl ? "hidden" : undefined}>
         <p className="text-[11px] font-semibold tracking-[0.18em] text-brand uppercase">
           {project.district}, {project.state}
         </p>
         <h2 className="font-heading text-2xl font-semibold text-foreground">{project.name}</h2>
-        <p className="mt-1 text-sm text-muted-foreground">{project.purpose}</p>
+      </div>
+      <div>
+        <p className="text-sm text-muted-foreground">{project.purpose}</p>
       </div>
 
       <Card>
@@ -136,6 +167,35 @@ export default async function PublicProjectDetailPage({
           <FileGrievanceForm projectId={project.id} />
         </CardContent>
       </Card>
+
+      {legalDisputes.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm font-medium">Legal disputes</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ul className="space-y-3 text-sm">
+              {legalDisputes.map((d) => (
+                <li key={d.id} className="border-b pb-3 last:border-b-0 last:pb-0">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="font-medium">{d.caseNumber}</span>
+                    <Badge variant="outline" className={toneBadgeClass(DISPUTE_TONE[d.status])}>
+                      {d.status}
+                    </Badge>
+                  </div>
+                  <p className="text-muted-foreground">
+                    {d.title} — {d.court}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Filed {formatDate(d.filedDate)}
+                    {d.nextHearingDate ? ` · Next hearing ${formatDate(d.nextHearingDate)}` : ""}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
+      )}
 
       <Card>
         <CardHeader>

@@ -8,10 +8,6 @@ import { Project3DView } from "@/components/project-3d-view";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { canViewProject } from "@/lib/project-scope";
 
-// Flagship 3D terrain showcase — scoped to a single polished project
-// rather than built out generically for every project type.
-const FLAGSHIP_PROJECT_ID = "p-demo-bridge-1";
-
 export default async function Project3DPage({
   params,
 }: {
@@ -21,13 +17,18 @@ export default async function Project3DPage({
   if (!session) return null;
 
   const { id } = await params;
-  if (id !== FLAGSHIP_PROJECT_ID) notFound();
-
   const project = await getProject(id);
   if (!project) notFound();
   if (!canViewProject(session, project)) notFound();
 
   const alignment = parseStoredGeometry(project.geometryType, project.geometryGeoJson);
+  // This used to be hard-gated to one flagship project id, so every other
+  // project 404'd here — which read as "3D is broken" rather than "3D is
+  // scoped". Nothing in the view is project-specific: the terrain DEM and
+  // satellite drape are global layers and Project3DView takes the alignment
+  // and parcels generically. The real requirement is simply that the project
+  // has geometry to drape, so that is what is checked.
+  if (!alignment) notFound();
   const parcelList = await listParcels(id);
   const parcelsWithImpact = computeParcelsWithImpact(alignment, parcelList);
 

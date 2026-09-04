@@ -260,6 +260,14 @@ async function createSeedProject(input: SeedProjectInput): Promise<SeededParcel[
 }
 
 async function main() {
+  console.log("Clearing existing data...");
+  await db.delete(stageHistory);
+  await db.delete(rrStageHistory);
+  await db.delete(compensations);
+  await db.delete(parcels);
+  await db.delete(projects);
+  await db.delete(users);
+  
   for (const user of DEMO_USERS) {
     await db
       .insert(users)
@@ -664,7 +672,96 @@ async function main() {
     await seedElevationProfile(id, alignment);
   }
 
-  console.log("Seed complete: 6 demo users, 8 demo projects, realistic parcel-scale geometry.");
+  // --- Extra Demo Project 1: Madurai Metro Phase 1 ---
+  {
+    const id = "p-tn-madurai-metro";
+    const alignment: LineGeometry = { type: "LineString", coordinates: [[78.114, 9.925], [78.125, 9.940]] };
+    await createSeedProject({
+      id, name: "Madurai Metro Phase 1", purpose: "Elevated metro corridor",
+      state: "Tamil Nadu", district: "Madurai", createdBy: "u-agency-1", createdAt: monthsAgo(4),
+      geometry: alignment, parcelStatus: "NOTIFIED",
+      parcelGenerator: { kind: "corridor", villages: ["Thirumangalam", "Othakadai"] },
+      seed: 10, rate: { ratePerHectare: 5_000_000, multiplier: 1.0 },
+    });
+    await seedProjectTransition(id, "SUBMIT", "agency", monthsAgo(4));
+    await seedProjectTransition(id, "APPROVE", "district", monthsAgo(3.8));
+    await seedProjectTransition(id, "COMPLETE", "district", monthsAgo(3.5));
+  }
+
+  // --- Extra Demo Project 2: Trichy Airport Expansion ---
+  {
+    const id = "p-tn-trichy-airport";
+    const geometry: PolygonGeometry = { type: "Polygon", coordinates: [[[78.71, 10.76], [78.72, 10.76], [78.72, 10.77], [78.71, 10.77], [78.71, 10.76]]] };
+    await createSeedProject({
+      id, name: "Trichy International Airport Runway Expansion", purpose: "Runway extension and new terminal",
+      state: "Tamil Nadu", district: "Tiruchirappalli", createdBy: "u-agency-1", createdAt: monthsAgo(12),
+      geometry, parcelStatus: "ACQUIRED",
+      parcelGenerator: { kind: "grid", villages: ["Kottapattu", "Kottapattu"] },
+      seed: 11, rate: { ratePerHectare: 4_000_000, multiplier: 1.5 },
+    });
+    await seedProjectTransition(id, "SUBMIT", "agency", monthsAgo(12));
+    await seedProjectTransition(id, "APPROVE", "district", monthsAgo(11.8));
+    await seedProjectTransition(id, "COMPLETE", "district", monthsAgo(11.5));
+    await seedProjectTransition(id, "STATE_APPROVE", "state", monthsAgo(11.0));
+    await seedProjectTransition(id, "CENTRAL_APPROVE", "central", monthsAgo(10.5));
+    await seedProjectTransition(id, "PUBLISH_DECLARATION", "district", monthsAgo(10.0));
+    await seedProjectTransition(id, "PASS_AWARD", "district", monthsAgo(8.0));
+  }
+
+  // --- Extra Demo Project 3: Tuticorin Port Rail Link ---
+  {
+    const id = "p-tn-tuticorin-rail";
+    const alignment: LineGeometry = { type: "LineString", coordinates: [[78.16, 8.75], [78.18, 8.78]] };
+    await createSeedProject({
+      id, name: "Tuticorin Port Dedicated Freight Rail Link", purpose: "Rail connectivity to VOC Port",
+      state: "Tamil Nadu", district: "Thoothukudi", createdBy: "u-agency-1", createdAt: monthsAgo(18),
+      geometry: alignment, parcelStatus: "POSSESSED",
+      parcelGenerator: { kind: "corridor", villages: ["Milavittan", "Milavittan"] },
+      seed: 12, rate: { ratePerHectare: 1_200_000, multiplier: 2.0 },
+    });
+    await seedProjectTransition(id, "SUBMIT", "agency", monthsAgo(18));
+    await seedProjectTransition(id, "APPROVE", "district", monthsAgo(17.8));
+    await seedProjectTransition(id, "COMPLETE", "district", monthsAgo(17.5));
+    await seedProjectTransition(id, "STATE_APPROVE", "state", monthsAgo(17.0));
+    await seedProjectTransition(id, "CENTRAL_APPROVE", "central", monthsAgo(16.5));
+    await seedProjectTransition(id, "PUBLISH_DECLARATION", "district", monthsAgo(16.0));
+    await seedProjectTransition(id, "PASS_AWARD", "district", monthsAgo(14.0));
+    await seedProjectTransition(id, "START_RR", "district", monthsAgo(13.9));
+    await seedProjectTransition(id, "COMPLETE_RR", "district", monthsAgo(10.0));
+    await seedProjectTransition(id, "COMPLETE_INFRASTRUCTURE", "district", monthsAgo(8.0));
+  }
+
+  // --- Extra Demo Project 4: Salem Steel Plant Expansion ---
+  {
+    const id = "p-tn-salem-steel";
+    const geometry: PolygonGeometry = { type: "Polygon", coordinates: [[[78.11, 11.66], [78.12, 11.66], [78.12, 11.67], [78.11, 11.67], [78.11, 11.66]]] };
+    await createSeedProject({
+      id, name: "Salem Steel Plant Phase 3 Land Acquisition", purpose: "Industrial expansion",
+      state: "Tamil Nadu", district: "Salem", createdBy: "u-agency-1", createdAt: monthsAgo(2),
+      geometry, parcelStatus: "NOTIFIED",
+      parcelGenerator: { kind: "grid", villages: ["Thirumalaigiri", "Thirumalaigiri"] },
+      seed: 13, rate: { ratePerHectare: 2_500_000, multiplier: 1.5 },
+    });
+    await seedProjectTransition(id, "SUBMIT", "agency", monthsAgo(2));
+  }
+
+  // --- Extra Demo Project 5: Vellore Smart City Water Supply ---
+  {
+    const id = "p-tn-vellore-water";
+    const alignment: LineGeometry = { type: "LineString", coordinates: [[79.13, 12.91], [79.14, 12.92]] };
+    await createSeedProject({
+      id, name: "Vellore Smart City Pipeline Corridor", purpose: "Underground water pipeline",
+      state: "Tamil Nadu", district: "Vellore", createdBy: "u-agency-1", createdAt: monthsAgo(6),
+      geometry: alignment, parcelStatus: "NOTIFIED",
+      parcelGenerator: { kind: "corridor", villages: ["Katpadi", "Vellore Town"] },
+      seed: 14, rate: { ratePerHectare: 3_000_000, multiplier: 1.0 },
+    });
+    await seedProjectTransition(id, "SUBMIT", "agency", monthsAgo(6));
+    await seedProjectTransition(id, "APPROVE", "district", monthsAgo(5.8));
+    await seedProjectTransition(id, "COMPLETE", "district", monthsAgo(5.5));
+  }
+
+  console.log("Seed complete: 6 demo users, 13 demo projects, realistic parcel-scale geometry.");
 }
 
 main().catch((err) => {

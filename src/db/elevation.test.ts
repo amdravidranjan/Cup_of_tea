@@ -1,20 +1,12 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { drizzle, type LibSQLDatabase } from "drizzle-orm/libsql";
-import { createClient } from "@libsql/client";
-import { sql } from "drizzle-orm";
+import type { LibSQLDatabase } from "drizzle-orm/libsql";
 import * as schema from "./schema";
+import { createTestDb } from "./test-helpers";
 
 let testDb: LibSQLDatabase<typeof schema>;
 
 beforeEach(async () => {
-  const client = createClient({ url: ":memory:" });
-  testDb = drizzle(client, { schema });
-  await testDb.run(sql`
-    CREATE TABLE elevation_profiles (
-      id TEXT PRIMARY KEY, project_id TEXT NOT NULL UNIQUE,
-      samples_json TEXT NOT NULL, created_at INTEGER NOT NULL
-    );
-  `);
+  testDb = await createTestDb();
 });
 
 describe("saveElevationProfileWith / getElevationProfileWith", () => {

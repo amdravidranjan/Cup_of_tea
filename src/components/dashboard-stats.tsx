@@ -21,6 +21,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Landmark, MapPinned, IndianRupee, AlertTriangle } from "lucide-react";
 import { slaStatusTone, stageTone, toneHex } from "@/lib/status-colors";
 
 interface PortfolioStatsProps {
@@ -61,36 +62,40 @@ export function DashboardStats({
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
         <Card>
-          <CardHeader className="pb-2">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-xs font-medium text-muted-foreground">Projects</CardTitle>
+            <Landmark className="size-4 text-[#16294d]" />
           </CardHeader>
           <CardContent className="text-2xl font-semibold">{stats.projectCount}</CardContent>
         </Card>
         <Card>
-          <CardHeader className="pb-2">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-xs font-medium text-muted-foreground">
               Area under acquisition
             </CardTitle>
+            <MapPinned className="size-4 text-emerald-700" />
           </CardHeader>
           <CardContent className="text-2xl font-semibold">
             {stats.totalAreaHectares.toFixed(1)} ha
           </CardContent>
         </Card>
         <Card>
-          <CardHeader className="pb-2">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-xs font-medium text-muted-foreground">
               Compensation paid
             </CardTitle>
+            <IndianRupee className="size-4 text-brand" />
           </CardHeader>
           <CardContent className="text-2xl font-semibold">
             {formatLakh(stats.compensationPaid)} / {formatLakh(stats.compensationTotal)}
           </CardContent>
         </Card>
         <Card>
-          <CardHeader className="pb-2">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-xs font-medium text-muted-foreground">
               SLA breaches
             </CardTitle>
+            <AlertTriangle className="size-4 text-red-600" />
           </CardHeader>
           <CardContent className="text-2xl font-semibold">{stats.slaCounts.breached}</CardContent>
         </Card>

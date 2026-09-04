@@ -150,7 +150,18 @@ export function BeforeAfterSlider({
       });
     });
 
+    // MapLibre measures its container once at construction. If this panel is
+    // mounted while off-screen or inside an inactive tab that measurement is
+    // zero and the map stays blank even after the container gets its real
+    // size, so mirror later size changes back onto both maps.
+    const resizeObserver = new ResizeObserver(() => {
+      before.resize();
+      after.resize();
+    });
+    if (beforeContainerRef.current) resizeObserver.observe(beforeContainerRef.current);
+
     return () => {
+      resizeObserver.disconnect();
       before.remove();
       after.remove();
       beforeMapRef.current = null;
@@ -161,12 +172,20 @@ export function BeforeAfterSlider({
   return (
     <div className="space-y-2">
       <div className="relative h-[28rem] w-full select-none overflow-hidden rounded-lg border">
-        <div ref={beforeContainerRef} className="absolute inset-0" />
+        {/* These two containers MUST be positioned with inline styles, not
+            Tailwind's `absolute inset-0`. Once MapLibre initialises it adds
+            its own `.maplibregl-map` class, whose stylesheet declares
+            `position: relative`. That selector has the same specificity as
+            Tailwind's `.absolute` and is injected later, so it wins the tie —
+            `inset-0` then has nothing to resolve against and the container
+            collapses to height 0, which is why both panes rendered blank.
+            Inline styles outrank both stylesheets and keep the panes sized. */}
+        <div ref={beforeContainerRef} style={{ position: "absolute", inset: 0 }} />
         <div
-          className="absolute inset-0 overflow-hidden"
-          style={{ clipPath: `inset(0 0 0 ${percent}%)` }}
+          className="overflow-hidden"
+          style={{ position: "absolute", inset: 0, clipPath: `inset(0 0 0 ${percent}%)` }}
         >
-          <div ref={afterContainerRef} className="absolute inset-0" />
+          <div ref={afterContainerRef} style={{ position: "absolute", inset: 0 }} />
         </div>
 
         {status === "loading" && (

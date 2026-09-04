@@ -1,29 +1,12 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { drizzle, type LibSQLDatabase } from "drizzle-orm/libsql";
-import { createClient } from "@libsql/client";
-import { sql } from "drizzle-orm";
+import type { LibSQLDatabase } from "drizzle-orm/libsql";
 import * as schema from "./schema";
+import { createTestDb } from "./test-helpers";
 
 let testDb: LibSQLDatabase<typeof schema>;
 
 beforeEach(async () => {
-  const client = createClient({ url: ":memory:" });
-  testDb = drizzle(client, { schema });
-  await testDb.run(sql`
-    CREATE TABLE projects (
-      id TEXT PRIMARY KEY, name TEXT NOT NULL, purpose TEXT NOT NULL,
-      state TEXT NOT NULL, district TEXT NOT NULL, stage TEXT NOT NULL DEFAULT 'DRAFT',
-      created_by TEXT NOT NULL, created_at INTEGER NOT NULL, updated_at INTEGER NOT NULL,
-      geometry_type TEXT, geometry_geo_json TEXT, rr_stage TEXT
-    );
-  `);
-  await testDb.run(sql`
-    CREATE TABLE rr_stage_history (
-      id TEXT PRIMARY KEY, project_id TEXT NOT NULL, from_stage TEXT, to_stage TEXT NOT NULL,
-      action TEXT NOT NULL, actor_id TEXT NOT NULL, actor_role TEXT NOT NULL, note TEXT,
-      created_at INTEGER NOT NULL
-    );
-  `);
+  testDb = await createTestDb();
   await testDb.insert(schema.projects).values({
     id: "p-1",
     name: "Test Bridge",

@@ -14,6 +14,7 @@ export interface CreateProjectInput {
   state: string;
   district: string;
   createdBy: string;
+  createdByRole: Role;
 }
 
 export async function createProjectWith(
@@ -40,7 +41,7 @@ export async function createProjectWith(
     toStage: "DRAFT",
     action: "CREATE",
     actorId: input.createdBy,
-    actorRole: "agency",
+    actorRole: input.createdByRole,
     createdAt: now,
   });
   return id;

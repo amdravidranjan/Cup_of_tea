@@ -17,6 +17,10 @@ export function ProjectActions({
   const [pending, setPending] = useState<Action | null>(null);
 
   async function perform(action: Action) {
+    const confirmed = window.confirm(
+      `Perform "${action}"? This moves the project to its next statutory stage and cannot be undone from this screen.`
+    );
+    if (!confirmed) return;
     setPending(action);
     const res = await fetch(`/api/projects/${projectId}/transition`, {
       method: "POST",

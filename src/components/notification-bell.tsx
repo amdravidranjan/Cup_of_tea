@@ -44,6 +44,13 @@ export function NotificationBell() {
 
   useEffect(() => {
     load();
+    // The bell lives in the persistent app-shell header, so it's never
+    // remounted by client-side navigation between /app pages, and
+    // router.refresh() (called after mutations elsewhere in the app)
+    // doesn't re-run a client component's effects. Poll instead, so a
+    // colleague's action shows up without a hard reload.
+    const interval = setInterval(load, 20000);
+    return () => clearInterval(interval);
   }, []);
 
   const unreadCount = lastSeenAt

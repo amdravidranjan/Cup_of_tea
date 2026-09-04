@@ -53,6 +53,10 @@ export function RRPanel({
 
   async function perform(event: FormEvent<HTMLFormElement>, action: RRAction) {
     event.preventDefault();
+    const confirmed = window.confirm(
+      `Complete this R&R step ("${action}")? This cannot be undone from this screen.`
+    );
+    if (!confirmed) return;
     setPending(true);
     const formData = new FormData(event.currentTarget);
     const note = formData.get("note");

@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { drizzle, type LibSQLDatabase } from "drizzle-orm/libsql";
-import { createClient } from "@libsql/client";
-import { sql, eq } from "drizzle-orm";
+import type { LibSQLDatabase } from "drizzle-orm/libsql";
+import { eq } from "drizzle-orm";
 import * as schema from "./schema";
+import { createTestDb } from "./test-helpers";
 
 // Typed explicitly rather than `ReturnType<typeof drizzle>` — that resolves
 // against the generic function's default type parameters, not this file's
@@ -11,28 +11,7 @@ import * as schema from "./schema";
 let testDb: LibSQLDatabase<typeof schema>;
 
 beforeEach(async () => {
-  const client = createClient({ url: ":memory:" });
-  testDb = drizzle(client, { schema });
-  await testDb.run(sql`
-    CREATE TABLE users (
-      id TEXT PRIMARY KEY, name TEXT NOT NULL, role TEXT NOT NULL,
-      district TEXT, state TEXT
-    );
-  `);
-  await testDb.run(sql`
-    CREATE TABLE projects (
-      id TEXT PRIMARY KEY, name TEXT NOT NULL, purpose TEXT NOT NULL,
-      state TEXT NOT NULL, district TEXT NOT NULL, stage TEXT NOT NULL DEFAULT 'DRAFT',
-      created_by TEXT NOT NULL, created_at INTEGER NOT NULL, updated_at INTEGER NOT NULL,
-      geometry_type TEXT, geometry_geo_json TEXT, rr_stage TEXT
-    );
-  `);
-  await testDb.run(sql`
-    CREATE TABLE stage_history (
-      id TEXT PRIMARY KEY, project_id TEXT NOT NULL, from_stage TEXT, to_stage TEXT NOT NULL,
-      action TEXT NOT NULL, actor_id TEXT NOT NULL, actor_role TEXT NOT NULL, created_at INTEGER NOT NULL
-    );
-  `);
+  testDb = await createTestDb();
 });
 
 describe("projects data layer", () => {
@@ -44,6 +23,7 @@ describe("projects data layer", () => {
       state: "Odisha",
       district: "Koraput",
       createdBy: "u-agency-1",
+      createdByRole: "agency",
     });
     const all = await listProjectsWith(testDb);
     expect(all).toHaveLength(1);
@@ -60,6 +40,7 @@ describe("projects data layer", () => {
       state: "Odisha",
       district: "Koraput",
       createdBy: "u-agency-1",
+      createdByRole: "agency",
     });
     const nextStage = await applyProjectTransitionWith(
       testDb,
@@ -90,6 +71,7 @@ describe("projects data layer", () => {
       state: "Odisha",
       district: "Koraput",
       createdBy: "u-agency-1",
+      createdByRole: "agency",
     });
     await expect(
       applyProjectTransitionWith(testDb, id, "PASS_AWARD", "u-1", "district")
@@ -105,6 +87,7 @@ describe("projects data layer", () => {
       state: "Odisha",
       district: "Koraput",
       createdBy: "u-agency-1",
+      createdByRole: "agency",
     });
     await applyProjectTransitionWith(testDb, id, "SUBMIT", "u-agency-1", "agency");
     await applyProjectTransitionWith(testDb, id, "APPROVE", "u-district-1", "district");
@@ -127,6 +110,7 @@ describe("projects data layer", () => {
       state: "Odisha",
       district: "Koraput",
       createdBy: "u-agency-1",
+      createdByRole: "agency",
     });
     await setProjectGeometryWith(testDb, id, {
       type: "LineString",
@@ -151,6 +135,7 @@ describe("projects data layer", () => {
       state: "Odisha",
       district: "Koraput",
       createdBy: "u-agency-1",
+      createdByRole: "agency",
     });
     await applyProjectTransitionWith(testDb, id, "SUBMIT", "u-agency-1", "agency");
     await applyProjectTransitionWith(testDb, id, "APPROVE", "u-district-1", "district");

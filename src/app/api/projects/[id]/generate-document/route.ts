@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
 import { can } from "@/lib/rbac";
 import { getProject } from "@/db/projects";
+import { canViewProject } from "@/lib/project-scope";
 import { listParcels } from "@/db/parcels";
 import { listCompensationsForProject } from "@/db/compensation";
 import { createDocument } from "@/db/documents";
@@ -34,7 +35,7 @@ export async function POST(
   }
 
   const project = await getProject(id);
-  if (!project) {
+  if (!project || !canViewProject(session, project)) {
     return NextResponse.json({ error: "Project not found" }, { status: 404 });
   }
 

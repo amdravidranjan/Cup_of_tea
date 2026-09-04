@@ -39,6 +39,7 @@ interface Family {
   category: string;
   memberCount: number;
   vulnerableGroup: boolean;
+  deceasedAt?: Date | string | null;
   entitlements: Entitlement[];
 }
 
@@ -185,6 +186,70 @@ function NewFamilyForm({ projectId }: { projectId: string }) {
   );
 }
 
+function SuccessionForm({ familyId, onDone }: { familyId: string; onDone: () => void }) {
+  const [pending, setPending] = useState(false);
+  const [heirCount, setHeirCount] = useState(2);
+
+  async function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const fd = new FormData(event.currentTarget);
+    const heirs = Array.from({ length: heirCount })
+      .map((_, i) => ({
+        name: String(fd.get(`heirName${i}`) ?? "").trim(),
+        relationship: String(fd.get(`heirRel${i}`) ?? "").trim(),
+        sharePercent: Number(fd.get(`heirShare${i}`) ?? 0),
+      }))
+      .filter((h) => h.name && h.relationship && h.sharePercent > 0);
+    if (heirs.length === 0) {
+      toast.error("Add at least one heir with a name, relationship, and share");
+      return;
+    }
+    setPending(true);
+    const res = await fetch(`/api/families/${familyId}/succession`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        deceasedAt: fd.get("deceasedAt"),
+        successionNote: fd.get("successionNote") || undefined,
+        heirs,
+      }),
+    });
+    const body = (await res.json()) as { error?: string };
+    setPending(false);
+    if (!res.ok) {
+      toast.error(body.error ?? "Failed to record succession");
+      return;
+    }
+    toast.success("Succession recorded — entitlement split across heirs");
+    onDone();
+  }
+
+  return (
+    <form onSubmit={submit} className="space-y-2 rounded-lg border border-amber-200 bg-amber-50 p-3">
+      <div className="space-y-1">
+        <Label htmlFor="deceasedAt" className="text-xs">
+          Date of death
+        </Label>
+        <Input id="deceasedAt" name="deceasedAt" type="date" required className="h-8 w-40" />
+      </div>
+      {Array.from({ length: heirCount }).map((_, i) => (
+        <div key={i} className="flex flex-wrap items-end gap-2">
+          <Input name={`heirName${i}`} placeholder="Heir name" className="h-8 w-36" />
+          <Input name={`heirRel${i}`} placeholder="Relationship" className="h-8 w-28" />
+          <Input name={`heirShare${i}`} type="number" min={1} max={100} placeholder="Share %" className="h-8 w-24" />
+        </div>
+      ))}
+      <Button type="button" size="sm" variant="ghost" onClick={() => setHeirCount((c) => c + 1)}>
+        + Add another heir
+      </Button>
+      <Input name="successionNote" placeholder="Note (optional)" className="h-8" />
+      <Button type="submit" size="sm" disabled={pending}>
+        {pending ? "Saving…" : "Record succession"}
+      </Button>
+    </form>
+  );
+}
+
 export function FamiliesPanel({
   projectId,
   families,
@@ -196,6 +261,9 @@ export function FamiliesPanel({
   canManage: boolean;
   canGrant: boolean;
 }) {
+  const router = useRouter();
+  const [successionOpenFor, setSuccessionOpenFor] = useState<string | null>(null);
+
   return (
     <div className="space-y-4">
       {canManage && <NewFamilyForm projectId={projectId} />}
@@ -217,9 +285,14 @@ export function FamiliesPanel({
                       Vulnerable group
                     </Badge>
                   )}
+                  {family.deceasedAt && (
+                    <Badge variant="outline" className="border-amber-300 bg-amber-50 text-amber-900">
+                      Succession recorded
+                    </Badge>
+                  )}
                 </CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="space-y-3">
                 <ul className="space-y-2">
                   {family.entitlements.map((e) => (
                     <li key={e.id} className="flex flex-col gap-2 border-t pt-2 first:border-t-0 first:pt-0">
@@ -235,6 +308,29 @@ export function FamiliesPanel({
                     </li>
                   ))}
                 </ul>
+                {canManage && !family.deceasedAt && (
+                  <div>
+                    {successionOpenFor === family.id ? (
+                      <SuccessionForm
+                        familyId={family.id}
+                        onDone={() => {
+                          setSuccessionOpenFor(null);
+                          router.refresh();
+                        }}
+                      />
+                    ) : (
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="ghost"
+                        className="text-muted-foreground"
+                        onClick={() => setSuccessionOpenFor(family.id)}
+                      >
+                        Head of household deceased? Record succession →
+                      </Button>
+                    )}
+                  </div>
+                )}
               </CardContent>
             </Card>
           ))}

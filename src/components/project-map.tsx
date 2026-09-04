@@ -122,12 +122,22 @@ export function ProjectMap({
           type: "geojson",
           data: { type: "Feature", properties: {}, geometry: alignment },
         });
+        // Dual-line (tramline) styling — the standard cartographic
+        // convention for a canal/waterway alignment, two parallel offset
+        // strokes rather than one road-style line.
         map.addLayer({
           id: "alignment-line",
           type: "line",
           source: "alignment",
           layout: { "line-cap": "round", "line-join": "round" },
-          paint: { "line-color": ALIGNMENT_COLOR, "line-width": 4 },
+          paint: { "line-color": ALIGNMENT_COLOR, "line-width": 2.5, "line-offset": 3.5 },
+        });
+        map.addLayer({
+          id: "alignment-line-2",
+          type: "line",
+          source: "alignment",
+          layout: { "line-cap": "round", "line-join": "round" },
+          paint: { "line-color": ALIGNMENT_COLOR, "line-width": 2.5, "line-offset": -3.5 },
         });
       }
 
@@ -209,7 +219,11 @@ export function ProjectMap({
   useEffect(() => {
     const map = mapRef.current;
     if (!map?.getLayer("alignment-line")) return;
-    map.setLayoutProperty("alignment-line", "visibility", showAlignment ? "visible" : "none");
+    const visibility = showAlignment ? "visible" : "none";
+    map.setLayoutProperty("alignment-line", "visibility", visibility);
+    if (map.getLayer("alignment-line-2")) {
+      map.setLayoutProperty("alignment-line-2", "visibility", visibility);
+    }
   }, [showAlignment]);
 
   useEffect(() => {
@@ -257,8 +271,11 @@ export function ProjectMap({
               onChange={(e) => setShowAlignment(e.target.checked)}
               className="h-3.5 w-3.5"
             />
-            <span className="h-0.5 w-4 shrink-0" style={{ backgroundColor: ALIGNMENT_COLOR }} />
-            <span>Alignment / corridor</span>
+            <span className="flex h-3 w-4 shrink-0 flex-col justify-between">
+              <span className="h-[1.5px] w-full" style={{ backgroundColor: ALIGNMENT_COLOR }} />
+              <span className="h-[1.5px] w-full" style={{ backgroundColor: ALIGNMENT_COLOR }} />
+            </span>
+            <span>Alignment / canal</span>
           </label>
         )}
 

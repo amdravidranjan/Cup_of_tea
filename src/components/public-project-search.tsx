@@ -22,6 +22,7 @@ interface PublicProjectRow {
   district: string;
   stage: string;
   metrics: SLAMetric[];
+  coverPhotoUrl: string | null;
 }
 
 export function PublicProjectSearch({ projects }: { projects: PublicProjectRow[] }) {
@@ -63,9 +64,21 @@ export function PublicProjectSearch({ projects }: { projects: PublicProjectRow[]
               {filtered.map((p) => (
                 <TableRow key={p.id}>
                   <TableCell>
-                    <Link href={`/projects/${p.id}`} className="font-medium hover:underline">
-                      {p.name}
-                    </Link>
+                    <div className="flex items-center gap-3">
+                      {p.coverPhotoUrl ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={p.coverPhotoUrl}
+                          alt=""
+                          className="h-10 w-14 shrink-0 rounded object-cover"
+                        />
+                      ) : (
+                        <div className="h-10 w-14 shrink-0 rounded bg-secondary" />
+                      )}
+                      <Link href={`/projects/${p.id}`} className="font-medium hover:underline">
+                        {p.name}
+                      </Link>
+                    </div>
                   </TableCell>
                   <TableCell className="text-muted-foreground">
                     {p.district}, {p.state}

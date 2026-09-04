@@ -3,6 +3,7 @@ import { getSession } from "@/lib/auth";
 import { can } from "@/lib/rbac";
 import { createParcel, listParcels } from "@/db/parcels";
 import { getProject } from "@/db/projects";
+import { canViewProject } from "@/lib/project-scope";
 import {
   computeParcelsWithImpact,
   parseStoredGeometry,
@@ -20,9 +21,10 @@ export async function GET(
   }
   const { id } = await params;
   const project = await getProject(id);
-  const alignment = project
-    ? parseStoredGeometry(project.geometryType, project.geometryGeoJson)
-    : null;
+  if (!project || !canViewProject(session, project)) {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
+  const alignment = parseStoredGeometry(project.geometryType, project.geometryGeoJson);
   const parcelList = await listParcels(id);
   const withImpact = computeParcelsWithImpact(alignment, parcelList);
   return NextResponse.json({ parcels: withImpact });
@@ -40,10 +42,16 @@ export async function POST(
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
   const { id } = await params;
+  const project = await getProject(id);
+  if (!project || !canViewProject(session, project)) {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
   const body = (await request.json()) as {
     village?: string;
     areaHectares?: number;
     status?: ParcelStatus;
+    surveyNumber?: string;
+    pattaNumber?: string;
     geometry?: { type?: string; coordinates?: unknown };
   };
   if (
@@ -61,6 +69,11 @@ export async function POST(
     village: body.village,
     areaHectares: body.areaHectares,
     status: body.status,
+    // A parcel with no survey number is not identifiable in a land record, so
+    // these are accepted here and forwarded (createParcel already stored them;
+    // this route was silently dropping whatever the editor sent).
+    surveyNumber: body.surveyNumber?.trim() || undefined,
+    pattaNumber: body.pattaNumber?.trim() || undefined,
     geometry: {
       type: "Polygon",
       coordinates: body.geometry.coordinates as PolygonGeometry["coordinates"],

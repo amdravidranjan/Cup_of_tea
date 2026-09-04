@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
 import { can } from "@/lib/rbac";
 import { createDocument, listDocuments } from "@/db/documents";
+import { getProject } from "@/db/projects";
+import { canViewProject } from "@/lib/project-scope";
 import { saveFile } from "@/lib/storage";
 import { DOCUMENT_CATEGORIES, type DocumentCategory } from "@/lib/document-categories";
 
@@ -14,6 +16,10 @@ export async function GET(
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   const { id } = await params;
+  const project = await getProject(id);
+  if (!project || !canViewProject(session, project)) {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
   const docs = await listDocuments(id);
   return NextResponse.json({ documents: docs });
 }
@@ -30,6 +36,10 @@ export async function POST(
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
   const { id } = await params;
+  const project = await getProject(id);
+  if (!project || !canViewProject(session, project)) {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
   const form = await request.formData();
   const file = form.get("file");
   const category = form.get("category");

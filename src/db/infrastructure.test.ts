@@ -1,20 +1,12 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { drizzle, type LibSQLDatabase } from "drizzle-orm/libsql";
-import { createClient } from "@libsql/client";
-import { sql } from "drizzle-orm";
+import type { LibSQLDatabase } from "drizzle-orm/libsql";
 import * as schema from "./schema";
+import { createTestDb } from "./test-helpers";
 
 let testDb: LibSQLDatabase<typeof schema>;
 
 beforeEach(async () => {
-  const client = createClient({ url: ":memory:" });
-  testDb = drizzle(client, { schema });
-  await testDb.run(sql`
-    CREATE TABLE infrastructure_items (
-      id TEXT PRIMARY KEY, project_id TEXT NOT NULL, item TEXT NOT NULL,
-      status TEXT NOT NULL DEFAULT 'PENDING', completed_by TEXT, completed_at INTEGER
-    );
-  `);
+  testDb = await createTestDb();
 });
 
 describe("ensureInfrastructureChecklistWith", () => {

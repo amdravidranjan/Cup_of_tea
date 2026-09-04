@@ -22,6 +22,7 @@ export interface PublicProjectSummary {
   district: string;
   stage: Stage;
   metrics: SLAMetric[];
+  coverPhotoUrl: string | null;
 }
 
 export interface PublicNotice {
@@ -76,6 +77,7 @@ async function toSummary(database: Db, project: ProjectRow): Promise<PublicProje
     district: project.district,
     stage: project.stage as Stage,
     metrics,
+    coverPhotoUrl: project.coverPhotoUrl,
   };
 }
 

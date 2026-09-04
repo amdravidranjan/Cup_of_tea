@@ -12,6 +12,30 @@ export interface PolygonGeometry {
 
 export type Geometry = LineGeometry | PolygonGeometry;
 
+/**
+ * Approximate polygon area in hectares from raw [lng, lat] coordinates,
+ * via an equirectangular projection centered on the polygon (good enough
+ * at the scale of a single land parcel; not meant for anything larger).
+ */
+export function polygonAreaHectares(coordinates: Position[]): number {
+  if (coordinates.length < 3) return 0;
+  const latRef = coordinates.reduce((sum, [, lat]) => sum + lat, 0) / coordinates.length;
+  const metersPerDegLat = 111320;
+  const metersPerDegLng = 111320 * Math.cos((latRef * Math.PI) / 180);
+  const projected = coordinates.map(([lng, lat]) => [
+    lng * metersPerDegLng,
+    lat * metersPerDegLat,
+  ]);
+  let sum = 0;
+  for (let i = 0; i < projected.length; i++) {
+    const [x1, y1] = projected[i];
+    const [x2, y2] = projected[(i + 1) % projected.length];
+    sum += x1 * y2 - x2 * y1;
+  }
+  const areaM2 = Math.abs(sum) / 2;
+  return areaM2 / 10000;
+}
+
 const EARTH_RADIUS_M = 6371000;
 
 function toRad(deg: number): number {

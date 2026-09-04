@@ -100,6 +100,11 @@ export async function listCompensationsForProjectWith(database: Db, projectId: s
   return database.select().from(compensations).where(eq(compensations.projectId, projectId));
 }
 
+export async function getCompensationByIdWith(database: Db, id: string) {
+  const rows = await database.select().from(compensations).where(eq(compensations.id, id));
+  return rows[0] ?? null;
+}
+
 export async function markCompensationPaidWith(database: Db, id: string): Promise<void> {
   await database
     .update(compensations)
@@ -118,3 +123,4 @@ export const createCompensation = (input: CreateCompensationInput) =>
 export const listCompensationsForProject = (projectId: string) =>
   listCompensationsForProjectWith(defaultDb, projectId);
 export const markCompensationPaid = (id: string) => markCompensationPaidWith(defaultDb, id);
+export const getCompensationById = (id: string) => getCompensationByIdWith(defaultDb, id);

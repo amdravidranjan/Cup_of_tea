@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
 import { can } from "@/lib/rbac";
 import { getProject } from "@/db/projects";
+import { canViewProject } from "@/lib/project-scope";
 import { getCurrentCompensationRate, setCompensationRate } from "@/db/compensation";
 
 export async function GET(
@@ -14,7 +15,7 @@ export async function GET(
   }
   const { id } = await params;
   const project = await getProject(id);
-  if (!project) {
+  if (!project || !canViewProject(session, project)) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
   const rate = await getCurrentCompensationRate(project.state, project.district);
@@ -34,7 +35,7 @@ export async function POST(
   }
   const { id } = await params;
   const project = await getProject(id);
-  if (!project) {
+  if (!project || !canViewProject(session, project)) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
   const body = (await request.json()) as { ratePerHectare?: number; multiplier?: number };

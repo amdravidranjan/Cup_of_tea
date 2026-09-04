@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
 import { can } from "@/lib/rbac";
-import { applyProjectTransition } from "@/db/projects";
+import { applyProjectTransition, getProject } from "@/db/projects";
+import { canViewProject } from "@/lib/project-scope";
 import type { Action } from "@/lib/workflow";
 
 export async function POST(
@@ -16,6 +17,10 @@ export async function POST(
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
   const { id } = await params;
+  const existingProject = await getProject(id);
+  if (!existingProject || !canViewProject(session, existingProject)) {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
   const body = (await request.json()) as { action?: Action };
   if (!body.action) {
     return NextResponse.json({ error: "Missing action" }, { status: 400 });

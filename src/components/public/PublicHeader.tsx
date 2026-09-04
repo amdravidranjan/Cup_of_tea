@@ -14,14 +14,52 @@ export function PublicHeader() {
 
   const navLinks = [
     { label: 'Home', href: '/' },
-    { label: 'About Us', items: ['About TN-GLMS', 'Commissionerate of Land Administration', 'RFCTLARR Act 2013', 'Organisational Structure', 'Annual Reports', 'Tender Notices'] },
-    { label: 'Projects', items: ['View All Projects', 'Section 11 Notifications', 'Section 19 Declarations', 'Award & Possession Status', 'GIS Parcel Map'] },
-    { label: 'Compensation', items: ['Compensation Calculator', 'Disbursement Status', 'Solatium & Interest', 'Award Letters (Download)', 'PFMS Payment Trail'] },
-    { label: 'R&R', items: ['R&R Scheme Status', 'Entitlement Tracker', 'Second Schedule Benefits', 'Third Schedule Infrastructure', 'Resettlement Colonies'] },
-    { label: 'Grievances' },
-    { label: 'Documents', items: ['Section 11 Notifications (PDF)', 'Section 19 Declarations (PDF)', 'Award Letters', 'Possession Certificates', 'DPR Repository', 'SIA Reports'] },
-    { label: 'Imp. Links', items: ['RFCTLARR Act 2013 — Full Text', 'Bhoomi Rashi Portal (MoRTH)', 'Open Govt Data (OGD)', 'Ministry of Rural Development', 'India.gov.in'] },
-    { label: 'Contact Us' },
+    { label: 'About Us', items: [
+      { label: 'About TN-GLMS', href: '/about' },
+      { label: 'Commissionerate of Land Administration', href: '/about' },
+      { label: 'RFCTLARR Act 2013', href: '/about#act' },
+      { label: 'Organisational Structure', href: '/about' },
+      { label: 'Annual Reports', href: '/documents' },
+      { label: 'Tender Notices', href: '/about' },
+    ]},
+    { label: 'Projects', items: [
+      { label: 'View All Projects', href: '/projects' },
+      { label: 'Section 11 Notifications', href: '/documents' },
+      { label: 'Section 19 Declarations', href: '/documents' },
+      { label: 'Award & Possession Status', href: '/projects' },
+      { label: 'GIS Parcel Map', href: '/projects' },
+    ]},
+    { label: 'Compensation', items: [
+      { label: 'Compensation Calculator', href: '/compensation' },
+      { label: 'Disbursement Status', href: '/compensation' },
+      { label: 'Solatium & Interest', href: '/compensation' },
+      { label: 'Award Letters (Download)', href: '/documents' },
+      { label: 'PFMS Payment Trail', href: '/compensation' },
+    ]},
+    { label: 'R&R', items: [
+      { label: 'R&R Scheme Status', href: '/rr' },
+      { label: 'Entitlement Tracker', href: '/rr' },
+      { label: 'Second Schedule Benefits', href: '/rr' },
+      { label: 'Third Schedule Infrastructure', href: '/rr' },
+      { label: 'Resettlement Colonies', href: '/rr' },
+    ]},
+    { label: 'Grievances', href: '/grievances' },
+    { label: 'Documents', items: [
+      { label: 'Section 11 Notifications (PDF)', href: '/documents' },
+      { label: 'Section 19 Declarations (PDF)', href: '/documents' },
+      { label: 'Award Letters', href: '/documents' },
+      { label: 'Possession Certificates', href: '/documents' },
+      { label: 'DPR Repository', href: '/documents' },
+      { label: 'SIA Reports', href: '/documents' },
+    ]},
+    { label: 'Resources', items: [
+      { label: 'RFCTLARR Act 2013 — Full Text', href: '/about#act' },
+      { label: 'Bhoomi Rashi Portal (MoRTH)', href: 'https://bhoomirashi.gov.in', external: true },
+      { label: 'TN Revenue Department', href: 'https://tnrd.gov.in', external: true },
+      { label: 'Dept. of Land Resources (DoLR)', href: 'https://dolr.gov.in', external: true },
+      { label: 'CLA — About Us', href: '/about' },
+    ]},
+    { label: 'Contact Us', href: '/contact' },
   ];
 
   return (
@@ -30,10 +68,9 @@ export function PublicHeader() {
         <div style={{ maxWidth: 1240, margin: '0 auto', padding: '0 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 4 }}>
           <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 0 }}>
             <a href="#main">Skip to Main Content</a><span className="sep">|</span>
-            <a href="#">Screen Reader</a><span className="sep">|</span>
-            <a href="#">Sitemap</a><span className="sep">|</span>
-            <a href="#">RTI</a><span className="sep">|</span>
-            <a href="#" target="_blank" rel="noreferrer">india.gov.in</a>
+            <a href="/about">Screen Reader</a><span className="sep">|</span>
+            <a href="/about">Sitemap</a><span className="sep">|</span>
+            <a href="/about">RTI</a>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
             <span style={{ color: '#607d8b', fontSize: 11 }}>Text Size:</span>
@@ -110,16 +147,16 @@ export function PublicHeader() {
               {link.items && (
                 <div className="dropdown-panel">
                   {link.items.map(it => (
-                    <a key={it} href="#">
-                      <Icon icon="mdi:chevron-right" width={12} color="#e56b00" />
-                      {it}
+                    <a key={it.label} href={it.href} {...(it.external ? { target: '_blank', rel: 'noreferrer' } : {})}>
+                      <Icon icon={it.external ? 'mdi:open-in-new' : 'mdi:chevron-right'} width={12} color="#e56b00" />
+                      {it.label}
                     </a>
                   ))}
                 </div>
               )}
             </div>
           ))}
-          <Link href="/app" className="nav-item nav-login">
+          <Link href="/login" className="nav-item nav-login">
             <Icon icon="mdi:login" width={15} />
             Login / Register
           </Link>

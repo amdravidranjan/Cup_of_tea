@@ -48,7 +48,7 @@ export function InfrastructureChecklist({
         {items.map((i) => (
           <li
             key={i.id}
-            className="flex items-center justify-between gap-2 rounded-md border px-3 py-2"
+            className="group flex items-center justify-between gap-2 rounded-md border px-3 py-2"
           >
             <span className="text-sm">{INFRASTRUCTURE_LABELS[i.item]}</span>
             {i.status === "COMPLETE" ? (
@@ -61,6 +61,7 @@ export function InfrastructureChecklist({
                 size="sm"
                 disabled={pending === i.id}
                 onClick={() => complete(i.id)}
+                className="opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100"
               >
                 {pending === i.id ? "…" : "Mark complete"}
               </Button>

@@ -3,6 +3,7 @@ import { getSession } from "@/lib/auth";
 import { can } from "@/lib/rbac";
 import { getParcel } from "@/db/parcels";
 import { getProject, getStageHistory } from "@/db/projects";
+import { canViewProject } from "@/lib/project-scope";
 import { getCurrentCompensationRate, createCompensation } from "@/db/compensation";
 import { calculateCompensation, resolveCompensationDates } from "@/lib/compensation";
 
@@ -27,7 +28,7 @@ export async function POST(
     return NextResponse.json({ error: "Parcel not found for this project" }, { status: 404 });
   }
   const project = await getProject(body.projectId);
-  if (!project) {
+  if (!project || !canViewProject(session, project)) {
     return NextResponse.json({ error: "Project not found" }, { status: 404 });
   }
 

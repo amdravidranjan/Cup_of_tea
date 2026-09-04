@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
 import { can } from "@/lib/rbac";
 import { getRRStage, getRRHistory, applyRRTransition } from "@/db/rr";
+import { getProject } from "@/db/projects";
+import { canViewProject } from "@/lib/project-scope";
 import type { RRAction } from "@/lib/rr-workflow";
 
 export async function GET(
@@ -13,6 +15,10 @@ export async function GET(
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   const { id } = await params;
+  const project = await getProject(id);
+  if (!project || !canViewProject(session, project)) {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
   const [stage, history] = await Promise.all([getRRStage(id), getRRHistory(id)]);
   return NextResponse.json({ stage, history });
 }
@@ -29,6 +35,10 @@ export async function POST(
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
   const { id } = await params;
+  const project = await getProject(id);
+  if (!project || !canViewProject(session, project)) {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
   const body = (await request.json()) as { action?: RRAction; note?: string };
   if (!body.action) {
     return NextResponse.json({ error: "Missing action" }, { status: 400 });

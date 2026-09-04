@@ -8,25 +8,23 @@ import {
 import { PublicProjectSearch } from "@/components/public-project-search";
 import { formatDate } from "@/lib/format";
 import { HeroCarousel } from "@/components/public/HeroCarousel";
-import { Chatbot } from "@/components/public/Chatbot";
 import { Gallery } from "@/components/public/Gallery";
 
-// Data from the reference app for dummy sections
 const tickers = [
-  { text: 'Section 11 Preliminary Notification for Project #TN-2026-089 published — Objection window open until 20 Oct 2026', href: '#' },
-  { text: 'Compensation disbursement deadline alert: Project #TN-2026-042 award passed — 3-month payment window in effect', href: '#' },
-  { text: 'RFCTLARR Act 2013 — Section 19 Final Declaration must follow Section 11 within 12 months or the notification lapses', href: '#' },
+  { text: 'Section 11 Preliminary Notification for Chennai Metro Phase 2 published — Objection window open until 20 Oct 2026', href: '/documents' },
+  { text: 'Compensation disbursement deadline alert: Krishnagiri Expressway award passed — 3-month payment window in effect', href: '/compensation' },
+  { text: 'RFCTLARR Act 2013 — Section 19 Final Declaration must follow Section 11 within 12 months or the notification lapses', href: '/about#act' },
 ];
 
 const services = [
-  { icon: 'mdi:map-marker-radius-outline',  label: 'Project\nDiscovery',         bg: '#e8f0fa', ic: '#0b5394' },
-  { icon: 'mdi:currency-inr',               label: 'Compensation\nCalculator',    bg: '#e8f5ed', ic: '#1a7a3c' },
-  { icon: 'mdi:home-group',                 label: 'R&R\nEntitlement Status',    bg: '#fff3e8', ic: '#e56b00' },
-  { icon: 'mdi:account-voice',              label: 'Grievance\nSubmission',       bg: '#fdecea', ic: '#c0392b' },
-  { icon: 'mdi:file-document-multiple-outline', label: 'Document\nRepository',   bg: '#f3ebfa', ic: '#6f42c1' },
-  { icon: 'mdi:map-search-outline',         label: 'GIS Parcel\nMap',            bg: '#fff8e1', ic: '#c9860a' },
-  { icon: 'mdi:cellphone-check',            label: 'Field\nVerification',        bg: '#e0f5f1', ic: '#00796b' },
-  { icon: 'mdi:clipboard-list-outline',     label: 'SLA / Stage\nTracker',       bg: '#e3ecfa', ic: '#1565c0' },
+  { icon: 'mdi:map-marker-radius-outline',  label: 'Project\nDiscovery',         bg: '#e8f0fa', ic: '#0b5394', href: '/projects' },
+  { icon: 'mdi:currency-inr',               label: 'Compensation\nCalculator',    bg: '#e8f5ed', ic: '#1a7a3c', href: '/compensation' },
+  { icon: 'mdi:home-group',                 label: 'R&R\nEntitlement Status',    bg: '#fff3e8', ic: '#e56b00', href: '/rr' },
+  { icon: 'mdi:account-voice',              label: 'Grievance\nSubmission',       bg: '#fdecea', ic: '#c0392b', href: '/grievances' },
+  { icon: 'mdi:file-document-multiple-outline', label: 'Document\nRepository',   bg: '#f3ebfa', ic: '#6f42c1', href: '/documents' },
+  { icon: 'mdi:map-search-outline',         label: 'GIS Parcel\nMap',            bg: '#fff8e1', ic: '#c9860a', href: '/projects' },
+  { icon: 'mdi:cellphone-check',            label: 'Field\nVerification',        bg: '#e0f5f1', ic: '#00796b', href: '/track' },
+  { icon: 'mdi:clipboard-list-outline',     label: 'SLA / Stage\nTracker',       bg: '#e3ecfa', ic: '#1565c0', href: '/projects' },
 ];
 
 const schemes = [
@@ -34,16 +32,19 @@ const schemes = [
     img: 'https://images.unsplash.com/photo-1630672140970-290903ff233c?w=600&h=200&fit=crop&auto=format',
     title: 'Compensation Management',
     desc: 'Implements Sections 26–30 of RFCTLARR Act 2013: market value × rural multiplier (up to 4×) + 100% solatium + 12% p.a. interest, tracked against the 3-month disbursement deadline.',
+    href: '/compensation',
   },
   {
     img: 'https://images.unsplash.com/photo-1774695474756-d1eddcd90d6e?w=600&h=200&fit=crop&auto=format',
     title: 'R&R Scheme (6-Step Workflow)',
     desc: 'End-to-end Rehabilitation & Resettlement — from Sub-Collector survey to Commissioner approval. Second Schedule entitlements (housing, grants, employment) tracked per affected household.',
+    href: '/rr',
   },
   {
     img: 'https://images.unsplash.com/photo-1628178693557-0269334ffbe8?w=600&h=200&fit=crop&auto=format',
     title: 'Public Transparency Portal',
     desc: 'No-login access to project status, Section 11/19 notifications, compensation awards, R&R progress and grievance tracking. Designed for affected citizens and civil society.',
+    href: '/about',
   },
 ];
 
@@ -87,13 +88,13 @@ export default async function PublicLandingPage() {
               Citizen Services
               <span className="ta">நாகரிக சேவைகள்</span>
             </h2>
-            <a href="#" className="view-all-link">
+            <a href="/schemes" className="view-all-link">
               View All Services <Icon icon="mdi:arrow-right" width={14} />
             </a>
           </div>
           <div className="svc-grid">
             {services.map(s => (
-              <a key={s.label} href="#" className="svc-tile">
+              <a key={s.label} href={s.href} className="svc-tile">
                 <div className="svc-icon" style={{ background: s.bg }}>
                   <Icon icon={s.icon} width={28} color={s.ic} />
                 </div>
@@ -105,7 +106,6 @@ export default async function PublicLandingPage() {
       </div>
 
       {/* 7 ── STATS ─────────────────────────────────────── */}
-      {/* Replaces the generic DashboardStats with the reference styled Stats Band */}
       <div className="stats-band">
         <div className="stats-grid">
           {[
@@ -135,7 +135,7 @@ export default async function PublicLandingPage() {
                   Notified Projects
                   <span className="ta">திட்டங்கள்</span>
                 </h2>
-                <a href="#" className="view-all-link">View All <Icon icon="mdi:arrow-right" width={14} /></a>
+                <a href="/projects" className="view-all-link">View All <Icon icon="mdi:arrow-right" width={14} /></a>
               </div>
               <div style={{ marginTop: '1rem' }}>
                 {projects.length === 0 ? (
@@ -176,7 +176,7 @@ export default async function PublicLandingPage() {
                   )}
                 </div>
                 <div style={{ padding: '8px 14px', borderTop: '1px solid #dee2e6' }}>
-                  <a href="#" className="view-all-link">View All Notices <Icon icon="mdi:arrow-right" width={13} /></a>
+                  <a href="/documents" className="view-all-link">View All Notices <Icon icon="mdi:arrow-right" width={13} /></a>
                 </div>
               </div>
             </div>
@@ -193,7 +193,7 @@ export default async function PublicLandingPage() {
               Government Schemes & Initiatives
               <span className="ta">அரசு திட்டங்கள்</span>
             </h2>
-            <a href="#" className="view-all-link">View All <Icon icon="mdi:arrow-right" width={14} /></a>
+            <a href="/schemes" className="view-all-link">View All <Icon icon="mdi:arrow-right" width={14} /></a>
           </div>
           <div className="schemes-grid">
             {schemes.map(s => (
@@ -204,7 +204,7 @@ export default async function PublicLandingPage() {
                 </div>
                 <div className="scheme-body">
                   <p>{s.desc}</p>
-                  <a href="#" className="know-more">Know More <Icon icon="mdi:arrow-right" width={13} /></a>
+                  <a href={s.href} className="know-more">Know More <Icon icon="mdi:arrow-right" width={13} /></a>
                 </div>
               </div>
             ))}
@@ -221,35 +221,36 @@ export default async function PublicLandingPage() {
           <h2 className="sec-title" style={{ marginBottom: 20 }}>
             <Icon icon="mdi:link-variant" width={21} color="#e56b00" />
             Important Links & Downloads
+            <span className="ta">முக்கிய இணைப்புகள்</span>
           </h2>
           <div className="links-grid">
             <div className="link-box">
               <div className="link-box-head"><Icon icon="mdi:download-outline" width={16} />Downloads / Official Documents</div>
               <ul>
                 {[
-                  ['mdi:file-pdf-box', '#c0392b', 'RFCTLARR Act 2013 — Full Text (PDF)'],
-                  ['mdi:file-pdf-box', '#c0392b', 'Grievance Submission Form'],
-                  ['mdi:file-pdf-box', '#c0392b', 'R&R Entitlement Claim Form'],
-                  ['mdi:file-pdf-box', '#c0392b', 'Objection Form — Section 15/21'],
-                  ['mdi:file-pdf-box', '#c0392b', 'Landowner Portal User Manual'],
-                  ['mdi:file-pdf-box', '#c0392b', 'CLA Annual Report 2025-26'],
-                ].map(([icon, ic, label]) => (
-                  <li key={label}><a href="#"><Icon icon={icon} width={14} color={ic} />{label}</a></li>
+                  { label: 'RFCTLARR Act 2013 — Full Text (PDF)', href: '/documents' },
+                  { label: 'Grievance Submission Form', href: '/documents' },
+                  { label: 'R&R Entitlement Claim Form', href: '/documents' },
+                  { label: 'Objection Form — Section 15/21', href: '/documents' },
+                  { label: 'Landowner Portal User Manual', href: '/documents' },
+                  { label: 'CLA Annual Report 2025-26', href: '/documents' },
+                ].map(l => (
+                  <li key={l.label}><a href={l.href}><Icon icon="mdi:file-pdf-box" width={14} color="#c0392b" />{l.label}</a></li>
                 ))}
               </ul>
             </div>
             <div className="link-box">
-              <div className="link-box-head"><Icon icon="mdi:web" width={16} />Useful External Links</div>
+              <div className="link-box-head"><Icon icon="mdi:web" width={16} />Related Portals</div>
               <ul>
                 {[
-                  ['mdi:open-in-new', 'Bhoomi Rashi Portal — MoRTH'],
-                  ['mdi:open-in-new', 'Ministry of Rural Development (DoLR)'],
-                  ['mdi:open-in-new', 'Open Government Data (OGD)'],
-                  ['mdi:open-in-new', 'National Informatics Centre (NIC)'],
-                  ['mdi:open-in-new', 'Revenue Dept. — Govt. of Tamil Nadu'],
-                  ['mdi:open-in-new', 'india.gov.in — National Portal'],
-                ].map(([icon, label]) => (
-                  <li key={label}><a href="#"><Icon icon={icon} width={14} color="#0b5394" />{label}</a></li>
+                  { label: 'Bhoomi Rashi Portal — MoRTH', href: 'https://bhoomirashi.gov.in' },
+                  { label: 'Dept. of Land Resources (DoLR)', href: 'https://dolr.gov.in' },
+                  { label: 'TN Revenue Department', href: 'https://tnrd.gov.in' },
+                  { label: 'e-District Tamil Nadu', href: 'https://edistrict.tn.gov.in' },
+                  { label: 'Open Government Data (OGD)', href: 'https://data.gov.in' },
+                  { label: 'NIC Tamil Nadu', href: 'https://tn.nic.in' },
+                ].map(l => (
+                  <li key={l.label}><a href={l.href} target="_blank" rel="noreferrer"><Icon icon="mdi:open-in-new" width={14} color="#0b5394" />{l.label}</a></li>
                 ))}
               </ul>
             </div>
@@ -262,10 +263,10 @@ export default async function PublicLandingPage() {
                     <span style={{ fontSize: 12, color: '#6c757d' }}>Access land records, track applications and receive alerts on mobile.</span>
                   </div>
                   <div style={{ display: 'flex', gap: 9 }}>
-                    <a href="#" style={{ display: 'flex', alignItems: 'center', gap: 6, background: '#0b5394', color: '#fff', padding: '7px 12px', borderRadius: 3, fontSize: 12, fontWeight: 700, textDecoration: 'none' }}>
+                    <a href="/contact" style={{ display: 'flex', alignItems: 'center', gap: 6, background: '#0b5394', color: '#fff', padding: '7px 12px', borderRadius: 3, fontSize: 12, fontWeight: 700, textDecoration: 'none' }}>
                       <Icon icon="mdi:google-play" width={15} />Play Store
                     </a>
-                    <a href="#" style={{ display: 'flex', alignItems: 'center', gap: 6, background: '#1c2b3a', color: '#fff', padding: '7px 12px', borderRadius: 3, fontSize: 12, fontWeight: 700, textDecoration: 'none' }}>
+                    <a href="/contact" style={{ display: 'flex', alignItems: 'center', gap: 6, background: '#1c2b3a', color: '#fff', padding: '7px 12px', borderRadius: 3, fontSize: 12, fontWeight: 700, textDecoration: 'none' }}>
                       <Icon icon="mdi:apple" width={15} />App Store
                     </a>
                   </div>
@@ -284,7 +285,6 @@ export default async function PublicLandingPage() {
         </div>
       </div>
 
-      <Chatbot />
     </div>
   );
 }

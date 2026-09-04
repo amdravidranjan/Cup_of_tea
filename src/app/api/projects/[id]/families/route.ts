@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
 import { can } from "@/lib/rbac";
 import { createFamily, listFamiliesForProject } from "@/db/families";
+import { getProject } from "@/db/projects";
+import { canViewProject } from "@/lib/project-scope";
 import { FAMILY_CATEGORIES } from "@/lib/entitlements";
 
 export async function GET(
@@ -13,6 +15,10 @@ export async function GET(
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   const { id } = await params;
+  const project = await getProject(id);
+  if (!project || !canViewProject(session, project)) {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
   const families = await listFamiliesForProject(id);
   return NextResponse.json({ families });
 }
@@ -39,6 +45,10 @@ export async function POST(
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
   const { id } = await params;
+  const project = await getProject(id);
+  if (!project || !canViewProject(session, project)) {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
   const body = (await request.json()) as CreateFamilyBody;
 
   if (!body.headOfHouseholdName || !body.village || !body.category) {
