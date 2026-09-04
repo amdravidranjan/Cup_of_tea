@@ -15,6 +15,7 @@
     "postinstall": "node scripts/copy-maplibre-worker.mjs"
   },
   "dependencies": {
+    "@iconify/react": "^6.0.2",
     "@libsql/client": "^0.17.4",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",

@@ -1,0 +1,10 @@
+{
+  "description": "Streamlines tea brewing by providing users with customizable recipes and brewing tips to enhance their tea experience efficiently.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}
