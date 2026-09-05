@@ -253,6 +253,7 @@ function ParcelRow({
   parcel,
   canAssess,
   datesResolved,
+  hasActiveStay,
   pending,
   setPending,
   onDone,
@@ -262,6 +263,7 @@ function ParcelRow({
   parcel: ParcelWithCompensation;
   canAssess: boolean;
   datesResolved: boolean;
+  hasActiveStay?: boolean;
   pending: string | null;
   setPending: (v: string | null) => void;
   onDone: () => void;
@@ -306,36 +308,30 @@ function ParcelRow({
   }
 
   return (
-    <TableRow className="group cursor-pointer" onClick={onOpen}>
-      <TableCell className="font-mono font-medium">{parcel.surveyNumber ?? "—"}</TableCell>
-      <TableCell className="font-mono text-xs text-muted-foreground">
-        {parcel.pattaNumber ?? "—"}
+    <TableRow
+      className="cursor-pointer transition-colors hover:bg-muted/50"
+      onClick={onOpen}
+    >
+      <TableCell className="font-mono text-xs">
+        {parcel.surveyNumber ?? <span className="text-muted-foreground">—</span>}
+      </TableCell>
+      <TableCell className="font-mono text-xs">
+        {parcel.pattaNumber ?? <span className="text-muted-foreground">—</span>}
       </TableCell>
       <TableCell>{parcel.village}</TableCell>
-      <TableCell className="font-mono text-muted-foreground tabular-nums">
-        {parcel.areaHectares.toFixed(2)}
+      <TableCell className="tabular-nums">{formatArea(parcel.areaHectares)}</TableCell>
+      <TableCell>
+        <Badge variant="outline" className={toneBadgeClass(parcelStatusTone(parcel.status))}>
+          {parcel.status}
+        </Badge>
       </TableCell>
-      <TableCell className="font-mono tabular-nums">
+      <TableCell className="font-mono text-xs tabular-nums">
         {parcel.compensation ? (
           formatCurrency(parcel.compensation.total)
         ) : (
           <span className="text-muted-foreground">—</span>
         )}
       </TableCell>
-      <TableCell>
-        {parcel.compensation ? (
-          <Badge
-            variant="outline"
-            className={toneBadgeClass(compensationTone(parcel.compensation.status))}
-          >
-            {parcel.compensation.status}
-          </Badge>
-        ) : (
-          <span className="text-muted-foreground">Unassessed</span>
-        )}
-      </TableCell>
-      {/* Actions live inside the row but must not trigger the row's own
-          open-details click, hence the stopPropagation wrapper. */}
       <TableCell onClick={(e) => e.stopPropagation()}>
         {parcel.compensation ? (
           canAssess &&
@@ -345,9 +341,10 @@ function ParcelRow({
               size="sm"
               variant="outline"
               onClick={handlePay}
-              disabled={pending !== null}
+              disabled={pending !== null || hasActiveStay}
+              title={hasActiveStay ? "Payment blocked: court stay order active" : undefined}
             >
-              {pending === parcel.compensation.id ? "Working…" : "Mark paid"}
+              {pending === parcel.compensation.id ? "Working…" : hasActiveStay ? "Stayed" : "Mark paid"}
             </Button>
           )
         ) : (
@@ -381,6 +378,7 @@ export function CompensationPanel({
   currentRate,
   parcels,
   rateHistory,
+  hasActiveStay,
 }: {
   projectId: string;
   canManageRate: boolean;
@@ -389,6 +387,7 @@ export function CompensationPanel({
   currentRate: { ratePerHectare: number; multiplier: number } | null;
   parcels: ParcelWithCompensation[];
   rateHistory: RateHistoryEntry[];
+  hasActiveStay?: boolean;
 }) {
   const router = useRouter();
   const [pending, setPending] = useState<string | null>(null);
@@ -470,6 +469,18 @@ export function CompensationPanel({
 
   return (
     <div className="space-y-4">
+      {hasActiveStay && (
+        <div className="flex items-start gap-3 rounded-lg border border-destructive/40 bg-destructive/10 p-3.5 text-sm text-destructive">
+          <span className="text-base" role="img" aria-label="warning">⚠️</span>
+          <div>
+            <p className="font-semibold">Court Stay Order Active</p>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Compensation payment is legally stayed under RFCTLARR Act Sec 64–65.
+              Disbursement is blocked until the stay order is vacated in the Legal tab.
+            </p>
+          </div>
+        </div>
+      )}
       {canManageRate && (
         <form onSubmit={handleSetRate} className="flex flex-wrap items-end gap-3 rounded-lg border p-3">
           <div className="space-y-1">
@@ -622,6 +633,7 @@ export function CompensationPanel({
                     parcel={p}
                     canAssess={canAssess}
                     datesResolved={datesResolved}
+                    hasActiveStay={hasActiveStay}
                     pending={pending}
                     setPending={setPending}
                     onDone={() => router.refresh()}
