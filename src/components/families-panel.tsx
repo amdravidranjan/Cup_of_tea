@@ -1,13 +1,20 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useState, useMemo, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { Search, X } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   Select,
   SelectContent,
@@ -15,6 +22,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import {
   ENTITLEMENT_LABELS,
   FAMILY_CATEGORIES,
@@ -29,6 +44,8 @@ interface Entitlement {
   type: EntitlementType;
   status: "PENDING" | "GRANTED";
   amount: number | null;
+  grantedBy?: string | null;
+  grantedAt?: Date | string | null;
   note: string | null;
 }
 
@@ -39,13 +56,133 @@ interface Family {
   category: string;
   memberCount: number;
   vulnerableGroup: boolean;
+  contactPhone?: string | null;
+  parcelId?: string | null;
+  surveyedBy?: string | null;
+  surveyedAt?: Date | string | null;
   deceasedAt?: Date | string | null;
+  successionNote?: string | null;
   entitlements: Entitlement[];
 }
 
 function entitlementTone(status: string): "pending" | "success" {
   return status === "GRANTED" ? "success" : "pending";
 }
+
+/* ── Family Detail Dialog ─────────────────────────────────────────── */
+
+function FamilyDetailDialog({
+  family,
+  open,
+  onClose,
+}: {
+  family: Family | null;
+  open: boolean;
+  onClose: () => void;
+}) {
+  if (!family) return null;
+  const granted = family.entitlements.filter((e) => e.status === "GRANTED");
+  const pending = family.entitlements.filter((e) => e.status === "PENDING");
+
+  return (
+    <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>{family.headOfHouseholdName}</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4 text-sm">
+          {/* Identity */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <span className="text-muted-foreground">Village</span>
+              <p className="font-medium">{family.village}</p>
+            </div>
+            <div>
+              <span className="text-muted-foreground">Category</span>
+              <p className="font-medium">
+                {(FAMILY_CATEGORY_LABELS as Record<string, string>)[family.category] ?? family.category}
+              </p>
+            </div>
+            <div>
+              <span className="text-muted-foreground">Household size</span>
+              <p className="font-medium">{family.memberCount} members</p>
+            </div>
+            <div>
+              <span className="text-muted-foreground">Vulnerable group</span>
+              <p className="font-medium">{family.vulnerableGroup ? "Yes (SC/ST/BPL)" : "No"}</p>
+            </div>
+            {family.contactPhone && (
+              <div>
+                <span className="text-muted-foreground">Contact</span>
+                <p className="font-medium">{family.contactPhone}</p>
+              </div>
+            )}
+            {family.parcelId && (
+              <div>
+                <span className="text-muted-foreground">Linked parcel</span>
+                <p className="font-mono text-xs">{family.parcelId}</p>
+              </div>
+            )}
+          </div>
+
+          {/* Succession */}
+          {family.deceasedAt && (
+            <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-amber-900">
+              <p className="font-semibold text-xs uppercase tracking-wide">Succession recorded</p>
+              {family.successionNote && <p className="mt-1">{family.successionNote}</p>}
+            </div>
+          )}
+
+          {/* Entitlements table */}
+          <div>
+            <p className="font-semibold text-xs uppercase tracking-wide text-muted-foreground mb-2">
+              Entitlements ({granted.length} granted, {pending.length} pending)
+            </p>
+            {family.entitlements.length === 0 ? (
+              <p className="text-muted-foreground">No entitlements registered.</p>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Type</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Amount</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {family.entitlements.map((e) => (
+                    <TableRow key={e.id}>
+                      <TableCell>{ENTITLEMENT_LABELS[e.type]}</TableCell>
+                      <TableCell>
+                        <Badge variant="outline" className={toneBadgeClass(entitlementTone(e.status))}>
+                          {e.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="font-mono">
+                        {e.amount != null ? `₹${e.amount.toLocaleString("en-IN")}` : "—"}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
+          </div>
+
+          {/* Legal basis */}
+          <div className="rounded-lg border border-blue-200 bg-blue-50 p-3 text-xs text-blue-900">
+            <p className="font-semibold">Legal basis</p>
+            <p>
+              RFCTLARR Act 2013, Second Schedule — entitlements for affected families
+              including housing, employment, subsistence, and transportation.
+            </p>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+/* ── Grant Form ───────────────────────────────────────────────────── */
 
 function GrantForm({ familyId, entitlementId }: { familyId: string; entitlementId: string }) {
   const router = useRouter();
@@ -103,6 +240,8 @@ function GrantForm({ familyId, entitlementId }: { familyId: string; entitlementI
     </form>
   );
 }
+
+/* ── New Family Form ──────────────────────────────────────────────── */
 
 function NewFamilyForm({ projectId }: { projectId: string }) {
   const router = useRouter();
@@ -186,6 +325,8 @@ function NewFamilyForm({ projectId }: { projectId: string }) {
   );
 }
 
+/* ── Succession Form ──────────────────────────────────────────────── */
+
 function SuccessionForm({ familyId, onDone }: { familyId: string; onDone: () => void }) {
   const [pending, setPending] = useState(false);
   const [heirCount, setHeirCount] = useState(2);
@@ -250,6 +391,8 @@ function SuccessionForm({ familyId, onDone }: { familyId: string; onDone: () => 
   );
 }
 
+/* ── Main Panel ───────────────────────────────────────────────────── */
+
 export function FamiliesPanel({
   projectId,
   families,
@@ -263,22 +406,95 @@ export function FamiliesPanel({
 }) {
   const router = useRouter();
   const [successionOpenFor, setSuccessionOpenFor] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("all");
+  const [selectedFamily, setSelectedFamily] = useState<Family | null>(null);
+
+  const filtered = useMemo(() => {
+    return families.filter((f) => {
+      const q = search.toLowerCase();
+      if (
+        q &&
+        !f.headOfHouseholdName.toLowerCase().includes(q) &&
+        !f.village.toLowerCase().includes(q)
+      ) {
+        return false;
+      }
+      if (categoryFilter !== "all" && f.category !== categoryFilter) return false;
+      return true;
+    });
+  }, [families, search, categoryFilter]);
+
+  const uniqueCategories = useMemo(
+    () => [...new Set(families.map((f) => f.category))],
+    [families]
+  );
 
   return (
     <div className="space-y-4">
       {canManage && <NewFamilyForm projectId={projectId} />}
 
-      {families.length === 0 ? (
-        <p className="text-sm text-muted-foreground">No affected families registered yet.</p>
+      {/* Search & Filter Bar */}
+      <div className="flex flex-wrap items-center gap-2">
+        <div className="relative flex-1 min-w-[200px]">
+          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search by name or village…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="h-9 pl-9"
+          />
+          {search && (
+            <button
+              type="button"
+              onClick={() => setSearch("")}
+              className="absolute right-2 top-2.5 text-muted-foreground hover:text-foreground"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
+        </div>
+        <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+          <SelectTrigger className="h-9 w-[180px]">
+            <SelectValue placeholder="Category" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All categories</SelectItem>
+            {uniqueCategories.map((c) => (
+              <SelectItem key={c} value={c}>
+                {(FAMILY_CATEGORY_LABELS as Record<string, string>)[c] ?? c}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Results count */}
+      <p className="text-xs text-muted-foreground">
+        {filtered.length} of {families.length} families
+      </p>
+
+      {filtered.length === 0 ? (
+        <p className="text-sm text-muted-foreground py-4 text-center">
+          {families.length === 0
+            ? "No affected families registered yet."
+            : "No families match your search."}
+        </p>
       ) : (
         <div className="space-y-3">
-          {families.map((family) => (
-            <Card key={family.id}>
+          {filtered.map((family) => (
+            <Card
+              key={family.id}
+              className="cursor-pointer hover:bg-muted/30 transition-colors"
+              onClick={() => setSelectedFamily(family)}
+            >
               <CardHeader className="pb-2">
                 <CardTitle className="flex flex-wrap items-center gap-2 text-sm font-medium">
                   {family.headOfHouseholdName}
                   <Badge variant="outline">{family.village}</Badge>
-                  <Badge variant="outline">{family.category}</Badge>
+                  <Badge variant="outline">
+                    {(FAMILY_CATEGORY_LABELS as Record<string, string>)[family.category] ?? family.category}
+                  </Badge>
                   <Badge variant="outline">{family.memberCount} members</Badge>
                   {family.vulnerableGroup && (
                     <Badge variant="outline" className={toneBadgeClass("pending")}>
@@ -292,7 +508,7 @@ export function FamiliesPanel({
                   )}
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-3">
+              <CardContent className="space-y-3" onClick={(e) => e.stopPropagation()}>
                 <ul className="space-y-2">
                   {family.entitlements.map((e) => (
                     <li key={e.id} className="flex flex-col gap-2 border-t pt-2 first:border-t-0 first:pt-0">
@@ -336,6 +552,12 @@ export function FamiliesPanel({
           ))}
         </div>
       )}
+
+      <FamilyDetailDialog
+        family={selectedFamily}
+        open={selectedFamily !== null}
+        onClose={() => setSelectedFamily(null)}
+      />
     </div>
   );
 }

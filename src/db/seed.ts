@@ -26,6 +26,7 @@ import { saveElevationProfile } from "./elevation";
 import { surveyNumberFor, pattaNumberFor } from "@/lib/land-records";
 import { ENTITLEMENT_TYPES } from "@/lib/entitlements";
 import type { DocumentCategory } from "@/lib/document-categories";
+import { INFRASTRUCTURE_ITEMS } from "@/lib/infrastructure";
 
 /**
  * Fetches real elevation data for a linear alignment from Open-Elevation
@@ -346,12 +347,7 @@ function docContent(category: string, projectName: string): string {
 }
 
 // ── Infrastructure items ──
-const INFRA_ITEMS = [
-  "Access road construction", "Water supply pipeline", "Power line relocation",
-  "Community center", "Primary school", "Health sub-center",
-  "Drainage system", "Street lighting", "Bus stop shelter",
-  "Common grazing ground fencing",
-];
+const INFRA_ITEMS = INFRASTRUCTURE_ITEMS;
 
 // ── Gram Sabha resolution templates ──
 const GS_RESOLUTIONS = [

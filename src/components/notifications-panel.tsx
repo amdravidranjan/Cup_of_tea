@@ -1,11 +1,19 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useState, useMemo, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { Search, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { toneBadgeClass, type StatusTone } from "@/lib/status-colors";
 import { formatDateTime } from "@/lib/format";
 import type { NotificationChannel, NotificationEntry, NotificationStatus } from "@/db/notifications-log";
@@ -24,6 +32,9 @@ const STATUS_TONE: Record<NotificationStatus, StatusTone> = {
   FAILED: "danger",
 };
 
+const CHANNELS: NotificationChannel[] = ["VOICE", "EMAIL", "SMS", "POST"];
+const STATUSES: NotificationStatus[] = ["QUEUED", "SENT", "DELIVERED", "FAILED"];
+
 export function NotificationsPanel({
   projectId,
   notifications,
@@ -39,6 +50,18 @@ export function NotificationsPanel({
   const [showForm, setShowForm] = useState(false);
   const [pending, setPending] = useState(false);
   const [updatingPostal, setUpdatingPostal] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
+  const [channelFilter, setChannelFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("all");
+
+  const filtered = useMemo(() => {
+    return notifications.filter((n) => {
+      if (search && !n.familyName.toLowerCase().includes(search.toLowerCase())) return false;
+      if (channelFilter !== "all" && n.channel !== channelFilter) return false;
+      if (statusFilter !== "all" && n.status !== statusFilter) return false;
+      return true;
+    });
+  }, [notifications, search, channelFilter, statusFilter]);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -82,11 +105,67 @@ export function NotificationsPanel({
 
   return (
     <div className="space-y-4">
-      {notifications.length === 0 ? (
-        <p className="text-sm text-muted-foreground">No notifications sent yet.</p>
+      {/* Search & Filter Bar */}
+      {notifications.length > 0 && (
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="relative flex-1 min-w-[180px]">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search by family name…"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="h-9 pl-9"
+            />
+            {search && (
+              <button
+                type="button"
+                onClick={() => setSearch("")}
+                className="absolute right-2 top-2.5 text-muted-foreground hover:text-foreground"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            )}
+          </div>
+          <Select value={channelFilter} onValueChange={setChannelFilter}>
+            <SelectTrigger className="h-9 w-[140px]">
+              <SelectValue placeholder="Channel" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All channels</SelectItem>
+              {CHANNELS.map((c) => (
+                <SelectItem key={c} value={c}>{CHANNEL_LABELS[c]}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="h-9 w-[130px]">
+              <SelectValue placeholder="Status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All statuses</SelectItem>
+              {STATUSES.map((s) => (
+                <SelectItem key={s} value={s}>{s}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
+
+      {notifications.length > 0 && (
+        <p className="text-xs text-muted-foreground">
+          {filtered.length} of {notifications.length} notifications
+        </p>
+      )}
+
+      {filtered.length === 0 ? (
+        <p className="text-sm text-muted-foreground py-4 text-center">
+          {notifications.length === 0
+            ? "No notifications sent yet."
+            : "No notifications match your filters."}
+        </p>
       ) : (
         <ul className="space-y-2">
-          {notifications.map((n) => (
+          {filtered.map((n) => (
             <li key={n.id} className="flex flex-wrap items-center justify-between gap-2 rounded border px-3 py-2 text-sm">
               <div>
                 <span className="font-medium">{n.familyName}</span>
