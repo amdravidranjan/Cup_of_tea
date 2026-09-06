@@ -1,14 +1,28 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useState, useMemo, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { toast } from "sonner";
+import { Search, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -18,6 +32,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { toneBadgeClass, type StatusTone } from "@/lib/status-colors";
+import { formatDate } from "@/lib/format";
 import type { Contractor, Tender, TenderStatus } from "@/db/tenders";
 
 const STATUS_TONE: Record<TenderStatus, StatusTone> = {
@@ -27,9 +42,99 @@ const STATUS_TONE: Record<TenderStatus, StatusTone> = {
   COMPLETED: "success",
 };
 
+const TENDER_STATUSES: TenderStatus[] = ["PUBLISHED", "AWARDED", "IN_PROGRESS", "COMPLETED"];
+
 function formatINR(n: number): string {
   return `₹${n.toLocaleString("en-IN")}`;
 }
+
+/* ── Tender Detail Dialog ─────────────────────────────────────────── */
+
+function TenderDetailDialog({
+  tender,
+  open,
+  onClose,
+}: {
+  tender: (Tender & { contractorName?: string }) | null;
+  open: boolean;
+  onClose: () => void;
+}) {
+  if (!tender) return null;
+  return (
+    <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <span className="font-mono">{tender.tenderNumber}</span>
+            <Badge variant="outline" className={toneBadgeClass(STATUS_TONE[tender.status])}>
+              {tender.status.replace("_", " ")}
+            </Badge>
+          </DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4 text-sm">
+          <div>
+            <span className="text-muted-foreground">Title</span>
+            <p className="font-medium">{tender.title}</p>
+          </div>
+
+          <div>
+            <span className="text-muted-foreground">Scope of work</span>
+            <p className="mt-1 whitespace-pre-wrap">{tender.scope}</p>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <span className="text-muted-foreground">Estimated value</span>
+              <p className="font-mono font-medium">{formatINR(tender.estimatedValue)}</p>
+            </div>
+            {tender.awardedValue && (
+              <div>
+                <span className="text-muted-foreground">Awarded value</span>
+                <p className="font-mono font-medium">{formatINR(tender.awardedValue)}</p>
+              </div>
+            )}
+            <div>
+              <span className="text-muted-foreground">Published</span>
+              <p className="font-medium">{formatDate(tender.publishedDate)}</p>
+            </div>
+            {tender.submissionDeadline && (
+              <div>
+                <span className="text-muted-foreground">Submission deadline</span>
+                <p className="font-medium">{formatDate(tender.submissionDeadline)}</p>
+              </div>
+            )}
+            {tender.awardedDate && (
+              <div>
+                <span className="text-muted-foreground">Awarded on</span>
+                <p className="font-medium">{formatDate(tender.awardedDate)}</p>
+              </div>
+            )}
+          </div>
+
+          {tender.contractorId && (
+            <div>
+              <span className="text-muted-foreground">Contractor</span>
+              <p className="mt-1">
+                <Link
+                  href={`/app/contractors/${tender.contractorId}`}
+                  className="font-medium text-blue-600 hover:underline"
+                >
+                  {tender.contractorName ?? "View contractor"}
+                </Link>
+              </p>
+            </div>
+          )}
+
+          <div className="text-xs text-muted-foreground">
+            Created by: {tender.createdBy} · {formatDate(tender.createdAt)}
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+/* ── Main Panel ───────────────────────────────────────────────────── */
 
 export function TendersPanel({
   projectId,
@@ -47,6 +152,24 @@ export function TendersPanel({
   const [pending, setPending] = useState(false);
   const [awarding, setAwarding] = useState<string | null>(null);
   const [advancing, setAdvancing] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [selectedTender, setSelectedTender] = useState<(Tender & { contractorName?: string }) | null>(null);
+
+  const filtered = useMemo(() => {
+    return tenders.filter((t) => {
+      const q = search.toLowerCase();
+      if (
+        q &&
+        !t.tenderNumber.toLowerCase().includes(q) &&
+        !t.title.toLowerCase().includes(q)
+      ) {
+        return false;
+      }
+      if (statusFilter !== "all" && t.status !== statusFilter) return false;
+      return true;
+    });
+  }, [tenders, search, statusFilter]);
 
   async function submitTender(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -111,8 +234,49 @@ export function TendersPanel({
 
   return (
     <div className="space-y-4">
-      {tenders.length === 0 ? (
-        <p className="text-sm text-muted-foreground">No tenders published for this project yet.</p>
+      {/* Search & Filter Bar */}
+      <div className="flex flex-wrap items-center gap-2">
+        <div className="relative flex-1 min-w-[200px]">
+          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search by tender number or title…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="h-9 pl-9"
+          />
+          {search && (
+            <button
+              type="button"
+              onClick={() => setSearch("")}
+              className="absolute right-2 top-2.5 text-muted-foreground hover:text-foreground"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
+        </div>
+        <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <SelectTrigger className="h-9 w-[150px]">
+            <SelectValue placeholder="Status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All statuses</SelectItem>
+            {TENDER_STATUSES.map((s) => (
+              <SelectItem key={s} value={s}>{s.replace("_", " ")}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      <p className="text-xs text-muted-foreground">
+        {filtered.length} of {tenders.length} tenders
+      </p>
+
+      {filtered.length === 0 ? (
+        <p className="text-sm text-muted-foreground py-4 text-center">
+          {tenders.length === 0
+            ? "No tenders published for this project yet."
+            : "No tenders match your search."}
+        </p>
       ) : (
         <Table>
           <TableHeader>
@@ -125,8 +289,12 @@ export function TendersPanel({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {tenders.map((t) => (
-              <TableRow key={t.id}>
+            {filtered.map((t) => (
+              <TableRow
+                key={t.id}
+                className="cursor-pointer hover:bg-muted/50"
+                onClick={() => setSelectedTender(t)}
+              >
                 <TableCell>
                   <div className="font-mono font-medium">{t.tenderNumber}</div>
                   <div className="text-xs text-muted-foreground">{t.title}</div>
@@ -142,7 +310,7 @@ export function TendersPanel({
                     {t.status.replace("_", " ")}
                   </Badge>
                 </TableCell>
-                <TableCell>
+                <TableCell onClick={(e) => e.stopPropagation()}>
                   {t.contractorId ? (
                     <Link href={`/app/contractors/${t.contractorId}`} className="hover:underline">
                       {t.contractorName ?? "View contractor"}
@@ -152,7 +320,7 @@ export function TendersPanel({
                   )}
                 </TableCell>
                 {canManage && (
-                  <TableCell className="space-y-2">
+                  <TableCell className="space-y-2" onClick={(e) => e.stopPropagation()}>
                     {t.status === "PUBLISHED" && awarding !== t.id && (
                       <Button type="button" size="sm" variant="outline" onClick={() => setAwarding(t.id)}>
                         Award
@@ -262,6 +430,12 @@ export function TendersPanel({
           )}
         </div>
       )}
+
+      <TenderDetailDialog
+        tender={selectedTender}
+        open={selectedTender !== null}
+        onClose={() => setSelectedTender(null)}
+      />
     </div>
   );
 }
