@@ -54,3 +54,9 @@ local.db-*
 
 # copied from node_modules by scripts/copy-maplibre-worker.mjs (postinstall)
 /public/maplibre-gl
+
+# pre-cached satellite tiles (downloaded by scripts/precache-tiles.mjs)
+/public/tiles
+
+# OSM overpass cache (seed-time only)
+/scripts/.osm-cache

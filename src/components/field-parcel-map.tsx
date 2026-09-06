@@ -1,20 +1,23 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import {
   MapLibreMap,
   NavigationControl,
+  FullscreenControl,
   GeolocateControl,
   GeoJSONSource,
   setWorkerUrl,
 } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
-import type { PolygonGeometry } from "@/lib/geo";
+import type { Geometry, PolygonGeometry } from "@/lib/geo";
+import { computeBbox } from "@/lib/geo";
 import type { ParcelStatus } from "@/lib/parcel-status";
 import { parcelStatusTone, toneHex } from "@/lib/status-colors";
 import { PARCEL_STATUSES } from "@/lib/parcel-status";
 import { Input } from "@/components/ui/input";
 import { FieldParcelCard } from "@/components/field-parcel-card";
+import { VECTOR_STYLE_URL } from "@/lib/tile-cache";
 
 let workerUrlConfigured = false;
 function ensureWorkerUrlConfigured() {
@@ -84,12 +87,13 @@ export function FieldParcelMap({
     const center = polygonCenter(parcels[0].geometry);
     const map = new MapLibreMap({
       container: containerRef.current,
-      style: "https://tiles.openfreemap.org/styles/liberty",
+      style: VECTOR_STYLE_URL,
       center,
       zoom: 15,
     });
     mapRef.current = map;
     map.addControl(new NavigationControl(), "top-right");
+    map.addControl(new FullscreenControl(), "top-right");
     map.addControl(
       new GeolocateControl({ positionOptions: { enableHighAccuracy: true }, trackUserLocation: true }),
       "top-right"
@@ -210,11 +214,29 @@ export function FieldParcelMap({
       )}
 
       <div className="relative h-[24rem] w-full overflow-hidden rounded-lg border">
-        {/* Inline positioning, not `absolute inset-0` — MapLibre's own
-            `.maplibregl-map { position: relative }` rule ties with Tailwind's
-            `.absolute` on specificity and is injected later, so it wins and
-            the container collapses to height 0. See before-after-slider. */}
         <div ref={containerRef} style={{ position: "absolute", inset: 0 }} />
+
+        {/* Recenter button */}
+        <button
+          type="button"
+          onClick={() => {
+            const map = mapRef.current;
+            if (!map || parcels.length === 0) return;
+            const geoms: Geometry[] = parcels.map((p) => p.geometry);
+            const bounds = computeBbox(geoms);
+            map.fitBounds(bounds, { padding: 50, duration: 800 });
+          }}
+          title="Recenter map"
+          className="absolute right-3 top-[7.5rem] z-10 flex h-[29px] w-[29px] items-center justify-center rounded border bg-background shadow-sm hover:bg-accent"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="3" />
+            <line x1="12" y1="2" x2="12" y2="6" />
+            <line x1="12" y1="18" x2="12" y2="22" />
+            <line x1="2" y1="12" x2="6" y2="12" />
+            <line x1="18" y1="12" x2="22" y2="12" />
+          </svg>
+        </button>
         {status === "loading" && (
           <div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center bg-background/60">
             <p className="text-sm text-muted-foreground">Loading map…</p>

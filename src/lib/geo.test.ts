@@ -6,6 +6,8 @@ import {
   isParcelWithinBuffer,
   parseStoredGeometry,
   computeParcelsWithImpact,
+  computeBbox,
+  type Geometry,
   type LineGeometry,
   type PolygonGeometry,
 } from "./geo";
@@ -161,5 +163,81 @@ describe("computeParcelsWithImpact", () => {
   it("marks every parcel as not-within-impact when there is no alignment", () => {
     const result = computeParcelsWithImpact(null, [{ id: "p1", geometry: near }]);
     expect(result[0].withinImpact).toBe(false);
+  });
+});
+
+describe("computeBbox", () => {
+  it("returns a tight bbox around a LineString", () => {
+    const line: Geometry = {
+      type: "LineString",
+      coordinates: [
+        [82.61, 18.72],
+        [82.62, 18.73],
+      ],
+    };
+    const [[minLng, minLat], [maxLng, maxLat]] = computeBbox([line]);
+    expect(minLng).toBeCloseTo(82.61, 5);
+    expect(minLat).toBeCloseTo(18.72, 5);
+    expect(maxLng).toBeCloseTo(82.62, 5);
+    expect(maxLat).toBeCloseTo(18.73, 5);
+  });
+
+  it("returns a tight bbox around a Polygon", () => {
+    const poly: Geometry = {
+      type: "Polygon",
+      coordinates: [
+        [
+          [78.49, 9.82],
+          [78.50, 9.82],
+          [78.50, 9.89],
+          [78.49, 9.89],
+          [78.49, 9.82],
+        ],
+      ],
+    };
+    const [[minLng, minLat], [maxLng, maxLat]] = computeBbox([poly]);
+    expect(minLng).toBeCloseTo(78.49, 5);
+    expect(minLat).toBeCloseTo(9.82, 5);
+    expect(maxLng).toBeCloseTo(78.50, 5);
+    expect(maxLat).toBeCloseTo(9.89, 5);
+  });
+
+  it("unions multiple geometries", () => {
+    const line: Geometry = {
+      type: "LineString",
+      coordinates: [
+        [80.0, 13.0],
+        [80.1, 13.05],
+      ],
+    };
+    const poly: Geometry = {
+      type: "Polygon",
+      coordinates: [
+        [
+          [79.9, 12.9],
+          [80.2, 12.9],
+          [80.2, 13.1],
+          [79.9, 13.1],
+          [79.9, 12.9],
+        ],
+      ],
+    };
+    const [[minLng, minLat], [maxLng, maxLat]] = computeBbox([line, poly]);
+    expect(minLng).toBeCloseTo(79.9, 5);
+    expect(minLat).toBeCloseTo(12.9, 5);
+    expect(maxLng).toBeCloseTo(80.2, 5);
+    expect(maxLat).toBeCloseTo(13.1, 5);
+  });
+
+  it("handles a single point LineString", () => {
+    const point: Geometry = {
+      type: "LineString",
+      coordinates: [[77.5, 12.97]],
+    };
+    const [[minLng, minLat], [maxLng, maxLat]] = computeBbox([point]);
+    expect(minLng).toBeCloseTo(77.5, 5);
+    expect(maxLng).toBeCloseTo(77.5, 5);
+    expect(minLat).toBeCloseTo(12.97, 5);
+    expect(maxLat).toBeCloseTo(12.97, 5);
   });
 });
