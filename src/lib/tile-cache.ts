@@ -17,8 +17,8 @@ export const OFFLINE_TILE_URL = "/tiles/{z}/{x}/{y}.jpg";
 export const ONLINE_TILE_URL =
   "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}";
 
-// Use offline tiles when available, falling back to online
-export const SATELLITE_TILE_URL = OFFLINE_TILE_URL;
+// Live-first tile URL: fetches live Esri imagery when connected, falls back to local cached tiles when offline
+export const SATELLITE_TILE_URL = "/api/tiles/satellite/{z}/{x}/{y}";
 
 // ── Terrain DEM ─────────────────────────────────────────────────────
 // AWS Open Data Terrain Tiles: free, keyless, Terrarium-encoded raster-DEM
@@ -35,7 +35,7 @@ export const SATELLITE_SOURCE_CONFIG = {
   tiles: [SATELLITE_TILE_URL],
   tileSize: 256,
   minzoom: 0,
-  maxzoom: 19,
+  maxzoom: 16,
   attribution: "Esri, Maxar, Earthstar Geographics",
 };
 
@@ -55,8 +55,8 @@ export const TERRAIN_SOURCE_CONFIG = {
  * maxLng, maxLat] with a small buffer.
  */
 export const PROJECT_BBOXES: [string, [number, number, number, number]][] = [
-  // 1. Koraput Bridge
-  ["koraput-bridge", [82.60, 18.71, 82.63, 18.73]],
+  // 1. Koraput Bridge (Kolab river crossing)
+  ["koraput-bridge", [82.75, 18.72, 82.78, 18.75]],
   // 2. Chennai-Salem Expressway (Krishnagiri stretch)
   ["chennai-salem", [78.34, 12.26, 78.50, 12.55]],
   // 3. Chennai Metro Phase 2 (Poonamallee)

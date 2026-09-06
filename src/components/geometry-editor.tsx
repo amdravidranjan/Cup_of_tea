@@ -26,6 +26,7 @@ import type { Geometry, PolygonGeometry, Position } from "@/lib/geo";
 import { polygonAreaHectares, computeBbox } from "@/lib/geo";
 import { PARCEL_STATUSES, type ParcelStatus } from "@/lib/parcel-status";
 import { SATELLITE_SOURCE_CONFIG, VECTOR_STYLE_URL } from "@/lib/tile-cache";
+import { RecenterControl } from "@/lib/map-controls";
 
 let workerUrlConfigured = false;
 function ensureWorkerUrlConfigured() {
@@ -75,6 +76,23 @@ export function GeometryEditor({
   const suggestedArea = mode === "parcel" && points.length >= 3 ? polygonAreaHectares(points) : 0;
   const area = areaOverride ?? suggestedArea;
 
+  const recenterFnRef = useRef<() => void>(() => {});
+
+  const handleRecenter = useCallback(() => {
+    const map = mapRef.current;
+    if (!map) return;
+    const geoms: Geometry[] = [];
+    if (alignment) geoms.push(alignment);
+    for (const p of parcels) geoms.push(p.geometry);
+    if (geoms.length === 0) return;
+    const bounds = computeBbox(geoms);
+    map.fitBounds(bounds, { padding: 50, duration: 800 });
+  }, [alignment, parcels]);
+
+  useEffect(() => {
+    recenterFnRef.current = handleRecenter;
+  }, [handleRecenter]);
+
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return;
     ensureWorkerUrlConfigured();
@@ -97,6 +115,7 @@ export function GeometryEditor({
     mapRef.current = map;
     map.addControl(new NavigationControl(), "top-right");
     map.addControl(new FullscreenControl(), "top-right");
+    map.addControl(new RecenterControl(() => recenterFnRef.current()), "top-right");
     map.addControl(new ScaleControl({ unit: "metric" }), "bottom-right");
 
     // Live coordinate readout. Drawing a boundary against a basemap is

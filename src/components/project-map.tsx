@@ -19,6 +19,7 @@ import {
   SATELLITE_SOURCE_CONFIG,
   VECTOR_STYLE_URL,
 } from "@/lib/tile-cache";
+import { RecenterControl } from "@/lib/map-controls";
 
 // v6 requires this one-time call for every bundler — import.meta.url
 // doesn't reliably resolve to the worker file inside a bundler's module
@@ -70,6 +71,22 @@ export function ProjectMap({
   const [showParcels, setShowParcels] = useState(true);
   const [showImpact, setShowImpact] = useState(true);
   const [showSatellite, setShowSatellite] = useState(false);
+  const recenterFnRef = useRef<() => void>(() => {});
+
+  const handleRecenter = useCallback(() => {
+    const map = mapRef.current;
+    if (!map) return;
+    const geoms: Geometry[] = [];
+    if (alignment) geoms.push(alignment);
+    for (const p of parcels) geoms.push(p.geometry);
+    if (geoms.length === 0) return;
+    const bounds = computeBbox(geoms);
+    map.fitBounds(bounds, { padding: 50, duration: 800 });
+  }, [alignment, parcels]);
+
+  useEffect(() => {
+    recenterFnRef.current = handleRecenter;
+  }, [handleRecenter]);
 
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return;
@@ -94,6 +111,7 @@ export function ProjectMap({
     mapRef.current = map;
     map.addControl(new NavigationControl(), "top-right");
     map.addControl(new FullscreenControl(), "top-right");
+    map.addControl(new RecenterControl(() => recenterFnRef.current()), "top-right");
     map.addControl(new ScaleControl({ unit: "metric" }), "bottom-right");
 
     map.on("load", () => {
@@ -235,36 +253,9 @@ export function ProjectMap({
     map.setLayoutProperty("satellite-raster", "visibility", showSatellite ? "visible" : "none");
   }, [showSatellite]);
 
-  const handleRecenter = useCallback(() => {
-    const map = mapRef.current;
-    if (!map) return;
-    const geoms: Geometry[] = [];
-    if (alignment) geoms.push(alignment);
-    for (const p of parcels) geoms.push(p.geometry);
-    if (geoms.length === 0) return;
-    const bounds = computeBbox(geoms);
-    map.fitBounds(bounds, { padding: 50, duration: 800 });
-  }, [alignment, parcels]);
-
   return (
     <div className="relative">
       <div ref={containerRef} className="h-[28rem] w-full overflow-hidden rounded-lg border" />
-
-      {/* Recenter button */}
-      <button
-        type="button"
-        onClick={handleRecenter}
-        title="Recenter map"
-        className="absolute right-3 top-[7.5rem] z-10 flex h-[29px] w-[29px] items-center justify-center rounded border bg-background shadow-sm hover:bg-accent"
-      >
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <circle cx="12" cy="12" r="3" />
-          <line x1="12" y1="2" x2="12" y2="6" />
-          <line x1="12" y1="18" x2="12" y2="22" />
-          <line x1="2" y1="12" x2="6" y2="12" />
-          <line x1="18" y1="12" x2="22" y2="12" />
-        </svg>
-      </button>
 
       <div className="absolute left-3 top-3 z-10 w-48 space-y-2 rounded-lg border bg-background/95 p-3 text-xs shadow-sm backdrop-blur">
         <p className="font-semibold text-foreground">Layers</p>
