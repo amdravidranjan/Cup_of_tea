@@ -1,0 +1,11 @@
+FIELD MEASUREMENT BOOK SKETCH — DEMONSTRATION COPY ONLY
+
+Project: Semiliguda All-Weather Bridge Project
+Village: Semiliguda
+Survey number: 118/2A
+Indicative extent: 0.42 hectares
+Boundary basis: Cadastral FMB sketch
+
+Use: Upload under the FMB sketch category, then open its extraction panel and confirm ingest to demonstrate document-to-parcel registration.
+
+This is a fictional record and not a cadastral document.

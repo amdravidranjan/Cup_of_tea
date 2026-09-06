@@ -4,6 +4,8 @@ import { can } from "@/lib/rbac";
 import { recordConsultation, listConsultationsForProject } from "@/db/gram-sabha";
 import { getProject } from "@/db/projects";
 import { canViewProject } from "@/lib/project-scope";
+import { recordAudit } from "@/db/audit";
+import { clientIp } from "@/lib/request-context";
 
 export async function GET(
   _request: NextRequest,
@@ -54,7 +56,7 @@ export async function POST(
   ) {
     return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
   }
-  const consultationId = await recordConsultation({
+  const consultationInput = {
     projectId: id,
     village: body.village,
     consultationDate: new Date(body.consultationDate),
@@ -62,6 +64,22 @@ export async function POST(
     minutes: body.minutes,
     resolution: body.resolution,
     recordedBy: session.userId,
+  };
+  const consultationId = await recordConsultation(consultationInput);
+  await recordAudit({
+    actor: { userId: session.userId, role: session.role },
+    action: "CREATE",
+    entityType: "GRAM_SABHA",
+    entityId: consultationId,
+    projectId: id,
+    summary: `Recorded the ${consultationInput.village} Gram Sabha consultation (${consultationInput.attendanceCount} attending)`,
+    ip: clientIp(request),
+    after: {
+      village: consultationInput.village,
+      consultationDate: consultationInput.consultationDate,
+      attendanceCount: consultationInput.attendanceCount,
+      resolution: consultationInput.resolution,
+    },
   });
   return NextResponse.json({ id: consultationId }, { status: 201 });
 }

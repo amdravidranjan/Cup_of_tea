@@ -6,10 +6,13 @@ import { getProject, getStageHistory } from "@/db/projects";
 import { getAvailableActions, STAGES, type Stage } from "@/lib/workflow";
 import { ProjectActions } from "@/components/project-actions";
 import { listDocuments, listIngestedDocumentIds } from "@/db/documents";
+import { listAuditEntries } from "@/db/audit";
 import { computeDocumentChecklist } from "@/lib/document-requirements";
 import { documentCategoryLabel, type DocumentCategory } from "@/lib/document-categories";
 import { can } from "@/lib/rbac";
 import { DocumentUpload } from "@/components/document-upload";
+import { BulkIntakePanel } from "@/components/bulk-intake-panel";
+import { READABLE_CATEGORIES } from "@/lib/extraction/schemas";
 import { GenerateDocument } from "@/components/generate-document";
 import { listParcels } from "@/db/parcels";
 import {
@@ -48,6 +51,9 @@ import { predictLandRate } from "@/lib/ai/land-rate";
 import { LandRatePredictionCard } from "@/components/land-rate-prediction-card";
 import { extractDocumentFields } from "@/lib/ai/document-intelligence";
 import { DocumentIngestPanel } from "@/components/document-ingest-panel";
+import { RecordHistory } from "@/components/record-history";
+import { RecordEditDialog } from "@/components/record-edit-dialog";
+import { DOCUMENT_CATEGORIES, DOCUMENT_CATEGORY_META } from "@/lib/document-categories";
 import { computeSLAMetrics } from "@/lib/sla";
 import { listGrievances } from "@/db/grievances";
 import { StageHeaderBar, type StageHeaderStep } from "@/components/stage-header-bar";
@@ -60,6 +66,7 @@ import { LandBankPanel } from "@/components/land-bank-panel";
 import { listNoticeDraftsForProject } from "@/db/notice-drafts";
 import { NoticeDraftsPanel } from "@/components/notice-drafts-panel";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Icon } from "@iconify/react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -105,6 +112,10 @@ export default async function ProjectDetailPage({
   const availableActions = getAvailableActions(currentStage, session.role);
   const docs = await listDocuments(id);
   const canUpload = can(session.role, "document:upload");
+  const canViewAudit = can(session.role, "audit:view");
+  // The project's own trail. Stage history alone answers "where is this
+  // project"; this answers "what has anyone actually done to it".
+  const auditEntries = canViewAudit ? await listAuditEntries({ projectId: id, limit: 25 }) : [];
   const uploadedCategories = new Set(docs.map((d) => d.category as DocumentCategory));
   const documentChecklist = computeDocumentChecklist(currentStage, uploadedCategories, STAGES);
   const alignment = parseStoredGeometry(project.geometryType, project.geometryGeoJson);
@@ -143,6 +154,7 @@ export default async function ProjectDetailPage({
       surveyNumber: p.surveyNumber,
       pattaNumber: p.pattaNumber,
       status: p.status,
+      landClassification: p.landClassification ?? null,
       withinImpact: p.withinImpact,
       compensation: comp
         ? {
@@ -222,6 +234,7 @@ export default async function ProjectDetailPage({
 
   const noticeDrafts = await listNoticeDraftsForProject(id);
   const canManageNoticeDrafts = can(session.role, "notice-draft:manage");
+  const canEditRecords = can(session.role, "record:edit");
 
   const projectGrievances = await listGrievances({ projectId: id });
   const slaMetrics = computeSLAMetrics({
@@ -410,6 +423,39 @@ export default async function ProjectDetailPage({
                   </li>
                 ))}
               </ul>
+
+              {canViewAudit && (
+                <div className="mt-5 border-t pt-4">
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+                      Recent activity on this project
+                    </p>
+                    <Link
+                      href={`/app/audit?project=${project.id}`}
+                      className="text-xs text-brand hover:underline"
+                    >
+                      Full audit trail →
+                    </Link>
+                  </div>
+                  {auditEntries.length === 0 ? (
+                    <p className="mt-2 text-sm text-muted-foreground/70">
+                      Nothing has been recorded against this project yet.
+                    </p>
+                  ) : (
+                    <ul className="mt-2 space-y-1.5 text-sm">
+                      {auditEntries.map((entry) => (
+                        <li key={entry.id} className="flex flex-wrap gap-x-2">
+                          <span>{entry.summary}</span>
+                          <span className="text-xs text-muted-foreground">
+                            — {entry.actorId} ({entry.actorRole}),{" "}
+                            {formatDateTime(entry.createdAt)}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -442,6 +488,7 @@ export default async function ProjectDetailPage({
                   setBy: displayName(userMap, r.setBy),
                   createdAt: r.createdAt,
                 }))}
+                canEdit={canEditRecords}
               />
             </CardContent>
           </Card>
@@ -482,8 +529,17 @@ export default async function ProjectDetailPage({
               <FamiliesPanel
                 projectId={project.id}
                 families={families}
+                parcels={parcelList.map((p) => ({
+                  id: p.id,
+                  surveyNumber: p.surveyNumber ?? null,
+                  pattaNumber: p.pattaNumber ?? null,
+                  village: p.village,
+                  areaHectares: p.areaHectares,
+                  status: p.status,
+                }))}
                 canManage={canManageFamilies}
                 canGrant={canGrantEntitlements}
+                canEdit={canEditRecords}
               />
             </CardContent>
           </Card>
@@ -607,6 +663,27 @@ export default async function ProjectDetailPage({
         </TabsContent>
 
         <TabsContent value="documents" className="space-y-6 pt-4">
+          {(canEditGeometry || canManageFamilies) && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+                  <Bilingual>Bulk land-record intake</Bilingual>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <p className="text-sm text-muted-foreground">
+                  Drop the village extract your taluk office already holds — one file registers
+                  every plot or titleholder it lists. Each row is shown, with what committing it
+                  would do to the register, before anything is written.
+                </p>
+                <BulkIntakePanel
+                  projectId={project.id}
+                  readableCategories={READABLE_CATEGORIES}
+                />
+              </CardContent>
+            </Card>
+          )}
+
           <Card>
             <CardHeader>
               <CardTitle className="text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground"><Bilingual>Documents</Bilingual></CardTitle>
@@ -643,6 +720,7 @@ export default async function ProjectDetailPage({
                       <TableHead>Category</TableHead>
                       <TableHead>Size</TableHead>
                       <TableHead>Uploaded</TableHead>
+                      <TableHead className="w-24 text-right">Record</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -666,9 +744,51 @@ export default async function ProjectDetailPage({
                           <TableCell className="text-muted-foreground">
                             {d.uploadedBy} on {formatDateTime(d.uploadedAt)}
                           </TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex items-center justify-end gap-1">
+                              {canEditRecords && (
+                                <RecordEditDialog
+                                  endpoint={`/api/documents/${d.id}`}
+                                  title="Refile this document"
+                                  description="Correct how the document is filed. The stored file itself is never replaced — upload a new version to supersede it."
+                                  trigger={
+                                    <Button variant="ghost" size="sm" className="h-7 w-7 p-0" title="Refile">
+                                      <Icon icon="mdi:pencil-outline" width={15} />
+                                    </Button>
+                                  }
+                                  fields={[
+                                    {
+                                      name: "category",
+                                      label: "Category",
+                                      type: "select",
+                                      value: d.category,
+                                      options: DOCUMENT_CATEGORIES.map((c) => ({
+                                        value: c,
+                                        label: DOCUMENT_CATEGORY_META[c].label,
+                                      })),
+                                      hint: "Which category the document is filed under. Changing it can satisfy or un-satisfy a stage requirement.",
+                                    },
+                                    {
+                                      name: "fileName",
+                                      label: "File name",
+                                      type: "text",
+                                      value: d.fileName,
+                                    },
+                                  ]}
+                                />
+                              )}
+                              <RecordHistory
+                                entityType="DOCUMENT"
+                                entityId={d.id}
+                                projectId={project.id}
+                                label={d.fileName}
+                                variant="icon"
+                              />
+                            </div>
+                          </TableCell>
                         </TableRow>
                         <TableRow>
-                          <TableCell colSpan={4} className="py-1">
+                          <TableCell colSpan={5} className="py-1">
                             <DocumentIngestPanel
                               projectId={project.id}
                               documentId={d.id}

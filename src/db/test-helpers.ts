@@ -243,5 +243,15 @@ export async function createTestDb(): Promise<LibSQLDatabase<typeof schema>> {
     );
   `);
 
+  await db.run(sql`
+    CREATE TABLE audit_log (
+      id TEXT PRIMARY KEY, seq INTEGER NOT NULL, actor_id TEXT NOT NULL,
+      actor_role TEXT NOT NULL, action TEXT NOT NULL, entity_type TEXT NOT NULL,
+      entity_id TEXT NOT NULL, project_id TEXT, before TEXT, after TEXT,
+      reason TEXT, summary TEXT NOT NULL, ip TEXT,
+      prev_hash TEXT NOT NULL, hash TEXT NOT NULL, created_at INTEGER NOT NULL
+    );
+  `);
+
   return db;
 }

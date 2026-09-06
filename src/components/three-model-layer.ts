@@ -15,8 +15,14 @@
  * - Port: crane structures
  * - Pipeline: pipe sections with valve markers
  *
- * Models are created procedurally using Three.js geometries — no external
- * glTF files needed. Loaded lazily to avoid impacting initial bundle size.
+ * Most kinds are built procedurally from Three.js geometries. Where a hero
+ * asset exists — currently the Bhavani river bridge, authored by
+ * `scripts/build-bridge-model.ts` — the glTF is loaded instead and the
+ * procedural builder becomes the fallback. A failed or slow fetch therefore
+ * degrades to the old behaviour rather than to an empty map, which matters
+ * because the 3D view has to work offline on demo day.
+ *
+ * Everything is loaded lazily to keep it out of the initial bundle.
  */
 
 import { MapLibreMap, MercatorCoordinate } from "maplibre-gl";
@@ -42,7 +48,48 @@ interface ModelPlacement {
 }
 
 /**
- * Creates procedural 3D models and adds them as a MapLibre custom layer.
+ * Hero assets, authored rather than generated.
+ *
+ * These are built at true metre scale in the same frame the layer places
+ * models in — X along the asset, Y across, Z up, z = 0 at ground — so they
+ * need no rotation or rescaling on load. See `scripts/lib/glb.ts`.
+ */
+const HERO_MODELS: Partial<Record<AssetKind, string>> = {
+  bridge: "/models/bridge-bhavani.glb",
+};
+
+/** Cached per URL: the model is fetched once however many placements use it. */
+const heroCache = new Map<string, Promise<THREE.Group | null>>();
+
+async function loadHeroModel(kind: AssetKind): Promise<THREE.Group | null> {
+  const url = HERO_MODELS[kind];
+  if (!url) return null;
+
+  let pending = heroCache.get(url);
+  if (!pending) {
+    pending = (async () => {
+      try {
+        const { GLTFLoader } = await import("three/examples/jsm/loaders/GLTFLoader.js");
+        const response = await fetch(url);
+        if (!response.ok) return null;
+        const buffer = await response.arrayBuffer();
+        const loader = new GLTFLoader();
+        const gltf = await loader.parseAsync(buffer, "");
+        return gltf.scene;
+      } catch {
+        // Missing file, offline, or a parse failure. The caller falls back to
+        // the procedural model; a 3D view that renders something plausible is
+        // worth more than one that renders nothing.
+        return null;
+      }
+    })();
+    heroCache.set(url, pending);
+  }
+  return pending;
+}
+
+/**
+ * Creates 3D models and adds them as a MapLibre custom layer.
  * Call this after the map's "load" event.
  */
 export async function addProceduralModels(
@@ -64,9 +111,14 @@ export async function addProceduralModels(
 
   const items: ModelItem[] = [];
 
+  const hero = await loadHeroModel(assetKind);
+
   for (const placement of placements) {
     const scene = new THREE.Scene();
-    const group = createModel(assetKind, placement.scale ?? 1);
+    // Each placement gets its own copy: they are rendered from one camera per
+    // item, and sharing a single object graph across them would mean the last
+    // placement's transform won.
+    const group = hero ? hero.clone(true) : createModel(assetKind, placement.scale ?? 1);
     scene.add(group);
 
     // Warm, natural sunlight with ambient fill — prevents washed out white surfaces

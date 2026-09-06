@@ -3,6 +3,8 @@ import { getSession } from "@/lib/auth";
 import { can } from "@/lib/rbac";
 import { getProject, setProjectGeometry } from "@/db/projects";
 import { canViewProject } from "@/lib/project-scope";
+import { recordAudit, withAudit } from "@/db/audit";
+import { clientIp } from "@/lib/request-context";
 import type { Geometry } from "@/lib/geo";
 
 export async function PATCH(
@@ -28,6 +30,30 @@ export async function PATCH(
   ) {
     return NextResponse.json({ error: "Invalid geometry" }, { status: 400 });
   }
-  await setProjectGeometry(id, body as Geometry);
+  const geometry = body as Geometry;
+  await withAudit(
+    {
+      actor: { userId: session.userId, role: session.role },
+      action: "UPDATE",
+      entityType: "PROJECT",
+      entityId: id,
+      projectId: id,
+      summary: `Redrew the project alignment (${geometry.type}, ${geometry.coordinates.length} vertices)`,
+      reason: "Alignment edited on the map",
+      ip: clientIp(request),
+      loadBefore: async () => ({
+        geometryType: project.geometryType ?? null,
+        geometryGeoJson: project.geometryGeoJson ?? null,
+      }),
+      loadAfter: async () => {
+        const updated = await getProject(id);
+        return {
+          geometryType: updated?.geometryType ?? null,
+          geometryGeoJson: updated?.geometryGeoJson ?? null,
+        };
+      },
+    },
+    () => setProjectGeometry(id, geometry)
+  );
   return NextResponse.json({ ok: true });
 }

@@ -5,6 +5,8 @@ import { recordSuccession } from "@/db/succession";
 import { getFamilyById } from "@/db/families";
 import { getProject } from "@/db/projects";
 import { canViewProject } from "@/lib/project-scope";
+import { withAudit } from "@/db/audit";
+import { clientIp } from "@/lib/request-context";
 
 export async function POST(
   request: NextRequest,
@@ -43,11 +45,35 @@ export async function POST(
   if (heirs.some((h) => !h.name || !h.relationship || h.sharePercent <= 0)) {
     return NextResponse.json({ error: "Each heir needs a name, relationship, and share" }, { status: 400 });
   }
-  await recordSuccession({
-    familyId,
-    deceasedAt: new Date(body.deceasedAt),
-    successionNote: body.successionNote,
-    heirs,
-  });
+  const deceasedAt = new Date(body.deceasedAt);
+  await withAudit(
+    {
+      actor: { userId: session.userId, role: session.role },
+      action: "UPDATE",
+      entityType: "FAMILY",
+      entityId: familyId,
+      projectId: family.projectId,
+      summary: `Recorded succession for ${family.headOfHouseholdName} across ${heirs.length} heir(s)`,
+      reason: body.successionNote ?? "Head of household deceased; entitlement apportioned among legal heirs",
+      ip: clientIp(request),
+      loadBefore: async () => ({
+        deceasedAt: family.deceasedAt ?? null,
+        successionNote: family.successionNote ?? null,
+        heirs: [],
+      }),
+      loadAfter: async () => ({
+        deceasedAt,
+        successionNote: body.successionNote ?? null,
+        heirs: heirs.map((h) => ({ name: h.name, relationship: h.relationship, sharePercent: h.sharePercent })),
+      }),
+    },
+    () =>
+      recordSuccession({
+        familyId,
+        deceasedAt,
+        successionNote: body.successionNote,
+        heirs,
+      })
+  );
   return NextResponse.json({ ok: true });
 }

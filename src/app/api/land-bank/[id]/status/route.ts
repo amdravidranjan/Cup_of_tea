@@ -4,6 +4,8 @@ import { can } from "@/lib/rbac";
 import { getLandBankEntryById, updateLandBankStatus, LAND_BANK_STATUSES } from "@/db/land-bank";
 import { getProject } from "@/db/projects";
 import { canViewProject } from "@/lib/project-scope";
+import { withAudit } from "@/db/audit";
+import { clientIp } from "@/lib/request-context";
 
 export async function POST(
   request: NextRequest,
@@ -29,6 +31,20 @@ export async function POST(
   if (!body.status || !LAND_BANK_STATUSES.includes(body.status as (typeof LAND_BANK_STATUSES)[number])) {
     return NextResponse.json({ error: "Invalid status" }, { status: 400 });
   }
-  await updateLandBankStatus(id, body.status as (typeof LAND_BANK_STATUSES)[number]);
+  const nextStatus = body.status as (typeof LAND_BANK_STATUSES)[number];
+  await withAudit(
+    {
+      actor: { userId: session.userId, role: session.role },
+      action: "STATUS_CHANGE",
+      entityType: "LAND_BANK_ENTRY",
+      entityId: id,
+      projectId: entry.projectId,
+      summary: `Land bank entry moved from ${entry.status} to ${nextStatus}`,
+      ip: clientIp(request),
+      loadBefore: async () => ({ status: entry.status }),
+      loadAfter: async () => ({ status: nextStatus }),
+    },
+    () => updateLandBankStatus(id, nextStatus)
+  );
   return NextResponse.json({ ok: true });
 }

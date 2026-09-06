@@ -4,6 +4,8 @@ import { can } from "@/lib/rbac";
 import { createParcel, listParcels } from "@/db/parcels";
 import { getProject } from "@/db/projects";
 import { canViewProject } from "@/lib/project-scope";
+import { recordAudit, withAudit } from "@/db/audit";
+import { clientIp } from "@/lib/request-context";
 import {
   computeParcelsWithImpact,
   parseStoredGeometry,
@@ -64,7 +66,7 @@ export async function POST(
   ) {
     return NextResponse.json({ error: "Invalid parcel" }, { status: 400 });
   }
-  const parcelId = await createParcel({
+  const parcelInput = {
     projectId: id,
     village: body.village,
     areaHectares: body.areaHectares,
@@ -75,8 +77,25 @@ export async function POST(
     surveyNumber: body.surveyNumber?.trim() || undefined,
     pattaNumber: body.pattaNumber?.trim() || undefined,
     geometry: {
-      type: "Polygon",
+      type: "Polygon" as const,
       coordinates: body.geometry.coordinates as PolygonGeometry["coordinates"],
+    },
+  };
+  const parcelId = await createParcel(parcelInput);
+  await recordAudit({
+    actor: { userId: session.userId, role: session.role },
+    action: "CREATE",
+    entityType: "PARCEL",
+    entityId: parcelId,
+    projectId: id,
+    summary: `Added parcel ${parcelInput.surveyNumber ?? "(no survey number)"} in ${parcelInput.village}, ${parcelInput.areaHectares} ha`,
+    ip: clientIp(request),
+    after: {
+      village: parcelInput.village,
+      surveyNumber: parcelInput.surveyNumber ?? null,
+      pattaNumber: parcelInput.pattaNumber ?? null,
+      areaHectares: parcelInput.areaHectares,
+      status: parcelInput.status,
     },
   });
   return NextResponse.json({ id: parcelId }, { status: 201 });

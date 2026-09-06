@@ -4,6 +4,8 @@ import { can } from "@/lib/rbac";
 import { updatePostalStatus, getNotificationById, NOTIFICATION_STATUSES } from "@/db/notifications-log";
 import { getProject } from "@/db/projects";
 import { canViewProject } from "@/lib/project-scope";
+import { withAudit } from "@/db/audit";
+import { clientIp } from "@/lib/request-context";
 
 export async function POST(
   request: NextRequest,
@@ -29,9 +31,30 @@ export async function POST(
   if (!body.status || !NOTIFICATION_STATUSES.includes(body.status as (typeof NOTIFICATION_STATUSES)[number])) {
     return NextResponse.json({ error: "Invalid status" }, { status: 400 });
   }
-  await updatePostalStatus(id, {
-    postalTrackingId: body.postalTrackingId,
-    status: body.status as (typeof NOTIFICATION_STATUSES)[number],
-  });
+  const nextStatus = body.status as (typeof NOTIFICATION_STATUSES)[number];
+  await withAudit(
+    {
+      actor: { userId: session.userId, role: session.role },
+      action: "STATUS_CHANGE",
+      entityType: "NOTIFICATION",
+      entityId: id,
+      projectId: notification.projectId,
+      summary: `Postal notice to family ${notification.familyId} moved to ${nextStatus}`,
+      ip: clientIp(request),
+      loadBefore: async () => ({
+        status: notification.status,
+        postalTrackingId: notification.postalTrackingId ?? null,
+      }),
+      loadAfter: async () => ({
+        status: nextStatus,
+        postalTrackingId: body.postalTrackingId ?? notification.postalTrackingId ?? null,
+      }),
+    },
+    () =>
+      updatePostalStatus(id, {
+        postalTrackingId: body.postalTrackingId,
+        status: nextStatus,
+      })
+  );
   return NextResponse.json({ ok: true });
 }

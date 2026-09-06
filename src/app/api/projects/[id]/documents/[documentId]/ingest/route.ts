@@ -4,6 +4,8 @@ import { can } from "@/lib/rbac";
 import { getDocument } from "@/db/documents";
 import { getProject } from "@/db/projects";
 import { canViewProject } from "@/lib/project-scope";
+import { recordAudit } from "@/db/audit";
+import { clientIp } from "@/lib/request-context";
 import { createParcel, listParcels, setParcelPattaNumber } from "@/db/parcels";
 import { createFamily, listFamiliesForProject } from "@/db/families";
 import { extractDocumentFields } from "@/lib/ai/document-intelligence";
@@ -99,6 +101,27 @@ export async function POST(
       sourceDocumentId: document.id,
       landClassification: parcel.landClassification,
     });
+    // Registering a plot from a document is the point where a boundary
+    // enters the record. Which document it came from, and who accepted it,
+    // is what an officer defending that boundary later has to produce.
+    await recordAudit({
+      actor: { userId: session.userId, role: session.role },
+      action: "INGEST",
+      entityType: "PARCEL",
+      entityId: parcelId,
+      projectId: id,
+      summary: `Registered parcel ${parcel.surveyNumber} in ${parcel.village} from ${document.fileName}`,
+      ip: clientIp(request),
+      after: {
+        sourceDocumentId: document.id,
+        sourceFileName: document.fileName,
+        village: parcel.village,
+        surveyNumber: parcel.surveyNumber,
+        areaHectares: parcel.areaHectares,
+        boundaryMethod: parcel.boundaryMethod,
+        landClassification: parcel.landClassification,
+      },
+    });
     return NextResponse.json(
       {
         target: "PARCEL",
@@ -152,6 +175,26 @@ export async function POST(
     await setParcelPattaNumber(linkedParcel.id, family.pattaNumber);
   }
 
+  await recordAudit({
+    actor: { userId: session.userId, role: session.role },
+    action: "INGEST",
+    entityType: "FAMILY",
+    entityId: familyId,
+    projectId: id,
+    summary: `Registered titleholder ${family.headOfHouseholdName} from ${document.fileName}`,
+    ip: clientIp(request),
+    after: {
+      sourceDocumentId: document.id,
+      sourceFileName: document.fileName,
+      headOfHouseholdName: family.headOfHouseholdName,
+      village: linkedParcel?.village ?? family.village,
+      pattaNumber: family.pattaNumber,
+      surveyNumber: family.surveyNumber,
+      linkedParcelId: linkedParcel?.id ?? null,
+      entitlementBasis: family.entitlementBasis,
+      source: "LAND_RECORD",
+    },
+  });
   return NextResponse.json(
     {
       target: "FAMILY",

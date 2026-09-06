@@ -9,6 +9,8 @@ import {
 import { getFamilyById } from "@/db/families";
 import { getProject } from "@/db/projects";
 import { canViewProject } from "@/lib/project-scope";
+import { recordAudit } from "@/db/audit";
+import { clientIp } from "@/lib/request-context";
 
 export async function GET(
   _request: NextRequest,
@@ -55,11 +57,27 @@ export async function POST(
   if (!family || family.projectId !== id) {
     return NextResponse.json({ error: "Family not found on this project" }, { status: 404 });
   }
+  const serviceType = body.serviceType as (typeof REHAB_SERVICE_TYPES)[number];
   const serviceId = await requestRehabService({
     familyId: body.familyId,
     projectId: id,
-    serviceType: body.serviceType as (typeof REHAB_SERVICE_TYPES)[number],
+    serviceType,
     notes: body.notes,
+  });
+  await recordAudit({
+    actor: { userId: session.userId, role: session.role },
+    action: "CREATE",
+    entityType: "REHABILITATION_SERVICE",
+    entityId: serviceId,
+    projectId: id,
+    summary: `Opened a ${serviceType} case for ${family.headOfHouseholdName}`,
+    ip: clientIp(request),
+    after: {
+      familyId: body.familyId,
+      serviceType,
+      notes: body.notes ?? null,
+      status: "REQUESTED",
+    },
   });
   return NextResponse.json({ id: serviceId }, { status: 201 });
 }

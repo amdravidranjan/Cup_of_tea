@@ -5,6 +5,8 @@ import { sendNotification, listNotificationsForProject, NOTIFICATION_CHANNELS } 
 import { getFamilyById } from "@/db/families";
 import { getProject } from "@/db/projects";
 import { canViewProject } from "@/lib/project-scope";
+import { recordAudit } from "@/db/audit";
+import { clientIp } from "@/lib/request-context";
 
 export async function GET(
   _request: NextRequest,
@@ -56,13 +58,31 @@ export async function POST(
   if (!family || family.projectId !== id) {
     return NextResponse.json({ error: "Family not found on this project" }, { status: 404 });
   }
+  const channel = body.channel as (typeof NOTIFICATION_CHANNELS)[number];
   const notificationId = await sendNotification({
     familyId: body.familyId,
     projectId: id,
-    channel: body.channel as (typeof NOTIFICATION_CHANNELS)[number],
+    channel,
     postalDocumentId: body.postalDocumentId,
     note: body.note,
     sentBy: session.userId,
+  });
+  // Statutory notice is only good if you can show it went out, to whom, on
+  // which channel and when. That evidence is this entry.
+  await recordAudit({
+    actor: { userId: session.userId, role: session.role },
+    action: "SEND",
+    entityType: "NOTIFICATION",
+    entityId: notificationId,
+    projectId: id,
+    summary: `Sent a ${channel} notice to ${family.headOfHouseholdName}`,
+    ip: clientIp(request),
+    after: {
+      familyId: body.familyId,
+      channel,
+      postalDocumentId: body.postalDocumentId ?? null,
+      note: body.note ?? null,
+    },
   });
   return NextResponse.json({ id: notificationId }, { status: 201 });
 }

@@ -183,7 +183,43 @@ export async function grantEntitlementWith(
     .where(eq(schema.entitlements.id, entitlementId));
 }
 
+/**
+ * Fields an officer is allowed to correct on a family already on the file.
+ *
+ * `source` and `sourceDocumentId` are absent on purpose: how a family entered
+ * the record is a historical fact about the file, not a settable property,
+ * and a titleholder read off a patta must not be able to be relabelled as an
+ * SIA-survey finding after the fact.
+ */
+export interface UpdateFamilyInput {
+  headOfHouseholdName?: string;
+  village?: string;
+  category?: string;
+  memberCount?: number;
+  vulnerableGroup?: boolean;
+  contactPhone?: string | null;
+  contactEmail?: string | null;
+  parcelId?: string | null;
+  entitlementBasis?: AffectedFamilyBasis | null;
+  rationCardNumber?: string | null;
+}
+
+export async function updateFamilyWith(
+  database: Db,
+  id: string,
+  input: UpdateFamilyInput
+): Promise<void> {
+  const patch: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(input)) {
+    if (value !== undefined) patch[key] = value;
+  }
+  if (Object.keys(patch).length === 0) return;
+  await database.update(schema.families).set(patch).where(eq(schema.families.id, id));
+}
+
 export const createFamily = (input: CreateFamilyInput) => createFamilyWith(defaultDb, input);
+export const updateFamily = (id: string, input: UpdateFamilyInput) =>
+  updateFamilyWith(defaultDb, id, input);
 export const listFamiliesForProject = (projectId: string) =>
   listFamiliesForProjectWith(defaultDb, projectId);
 export const getFamilyById = (id: string) => getFamilyByIdWith(defaultDb, id);

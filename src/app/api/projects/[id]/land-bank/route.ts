@@ -5,6 +5,8 @@ import { flagLandBankEntry, listLandBankForProject } from "@/db/land-bank";
 import { getParcel } from "@/db/parcels";
 import { getProject } from "@/db/projects";
 import { canViewProject } from "@/lib/project-scope";
+import { recordAudit } from "@/db/audit";
+import { clientIp } from "@/lib/request-context";
 
 export async function GET(
   _request: NextRequest,
@@ -47,12 +49,29 @@ export async function POST(
   if (!parcel || parcel.projectId !== id) {
     return NextResponse.json({ error: "Parcel not found on this project" }, { status: 404 });
   }
-  const entryId = await flagLandBankEntry({
+  const entryInput = {
     parcelId: body.parcelId,
     projectId: id,
     reason: body.reason,
     note: body.note,
     flaggedBy: session.userId,
+  };
+  const entryId = await flagLandBankEntry(entryInput);
+  await recordAudit({
+    actor: { userId: session.userId, role: session.role },
+    action: "CREATE",
+    entityType: "LAND_BANK_ENTRY",
+    entityId: entryId,
+    projectId: id,
+    summary: `Flagged parcel ${parcel.surveyNumber ?? parcel.id} into the land bank as idle`,
+    reason: entryInput.reason,
+    ip: clientIp(request),
+    after: {
+      parcelId: entryInput.parcelId,
+      reason: entryInput.reason,
+      note: entryInput.note ?? null,
+      status: "IDLE",
+    },
   });
   return NextResponse.json({ id: entryId }, { status: 201 });
 }

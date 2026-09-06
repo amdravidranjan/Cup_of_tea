@@ -65,6 +65,9 @@ export default async function DashboardLayout({
     can(session.role, "land-bank:manage")
       ? { href: "/app/land-bank", label: "Land Bank", icon: "mdi:warehouse" }
       : null,
+    can(session.role, "audit:view")
+      ? { href: "/app/audit", label: "Audit Trail", icon: "mdi:shield-check-outline" }
+      : null,
     { href: "/app/interoperability", label: "Interoperability", icon: "mdi:api" },
     // "Developer API" deliberately omitted — it is the public, unauthenticated
     // open-data documentation page and belongs on the public site's footer,

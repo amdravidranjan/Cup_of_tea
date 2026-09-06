@@ -123,7 +123,39 @@ export async function advanceParcelStatusWith(database: Db, id: string): Promise
   return next;
 }
 
+/**
+ * Fields an officer is allowed to correct on a parcel already on the file.
+ *
+ * Geometry is deliberately absent: a boundary is redrawn through the map
+ * editor, which carries its own provenance (`boundaryMethod`,
+ * `sourceDocumentId`), and letting it be patched as a plain field would
+ * quietly detach a plot from the document that justifies its shape.
+ */
+export interface UpdateParcelInput {
+  village?: string;
+  surveyNumber?: string | null;
+  pattaNumber?: string | null;
+  areaHectares?: number;
+  landClassification?: string | null;
+  status?: ParcelStatus;
+}
+
+export async function updateParcelWith(
+  database: Db,
+  id: string,
+  input: UpdateParcelInput
+): Promise<void> {
+  const patch: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(input)) {
+    if (value !== undefined) patch[key] = value;
+  }
+  if (Object.keys(patch).length === 0) return;
+  await database.update(parcels).set(patch).where(eq(parcels.id, id));
+}
+
 export const createParcel = (input: CreateParcelInput) => createParcelWith(defaultDb, input);
+export const updateParcel = (id: string, input: UpdateParcelInput) =>
+  updateParcelWith(defaultDb, id, input);
 export const setParcelPattaNumber = (id: string, pattaNumber: string) =>
   setParcelPattaNumberWith(defaultDb, id, pattaNumber);
 export const listParcels = (projectId: string) => listParcelsWith(defaultDb, projectId);

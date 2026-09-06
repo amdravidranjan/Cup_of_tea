@@ -3,6 +3,8 @@ import { getSession } from "@/lib/auth";
 import { can } from "@/lib/rbac";
 import { getGrievanceByTrackingNumber, transitionGrievanceStatus } from "@/db/grievances";
 import type { GrievanceAction, GrievanceResolution } from "@/lib/grievance-workflow";
+import { withAudit } from "@/db/audit";
+import { clientIp } from "@/lib/request-context";
 
 interface TransitionBody {
   action?: GrievanceAction;
@@ -36,12 +38,31 @@ export async function POST(
   }
 
   try {
-    const status = await transitionGrievanceStatus(
-      grievance.id,
-      body.action,
-      session.role,
-      session.userId,
-      body.resolution ? { resolution: body.resolution, resolutionNote: body.resolutionNote } : undefined
+    const action = body.action;
+    const status = await withAudit(
+      {
+        actor: { userId: session.userId, role: session.role },
+        action: action === "RESOLVE" ? "APPROVE" : "STATUS_CHANGE",
+        entityType: "GRIEVANCE",
+        entityId: grievance.id,
+        projectId: grievance.projectId,
+        summary: `${action} on grievance ${grievance.trackingNumber}`,
+        reason: body.resolutionNote ?? null,
+        ip: clientIp(request),
+        loadBefore: async () => ({ status: grievance.status, resolution: grievance.resolution ?? null }),
+        loadAfter: async () => {
+          const updated = await getGrievanceByTrackingNumber(trackingNumber);
+          return { status: updated?.status ?? null, resolution: updated?.resolution ?? null };
+        },
+      },
+      () =>
+        transitionGrievanceStatus(
+          grievance.id,
+          action,
+          session.role,
+          session.userId,
+          body.resolution ? { resolution: body.resolution, resolutionNote: body.resolutionNote } : undefined
+        )
     );
     return NextResponse.json({ status });
   } catch (err) {

@@ -4,6 +4,8 @@ import { can } from "@/lib/rbac";
 import { awardTender, getTenderById, createContractor, getContractorById } from "@/db/tenders";
 import { getProject } from "@/db/projects";
 import { canViewProject } from "@/lib/project-scope";
+import { withAudit } from "@/db/audit";
+import { clientIp } from "@/lib/request-context";
 
 export async function POST(
   request: NextRequest,
@@ -48,6 +50,32 @@ export async function POST(
   if (!contractor) {
     return NextResponse.json({ error: "Contractor not found" }, { status: 404 });
   }
-  await awardTender(id, { contractorId, awardedValue: body.awardedValue });
+  const awardedValue = body.awardedValue;
+  const winner = contractorId;
+  await withAudit(
+    {
+      actor: { userId: session.userId, role: session.role },
+      action: "APPROVE",
+      entityType: "TENDER",
+      entityId: id,
+      projectId: tender.projectId,
+      summary: `Awarded tender "${tender.title}" to ${contractor.name} at ${awardedValue}`,
+      ip: clientIp(request),
+      loadBefore: async () => ({
+        status: tender.status,
+        contractorId: tender.contractorId ?? null,
+        awardedValue: tender.awardedValue ?? null,
+      }),
+      loadAfter: async () => {
+        const updated = await getTenderById(id);
+        return {
+          status: updated?.status ?? null,
+          contractorId: updated?.contractorId ?? winner,
+          awardedValue: updated?.awardedValue ?? awardedValue,
+        };
+      },
+    },
+    () => awardTender(id, { contractorId: winner, awardedValue })
+  );
   return NextResponse.json({ ok: true });
 }

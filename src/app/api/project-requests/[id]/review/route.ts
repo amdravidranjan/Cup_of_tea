@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
 import { can } from "@/lib/rbac";
 import { getProjectRequestById, reviewProjectRequest } from "@/db/project-requests";
+import { withAudit } from "@/db/audit";
+import { clientIp } from "@/lib/request-context";
 
 export async function POST(
   request: NextRequest,
@@ -33,11 +35,27 @@ export async function POST(
   if (!body.status || !["UNDER_REVIEW", "APPROVED", "REJECTED"].includes(body.status)) {
     return NextResponse.json({ error: "Invalid status" }, { status: 400 });
   }
-  await reviewProjectRequest(id, {
-    status: body.status,
-    reviewNote: body.reviewNote,
-    reviewedBy: session.userId,
-    linkedProjectId: body.linkedProjectId,
-  });
+  const nextStatus = body.status;
+  await withAudit(
+    {
+      actor: { userId: session.userId, role: session.role },
+      action: nextStatus === "APPROVED" ? "APPROVE" : nextStatus === "REJECTED" ? "REJECT" : "STATUS_CHANGE",
+      entityType: "PROJECT_REQUEST",
+      entityId: id,
+      projectId: body.linkedProjectId ?? existing.linkedProjectId ?? null,
+      summary: `Citizen project request ${existing.trackingNumber} moved to ${nextStatus}`,
+      reason: body.reviewNote ?? null,
+      ip: clientIp(request),
+      loadBefore: async () => ({ status: existing.status, reviewNote: existing.reviewNote ?? null }),
+      loadAfter: async () => ({ status: nextStatus, reviewNote: body.reviewNote ?? null }),
+    },
+    () =>
+      reviewProjectRequest(id, {
+        status: nextStatus,
+        reviewNote: body.reviewNote,
+        reviewedBy: session.userId,
+        linkedProjectId: body.linkedProjectId,
+      })
+  );
   return NextResponse.json({ ok: true });
 }

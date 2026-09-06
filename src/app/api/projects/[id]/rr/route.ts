@@ -4,6 +4,8 @@ import { can } from "@/lib/rbac";
 import { getRRStage, getRRHistory, applyRRTransition } from "@/db/rr";
 import { getProject } from "@/db/projects";
 import { canViewProject } from "@/lib/project-scope";
+import { withAudit } from "@/db/audit";
+import { clientIp } from "@/lib/request-context";
 import type { RRAction } from "@/lib/rr-workflow";
 
 export async function GET(
@@ -44,7 +46,22 @@ export async function POST(
     return NextResponse.json({ error: "Missing action" }, { status: 400 });
   }
   try {
-    const stage = await applyRRTransition(id, body.action, session.userId, session.role, body.note);
+    const action = body.action;
+    const stage = await withAudit(
+      {
+        actor: { userId: session.userId, role: session.role },
+        action: "STAGE_TRANSITION",
+        entityType: "PROJECT",
+        entityId: id,
+        projectId: id,
+        summary: `R&R ${action} on "${project.name}" from ${project.rrStage ?? "not started"}`,
+        reason: body.note ?? null,
+        ip: clientIp(request),
+        loadBefore: async () => ({ rrStage: project.rrStage ?? null }),
+        loadAfter: async () => ({ rrStage: (await getProject(id))?.rrStage ?? null }),
+      },
+      () => applyRRTransition(id, action, session.userId, session.role, body.note)
+    );
     return NextResponse.json({ stage });
   } catch (err) {
     return NextResponse.json({ error: (err as Error).message }, { status: 400 });

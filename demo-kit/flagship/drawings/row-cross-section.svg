@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 380" width="1000" height="380">
+  <rect width="1000" height="380" fill="#f8fafc"/>
+  <path d="M60 306 L190 218 L810 218 L940 306 L940 360 L60 360 Z" fill="#d6d3d1" stroke="#a8a29e"/>
+  <rect x="280" y="204" width="440" height="14" fill="#a8a29e"/>
+  <rect x="350" y="200" width="300" height="10" fill="#3f3f46"/>
+  <line x1="500" y1="205" x2="500" y2="205" stroke="#fff"/>
+  <rect x="370" y="204" width="22" height="2.4" fill="#fef3c7"/>
+  <rect x="414" y="204" width="22" height="2.4" fill="#fef3c7"/>
+  <rect x="458" y="204" width="22" height="2.4" fill="#fef3c7"/>
+  <rect x="502" y="204" width="22" height="2.4" fill="#fef3c7"/>
+  <rect x="546" y="204" width="22" height="2.4" fill="#fef3c7"/>
+  <rect x="590" y="204" width="22" height="2.4" fill="#fef3c7"/>
+  <rect x="634" y="204" width="22" height="2.4" fill="#fef3c7"/>
+  <g stroke="#dc2626" fill="#dc2626" font-family="system-ui, sans-serif" font-size="11" stroke-width="1">
+    <line x1="350" y1="164" x2="650" y2="164"/>
+    <text x="500" y="158" text-anchor="middle">Carriageway 7.0 m</text>
+    <line x1="190" y1="120" x2="810" y2="120"/>
+    <line x1="190" y1="114" x2="190" y2="126"/>
+    <line x1="810" y1="114" x2="810" y2="126"/>
+    <text x="500" y="114" text-anchor="middle">Right of way to be acquired — 24.0 m</text>
+  </g>
+  <g font-family="system-ui, sans-serif" fill="#475569" font-size="10">
+    <text x="240" y="244">Shoulder 1.5 m</text>
+    <text x="680" y="244">Shoulder 1.5 m</text>
+    <text x="90" y="330">Embankment slope 2:1</text>
+  </g>
+  <g font-family="system-ui, sans-serif" fill="#0f172a">
+    <text x="30" y="34" font-size="16" font-weight="700">Right-of-Way Cross Section — approach road</text>
+    <text x="30" y="52" font-size="10" fill="#475569">Typical section, both approaches · 24 m corridor · not to scale</text>
+  </g>
+</svg>
