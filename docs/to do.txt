@@ -1,0 +1,27 @@
+notified and real notification and the notified in compensation page, field verification page are not connected. 
+
+design drawings are uploaded where, svg files not being uploaded. add option to view uploaded file. 
+
+compensation is able to be disbursed before and after acquired. is that allowed or not?
+
+district officer has to select assessed and mark as paid for everyone. no option to select multiple, all etc..
+
+r&r also he has to fill each amount for each family. that is very tedious. we should have the same csv automate if possible. 
+
+survey of affected families, r&r scheme drafted, published locally they are all just single line notes. how could that be. 
+
+it is also just includes all families continuously , like even if there is 100 members they are just listed without any compaction . make it like the compensation page, where we have 1,2, 3 pages, search , filter etc..
+
+no undo options anywhere. if included robust logic should be there. like for literally anything. documents , anything
+
+
+project can reach r&r complete without even actually acquiring the lands. like most lands can be just in notified status and the project will show as complete. is that allowed in real life. is that how it happens in real life? 
+
+Can you do a deep research and let me know?
+
+
+change project name from TN- GLMS to NILAMS - National Integrated Land Acquistion Management System. 
+
+
+
+include tamilnadu state login, tamilnadu district, field officer as well. 

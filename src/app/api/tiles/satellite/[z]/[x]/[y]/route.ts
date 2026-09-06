@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { existsSync, readFileSync, mkdirSync, writeFileSync } from "fs";
 import { join, dirname } from "path";
-
+import sharp from "sharp";
 // 1x1 fully transparent PNG buffer. When returned for missing/out-of-bounds tiles,
 // the browser image decoder succeeds with zero errors, and MapLibre never renders
 // opaque dark-green or black blocks over the landscape.
@@ -39,42 +39,49 @@ export async function GET(
     }
   }
 
-  // 2. PARENT TILE LOOKUP: If tile is not on disk at zoom z (e.g. client zoomed past z16 or between bboxes),
-  // search up the pyramid (z-1 down to z8) to serve the nearest real parent tile from disk.
-  if (!Number.isNaN(intZ) && !Number.isNaN(intX) && !Number.isNaN(intY)) {
-    let currZ = intZ - 1;
-    let currX = Math.floor(intX / 2);
-    let currY = Math.floor(intY / 2);
 
-    while (currZ >= 8) {
-      const parentPath = join(
-        process.cwd(),
-        "public",
-        "tiles",
-        String(currZ),
-        String(currX),
-        `${currY}.jpg`
-      );
-      if (existsSync(parentPath)) {
-        try {
-          const parentBuffer = readFileSync(parentPath);
-          return new NextResponse(parentBuffer, {
-            status: 200,
-            headers: {
-              "Content-Type": "image/jpeg",
-              "Cache-Control": "public, max-age=86400",
-              "X-Tile-Source": `offline-parent-z${currZ}`,
-            },
-          });
-        } catch {
-          // Continue searching up
-        }
+// ... after intZ/intX/intY are parsed ...
+
+if (!Number.isNaN(intZ) && !Number.isNaN(intX) && !Number.isNaN(intY)) {
+  let currZ = intZ - 1;
+  let currX = Math.floor(intX / 2);
+  let currY = Math.floor(intY / 2);
+  let levels = 1;
+
+  while (currZ >= Math.max(8, intZ - 6)) { // cap how far up we go — beyond ~6 levels the crop is sub-pixel and pointless
+    const parentPath = join(process.cwd(), "public", "tiles", String(currZ), String(currX), `${currY}.jpg`);
+    if (existsSync(parentPath)) {
+      try {
+        const parentBuffer = readFileSync(parentPath);
+        const scale = 2 ** levels;               // how many child tiles the ancestor spans per side
+        const cropSize = 256 / scale;             // pixel size of our tile's slice within the ancestor
+        const offsetX = (intX - currX * scale) * cropSize;
+        const offsetY = (intY - currY * scale) * cropSize;
+
+        const cropped = await sharp(parentBuffer)
+          .extract({ left: Math.round(offsetX), top: Math.round(offsetY), width: Math.round(cropSize), height: Math.round(cropSize) })
+          .resize(256, 256, { kernel: "cubic" })  // upscale the slice back to full tile size
+          .jpeg({ quality: 80 })
+          .toBuffer();
+
+        return new NextResponse(new Uint8Array(cropped), {
+          status: 200,
+          headers: {
+            "Content-Type": "image/jpeg",
+            "Cache-Control": "public, max-age=86400",
+            "X-Tile-Source": `offline-parent-z${currZ}-cropped`,
+          },
+        });
+      } catch {
+        // fall through and keep climbing
       }
-      currZ -= 1;
-      currX = Math.floor(currX / 2);
-      currY = Math.floor(currY / 2);
     }
+    currZ -= 1;
+    currX = Math.floor(currX / 2);
+    currY = Math.floor(currY / 2);
+    levels += 1;
   }
+}
 
   // 3. LIVE ONLINE FETCH: Attempt fast fetch from Esri World Imagery (for areas outside precache)
   // Note: Esri REST API tile format is {z}/{y}/{x}
