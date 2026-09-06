@@ -56,7 +56,7 @@ export const TERRAIN_SOURCE_CONFIG = {
  */
 export const PROJECT_BBOXES: [string, [number, number, number, number]][] = [
   // 1. Koraput Bridge (Kolab river crossing)
-  ["koraput-bridge", [82.75, 18.72, 82.78, 18.75]],
+  ["koraput-bridge", [82.74, 18.71, 82.78, 18.76]],
   // 2. Chennai-Salem Expressway (Krishnagiri stretch)
   ["chennai-salem", [78.34, 12.26, 78.50, 12.55]],
   // 3. Chennai Metro Phase 2 (Poonamallee)
@@ -76,7 +76,7 @@ export const PROJECT_BBOXES: [string, [number, number, number, number]][] = [
   // 10. Trichy Airport
   ["trichy-airport", [78.70, 10.75, 78.73, 10.78]],
   // 11. Tuticorin Rail
-  ["tuticorin-rail", [78.15, 8.74, 78.19, 8.79]],
+  ["tuticorin-rail", [78.13, 8.74, 78.18, 8.80]],
   // 12. Salem Steel Plant
   ["salem-steel", [78.10, 11.65, 78.13, 11.68]],
   // 13. Vellore Pipeline
