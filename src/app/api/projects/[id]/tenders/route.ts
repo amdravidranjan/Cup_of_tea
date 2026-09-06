@@ -4,6 +4,8 @@ import { can } from "@/lib/rbac";
 import { createTender, listTendersForProject } from "@/db/tenders";
 import { getProject } from "@/db/projects";
 import { canViewProject } from "@/lib/project-scope";
+import { recordAudit } from "@/db/audit";
+import { clientIp } from "@/lib/request-context";
 
 export async function GET(
   _request: NextRequest,
@@ -47,13 +49,30 @@ export async function POST(
   if (!body.title || !body.scope || typeof body.estimatedValue !== "number") {
     return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
   }
-  const tenderId = await createTender({
+  const tenderInput = {
     projectId: id,
     title: body.title,
     scope: body.scope,
     estimatedValue: body.estimatedValue,
     submissionDeadline: body.submissionDeadline ? new Date(body.submissionDeadline) : undefined,
     createdBy: session.userId,
+  };
+  const tenderId = await createTender(tenderInput);
+  await recordAudit({
+    actor: { userId: session.userId, role: session.role },
+    action: "CREATE",
+    entityType: "TENDER",
+    entityId: tenderId,
+    projectId: id,
+    summary: `Published tender "${tenderInput.title}" at an estimated ${tenderInput.estimatedValue}`,
+    ip: clientIp(request),
+    after: {
+      title: tenderInput.title,
+      scope: tenderInput.scope,
+      estimatedValue: tenderInput.estimatedValue,
+      submissionDeadline: tenderInput.submissionDeadline ?? null,
+      status: "PUBLISHED",
+    },
   });
   return NextResponse.json({ id: tenderId }, { status: 201 });
 }

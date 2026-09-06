@@ -3,6 +3,8 @@ import { createGrievance } from "@/db/grievances";
 import { getProject } from "@/db/projects";
 import { isPublicStage } from "@/db/public";
 import { saveFile } from "@/lib/storage";
+import { recordAudit } from "@/db/audit";
+import { clientIp } from "@/lib/request-context";
 import type { Stage } from "@/lib/workflow";
 import type { GrievanceType } from "@/lib/grievance-workflow";
 
@@ -62,5 +64,21 @@ export async function POST(
     attachmentStoragePath,
   });
 
+  await recordAudit({
+    actor: { userId: "public", role: "citizen" },
+    action: "CREATE",
+    entityType: "GRIEVANCE",
+    entityId: trackingNumber,
+    projectId: id,
+    summary: `Citizen ${submitterName} filed a ${type} grievance (${trackingNumber})`,
+    ip: clientIp(request),
+    after: {
+      type,
+      submitterName,
+      description,
+      attachmentFileName: attachmentFileName ?? null,
+      status: "FILED",
+    },
+  });
   return NextResponse.json({ trackingNumber }, { status: 201 });
 }

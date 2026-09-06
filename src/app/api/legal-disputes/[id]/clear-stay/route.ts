@@ -4,9 +4,11 @@ import { can } from "@/lib/rbac";
 import { clearStay, getLegalDisputeById } from "@/db/legal-disputes";
 import { getProject } from "@/db/projects";
 import { canViewProject } from "@/lib/project-scope";
+import { withAudit } from "@/db/audit";
+import { clientIp } from "@/lib/request-context";
 
 export async function POST(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await getSession();
@@ -25,6 +27,23 @@ export async function POST(
   if (!project || !canViewProject(session, project)) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
-  await clearStay(id);
+  await withAudit(
+    {
+      actor: { userId: session.userId, role: session.role },
+      action: "UPDATE",
+      entityType: "LEGAL_DISPUTE",
+      entityId: id,
+      projectId: dispute.projectId,
+      summary: `Cleared the court stay on case ${dispute.caseNumber} - compensation and possession unblocked`,
+      reason: "Stay order lifted by the court",
+      ip: clientIp(request),
+      loadBefore: async () => ({ isStayOrder: dispute.isStayOrder, stayClearedAt: dispute.stayClearedAt ?? null }),
+      loadAfter: async () => {
+        const updated = await getLegalDisputeById(id);
+        return { isStayOrder: updated?.isStayOrder ?? null, stayClearedAt: updated?.stayClearedAt ?? null };
+      },
+    },
+    () => clearStay(id)
+  );
   return NextResponse.json({ ok: true });
 }

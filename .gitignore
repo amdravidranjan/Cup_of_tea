@@ -49,8 +49,18 @@ local.db
 local.db-*
 /drizzle
 
+# WhatsApp (Baileys) session credentials — equivalent to a login session
+# for a real phone number. Never commit this.
+/.baileys-auth
+
 # local file storage (documents module)
 /uploads
 
 # copied from node_modules by scripts/copy-maplibre-worker.mjs (postinstall)
 /public/maplibre-gl
+
+# pre-cached satellite tiles (downloaded by scripts/precache-tiles.mjs)
+/public/tiles
+
+# OSM overpass cache (seed-time only)
+/scripts/.osm-cache

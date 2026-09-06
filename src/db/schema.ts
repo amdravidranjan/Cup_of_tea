@@ -63,6 +63,15 @@ export const parcels = sqliteTable("parcels", {
   // Real-world site survey photo — set when a field officer photographs
   // the parcel during verification.
   sitePhotoUrl: text("site_photo_url"),
+  // Provenance of the boundary on record. An officer defending an award has
+  // to say where the line came from: a DGPS survey run for this acquisition,
+  // a historical FMB sheet, or an officer drawing on a map. Null means it
+  // was drawn by hand, which is what every parcel predating document ingest
+  // was.
+  boundaryMethod: text("boundary_method"),
+  sourceDocumentId: text("source_document_id"),
+  // Nanjai/punjai/manavari — drives guideline value, so not cosmetic.
+  landClassification: text("land_classification"),
 });
 
 export const compensationRates = sqliteTable("compensation_rates", {
@@ -115,12 +124,29 @@ export const families = sqliteTable("families", {
   memberCount: integer("member_count").notNull(),
   vulnerableGroup: integer("vulnerable_group", { mode: "boolean" }).notNull().default(false),
   contactPhone: text("contact_phone"),
+  // Added alongside real Email/WhatsApp notification sending — nullable,
+  // additive column so existing rows/seeds are unaffected.
+  contactEmail: text("contact_email"),
   surveyedBy: text("surveyed_by").notNull(),
   surveyedAt: integer("surveyed_at", { mode: "timestamp" }).notNull(),
   // Succession: set when the head of household has died mid-process and
   // their entitlement has been split across heirs (see the `heirs` table).
   deceasedAt: integer("deceased_at", { mode: "timestamp" }),
   successionNote: text("succession_note"),
+  // How this family entered the record. A land record only ever yields
+  // titleholders; tenants, labourers and long-standing residents qualify
+  // under s.3(c)(ii)-(vi) and can only be found by the SIA survey. Existing
+  // rows default to SIA_SURVEY because that is how they were entered.
+  source: text("source").notNull().default("SIA_SURVEY"),
+  sourceDocumentId: text("source_document_id"),
+  // Which limb of s.3(c) makes this family an "affected family". For a
+  // non-titleholder this is the entire justification for their entitlement,
+  // and it is what a reviewing authority checks first.
+  entitlementBasis: text("entitlement_basis"),
+  // Identity for payment/DBT. Masked at extraction — the full Aadhaar
+  // number is never stored.
+  aadhaarMasked: text("aadhaar_masked"),
+  rationCardNumber: text("ration_card_number"),
 });
 
 export const entitlements = sqliteTable("entitlements", {
@@ -349,4 +375,43 @@ export const noticeDrafts = sqliteTable("notice_drafts", {
   approvedBy: text("approved_by"),
   approvedAt: integer("approved_at", { mode: "timestamp" }),
   createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
+});
+
+// Audit trail — every mutation, not just stage transitions.
+//
+// `stageHistory` and `rrStageHistory` recorded workflow moves; everything
+// else an officer did (rate changes, payments, entitlement grants, document
+// uploads, record edits) went unrecorded. This is the ledger the PDF's
+// Security & Governance scope item and requirement 13 ("audit history")
+// actually ask for.
+//
+// `before`/`after` are JSON snapshots of the changed fields only, so the
+// diff is readable without storing an entire row twice. `prevHash`/`hash`
+// chain each entry to the one before it: altering or deleting any historical
+// row breaks verification from that point on. See `src/lib/audit.ts`.
+export const auditLog = sqliteTable("audit_log", {
+  id: text("id").primaryKey(),
+  // Monotonic insertion order. `createdAt` alone is not enough to rebuild
+  // the chain — two entries can share a millisecond, and the hash chain
+  // needs one unambiguous ordering to verify against.
+  seq: integer("seq").notNull(),
+  actorId: text("actor_id").notNull(),
+  actorRole: text("actor_role").notNull(),
+  action: text("action").notNull(),
+  entityType: text("entity_type").notNull(),
+  entityId: text("entity_id").notNull(),
+  // Null for records that do not belong to a project (contractors, users).
+  projectId: text("project_id"),
+  before: text("before"),
+  after: text("after"),
+  reason: text("reason"),
+  summary: text("summary").notNull(),
+  ip: text("ip"),
+  prevHash: text("prev_hash").notNull(),
+  hash: text("hash").notNull(),
+  // Milliseconds, unlike every other table here. Drizzle's `timestamp` mode
+  // stores whole seconds, which silently drops the millisecond part of the
+  // Date the hash was computed over - so an entry could never verify after a
+  // round trip. The hash has to cover exactly what is stored.
+  createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
 });

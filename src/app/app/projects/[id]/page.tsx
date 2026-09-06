@@ -1,14 +1,18 @@
+import { Fragment } from "react";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { getSession } from "@/lib/auth";
 import { getProject, getStageHistory } from "@/db/projects";
 import { getAvailableActions, STAGES, type Stage } from "@/lib/workflow";
 import { ProjectActions } from "@/components/project-actions";
-import { listDocuments } from "@/db/documents";
+import { listDocuments, listIngestedDocumentIds } from "@/db/documents";
+import { listAuditEntries } from "@/db/audit";
 import { computeDocumentChecklist } from "@/lib/document-requirements";
-import type { DocumentCategory } from "@/lib/document-categories";
+import { documentCategoryLabel, type DocumentCategory } from "@/lib/document-categories";
 import { can } from "@/lib/rbac";
 import { DocumentUpload } from "@/components/document-upload";
+import { BulkIntakePanel } from "@/components/bulk-intake-panel";
+import { READABLE_CATEGORIES } from "@/lib/extraction/schemas";
 import { GenerateDocument } from "@/components/generate-document";
 import { listParcels } from "@/db/parcels";
 import {
@@ -46,7 +50,10 @@ import { RiskAssessmentCard } from "@/components/risk-assessment-card";
 import { predictLandRate } from "@/lib/ai/land-rate";
 import { LandRatePredictionCard } from "@/components/land-rate-prediction-card";
 import { extractDocumentFields } from "@/lib/ai/document-intelligence";
-import { DocumentInsights } from "@/components/document-insights";
+import { DocumentIngestPanel } from "@/components/document-ingest-panel";
+import { RecordHistory } from "@/components/record-history";
+import { RecordEditDialog } from "@/components/record-edit-dialog";
+import { DOCUMENT_CATEGORIES, DOCUMENT_CATEGORY_META } from "@/lib/document-categories";
 import { computeSLAMetrics } from "@/lib/sla";
 import { listGrievances } from "@/db/grievances";
 import { StageHeaderBar, type StageHeaderStep } from "@/components/stage-header-bar";
@@ -59,6 +66,7 @@ import { LandBankPanel } from "@/components/land-bank-panel";
 import { listNoticeDraftsForProject } from "@/db/notice-drafts";
 import { NoticeDraftsPanel } from "@/components/notice-drafts-panel";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Icon } from "@iconify/react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -104,11 +112,23 @@ export default async function ProjectDetailPage({
   const availableActions = getAvailableActions(currentStage, session.role);
   const docs = await listDocuments(id);
   const canUpload = can(session.role, "document:upload");
+  const canViewAudit = can(session.role, "audit:view");
+  // The project's own trail. Stage history alone answers "where is this
+  // project"; this answers "what has anyone actually done to it".
+  const auditEntries = canViewAudit ? await listAuditEntries({ projectId: id, limit: 25 }) : [];
   const uploadedCategories = new Set(docs.map((d) => d.category as DocumentCategory));
   const documentChecklist = computeDocumentChecklist(currentStage, uploadedCategories, STAGES);
   const alignment = parseStoredGeometry(project.geometryType, project.geometryGeoJson);
   const parcelList = await listParcels(id);
   const parcelsWithImpact = computeParcelsWithImpact(alignment, parcelList);
+  // Documents already turned into register entries, so an FMB sheet cannot
+  // be read in twice. The village and survey-number context is what lets a
+  // patta extract name a plot this project actually holds.
+  const ingestedDocumentIds = await listIngestedDocumentIds(id);
+  const knownVillages = [...new Set(parcelList.map((p) => p.village))];
+  const knownSurveyNumbers = parcelList
+    .map((p) => p.surveyNumber)
+    .filter((s): s is string => Boolean(s));
   const elevationSamples = alignment?.type === "LineString" ? await getElevationProfile(id) : null;
   const canEditGeometry = can(session.role, "project:geometry:edit");
 
@@ -147,6 +167,7 @@ export default async function ProjectDetailPage({
       pattaNumber: p.pattaNumber,
       ownerName: owner,
       status: p.status,
+      landClassification: p.landClassification ?? null,
       withinImpact: p.withinImpact,
       compensation: comp
         ? {
@@ -173,7 +194,11 @@ export default async function ProjectDetailPage({
   const rawRRStage = showRRPanel ? await getRRStage(id) : null;
   const rrStage = isPastRR ? (rawRRStage ?? "RR_AWARDED") : rawRRStage;
   const rrHistory = showRRPanel ? await getRRHistory(id) : [];
-  const rrAvailableActions = showRRPanel && !isPastRR ? getAvailableRRActions(rrStage, session.role) : [];
+  const rrAvailableActions = showRRPanel ? getAvailableRRActions(rrStage, session.role) : [];
+  // The affected-family register is compiled during the SIA census (s.4-6)
+  // and grows as land records are read in, so it is loaded from day one. Only
+  // the R&R workflow below waits for the RR_IN_PROGRESS stage.
+  const families = await listFamiliesForProject(id);
   const canManageFamilies = can(session.role, "family:manage");
   const canGrantEntitlements = can(session.role, "entitlement:grant");
 
@@ -224,6 +249,7 @@ export default async function ProjectDetailPage({
 
   const noticeDrafts = await listNoticeDraftsForProject(id);
   const canManageNoticeDrafts = can(session.role, "notice-draft:manage");
+  const canEditRecords = can(session.role, "record:edit");
 
   const projectGrievances = await listGrievances({ projectId: id });
   const slaMetrics = computeSLAMetrics({
@@ -412,6 +438,39 @@ export default async function ProjectDetailPage({
                   </li>
                 ))}
               </ul>
+
+              {canViewAudit && (
+                <div className="mt-5 border-t pt-4">
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+                      Recent activity on this project
+                    </p>
+                    <Link
+                      href={`/app/audit?project=${project.id}`}
+                      className="text-xs text-brand hover:underline"
+                    >
+                      Full audit trail →
+                    </Link>
+                  </div>
+                  {auditEntries.length === 0 ? (
+                    <p className="mt-2 text-sm text-muted-foreground/70">
+                      Nothing has been recorded against this project yet.
+                    </p>
+                  ) : (
+                    <ul className="mt-2 space-y-1.5 text-sm">
+                      {auditEntries.map((entry) => (
+                        <li key={entry.id} className="flex flex-wrap gap-x-2">
+                          <span>{entry.summary}</span>
+                          <span className="text-xs text-muted-foreground">
+                            — {entry.actorId} ({entry.actorRole}),{" "}
+                            {formatDateTime(entry.createdAt)}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -444,6 +503,7 @@ export default async function ProjectDetailPage({
                   setBy: displayName(userMap, r.setBy),
                   createdAt: r.createdAt,
                 }))}
+                canEdit={canEditRecords}
               />
             </CardContent>
           </Card>
@@ -451,59 +511,71 @@ export default async function ProjectDetailPage({
 
         <TabsContent value="rr" className="space-y-6 pt-4">
           {showRRPanel ? (
-            <>
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground">
-                    Rehabilitation &amp; Resettlement
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <RRPanel
-                    projectId={project.id}
-                    stage={rrStage}
-                    history={rrHistory}
-                    availableActions={rrAvailableActions}
-                  />
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground"><Bilingual>Affected Families</Bilingual></CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <FamiliesPanel
-                    projectId={project.id}
-                    families={families}
-                    canManage={canManageFamilies}
-                    canGrant={canGrantEntitlements}
-                  />
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground"><Bilingual>Rehabilitation Facilitation</Bilingual></CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <RehabilitationPanel
-                    projectId={project.id}
-                    services={rehabServicesWithFamily}
-                    families={families.map((f) => ({
-                      id: f.id,
-                      headOfHouseholdName: f.headOfHouseholdName,
-                    }))}
-                    canManage={canManageRehab}
-                  />
-                </CardContent>
-              </Card>
-            </>
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+                  Rehabilitation &amp; Resettlement
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <RRPanel
+                  projectId={project.id}
+                  stage={rrStage}
+                  history={rrHistory}
+                  availableActions={rrAvailableActions}
+                />
+              </CardContent>
+            </Card>
           ) : (
             <p className="text-sm text-muted-foreground">
               R&amp;R has not started yet — it begins once the project reaches the RR_IN_PROGRESS
-              stage.
+              stage. Families identified before then are listed below.
             </p>
+          )}
+
+          {/* The affected-family register is not an R&R artefact — it is built
+              during the SIA census and by reading land records, both of which
+              happen long before R&R begins. */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground"><Bilingual>Affected Families</Bilingual></CardTitle>
+            </CardHeader>
+            <CardContent>
+              <FamiliesPanel
+                projectId={project.id}
+                families={families}
+                parcels={parcelList.map((p) => ({
+                  id: p.id,
+                  surveyNumber: p.surveyNumber ?? null,
+                  pattaNumber: p.pattaNumber ?? null,
+                  village: p.village,
+                  areaHectares: p.areaHectares,
+                  status: p.status,
+                }))}
+                canManage={canManageFamilies}
+                canGrant={canGrantEntitlements}
+                canEdit={canEditRecords}
+              />
+            </CardContent>
+          </Card>
+
+          {showRRPanel && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground"><Bilingual>Rehabilitation Facilitation</Bilingual></CardTitle>
+              </CardHeader>
+              <CardContent>
+                <RehabilitationPanel
+                  projectId={project.id}
+                  services={rehabServicesWithFamily}
+                  families={families.map((f) => ({
+                    id: f.id,
+                    headOfHouseholdName: f.headOfHouseholdName,
+                  }))}
+                  canManage={canManageRehab}
+                />
+              </CardContent>
+            </Card>
           )}
         </TabsContent>
 
@@ -606,6 +678,27 @@ export default async function ProjectDetailPage({
         </TabsContent>
 
         <TabsContent value="documents" className="space-y-6 pt-4">
+          {(canEditGeometry || canManageFamilies) && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+                  <Bilingual>Bulk land-record intake</Bilingual>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <p className="text-sm text-muted-foreground">
+                  Drop the village extract your taluk office already holds — one file registers
+                  every plot or titleholder it lists. Each row is shown, with what committing it
+                  would do to the register, before anything is written.
+                </p>
+                <BulkIntakePanel
+                  projectId={project.id}
+                  readableCategories={READABLE_CATEGORIES}
+                />
+              </CardContent>
+            </Card>
+          )}
+
           <Card>
             <CardHeader>
               <CardTitle className="text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground"><Bilingual>Documents</Bilingual></CardTitle>
@@ -619,7 +712,7 @@ export default async function ProjectDetailPage({
                       variant="outline"
                       className={toneBadgeClass(req.satisfied ? "success" : "danger")}
                     >
-                      {req.category} {req.satisfied ? "uploaded" : "missing"}
+                      {documentCategoryLabel(req.category)} {req.satisfied ? "uploaded" : "missing"}
                     </Badge>
                   ))}
                 </div>
@@ -642,12 +735,13 @@ export default async function ProjectDetailPage({
                       <TableHead>Category</TableHead>
                       <TableHead>Size</TableHead>
                       <TableHead>Uploaded</TableHead>
+                      <TableHead className="w-24 text-right">Record</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {docs.map((d) => (
-                      <>
-                        <TableRow key={d.id}>
+                      <Fragment key={d.id}>
+                        <TableRow>
                           <TableCell>
                             <a
                               href={`/api/documents/${d.id}/download`}
@@ -657,7 +751,7 @@ export default async function ProjectDetailPage({
                             </a>
                           </TableCell>
                           <TableCell className="text-muted-foreground">
-                            {d.category} v{d.version}
+                            {documentCategoryLabel(d.category)} v{d.version}
                           </TableCell>
                           <TableCell className="text-muted-foreground">
                             {(d.sizeBytes / 1024).toFixed(1)} KB
@@ -665,10 +759,58 @@ export default async function ProjectDetailPage({
                           <TableCell className="text-muted-foreground">
                             {d.uploadedBy} on {formatDateTime(d.uploadedAt)}
                           </TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex items-center justify-end gap-1">
+                              {canEditRecords && (
+                                <RecordEditDialog
+                                  endpoint={`/api/documents/${d.id}`}
+                                  title="Refile this document"
+                                  description="Correct how the document is filed. The stored file itself is never replaced — upload a new version to supersede it."
+                                  trigger={
+                                    <Button variant="ghost" size="sm" className="h-7 w-7 p-0" title="Refile">
+                                      <Icon icon="mdi:pencil-outline" width={15} />
+                                    </Button>
+                                  }
+                                  fields={[
+                                    {
+                                      name: "category",
+                                      label: "Category",
+                                      type: "select",
+                                      value: d.category,
+                                      options: DOCUMENT_CATEGORIES.map((c) => ({
+                                        value: c,
+                                        label: DOCUMENT_CATEGORY_META[c].label,
+                                      })),
+                                      hint: "Which category the document is filed under. Changing it can satisfy or un-satisfy a stage requirement.",
+                                    },
+                                    {
+                                      name: "fileName",
+                                      label: "File name",
+                                      type: "text",
+                                      value: d.fileName,
+                                    },
+                                  ]}
+                                />
+                              )}
+                              <RecordHistory
+                                entityType="DOCUMENT"
+                                entityId={d.id}
+                                projectId={project.id}
+                                label={d.fileName}
+                                variant="icon"
+                              />
+                            </div>
+                          </TableCell>
                         </TableRow>
-                        <TableRow key={`${d.id}-insights`}>
-                          <TableCell colSpan={4} className="py-1">
-                            <DocumentInsights
+                        <TableRow>
+                          <TableCell colSpan={5} className="py-1">
+                            <DocumentIngestPanel
+                              projectId={project.id}
+                              documentId={d.id}
+                              category={d.category}
+                              alreadyIngested={ingestedDocumentIds.has(d.id)}
+                              canIngestParcel={canEditGeometry}
+                              canIngestFamily={canManageFamilies}
                               extraction={extractDocumentFields({
                                 documentId: d.id,
                                 fileName: d.fileName,
@@ -679,11 +821,14 @@ export default async function ProjectDetailPage({
                                 projectPurpose: project.purpose,
                                 state: project.state,
                                 district: project.district,
+                                alignment,
+                                knownVillages,
+                                knownSurveyNumbers,
                               })}
                             />
                           </TableCell>
                         </TableRow>
-                      </>
+                      </Fragment>
                     ))}
                   </TableBody>
                 </Table>

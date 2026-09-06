@@ -3,6 +3,7 @@ import type { LibSQLDatabase } from "drizzle-orm/libsql";
 import { db as defaultDb } from "./client";
 import * as schema from "./schema";
 import { ENTITLEMENT_TYPES, type EntitlementType } from "@/lib/entitlements";
+import type { AffectedFamilyBasis, FamilySource } from "@/lib/land-records";
 
 type Db = LibSQLDatabase<typeof schema>;
 
@@ -15,7 +16,13 @@ export interface CreateFamilyInput {
   memberCount: number;
   vulnerableGroup: boolean;
   contactPhone?: string;
+  contactEmail?: string;
   surveyedBy: string;
+  source?: FamilySource;
+  sourceDocumentId?: string;
+  entitlementBasis?: AffectedFamilyBasis;
+  aadhaarMasked?: string;
+  rationCardNumber?: string;
 }
 
 export interface FamilyEntitlement {
@@ -38,10 +45,16 @@ export interface FamilyWithEntitlements {
   memberCount: number;
   vulnerableGroup: boolean;
   contactPhone: string | null;
+  contactEmail: string | null;
   surveyedBy: string;
   surveyedAt: Date;
   deceasedAt: Date | null;
   successionNote: string | null;
+  source: string;
+  sourceDocumentId: string | null;
+  entitlementBasis: string | null;
+  aadhaarMasked: string | null;
+  rationCardNumber: string | null;
   entitlements: FamilyEntitlement[];
 }
 
@@ -58,8 +71,14 @@ export async function createFamilyWith(database: Db, input: CreateFamilyInput): 
     memberCount: input.memberCount,
     vulnerableGroup: input.vulnerableGroup,
     contactPhone: input.contactPhone ?? null,
+    contactEmail: input.contactEmail ?? null,
     surveyedBy: input.surveyedBy,
     surveyedAt: now,
+    source: input.source ?? "SIA_SURVEY",
+    sourceDocumentId: input.sourceDocumentId ?? null,
+    entitlementBasis: input.entitlementBasis ?? null,
+    aadhaarMasked: input.aadhaarMasked ?? null,
+    rationCardNumber: input.rationCardNumber ?? null,
   });
   await database.insert(schema.entitlements).values(
     ENTITLEMENT_TYPES.map((type) => ({
@@ -97,10 +116,16 @@ export async function listFamiliesForProjectWith(
         memberCount: f.memberCount,
         vulnerableGroup: f.vulnerableGroup,
         contactPhone: f.contactPhone,
+        contactEmail: f.contactEmail,
         surveyedBy: f.surveyedBy,
         surveyedAt: f.surveyedAt,
         deceasedAt: f.deceasedAt,
         successionNote: f.successionNote,
+        source: f.source,
+        sourceDocumentId: f.sourceDocumentId,
+        entitlementBasis: f.entitlementBasis,
+        aadhaarMasked: f.aadhaarMasked,
+        rationCardNumber: f.rationCardNumber,
         entitlements: entitlementRows.map((e) => ({
           id: e.id,
           type: e.type as EntitlementType,
@@ -158,7 +183,43 @@ export async function grantEntitlementWith(
     .where(eq(schema.entitlements.id, entitlementId));
 }
 
+/**
+ * Fields an officer is allowed to correct on a family already on the file.
+ *
+ * `source` and `sourceDocumentId` are absent on purpose: how a family entered
+ * the record is a historical fact about the file, not a settable property,
+ * and a titleholder read off a patta must not be able to be relabelled as an
+ * SIA-survey finding after the fact.
+ */
+export interface UpdateFamilyInput {
+  headOfHouseholdName?: string;
+  village?: string;
+  category?: string;
+  memberCount?: number;
+  vulnerableGroup?: boolean;
+  contactPhone?: string | null;
+  contactEmail?: string | null;
+  parcelId?: string | null;
+  entitlementBasis?: AffectedFamilyBasis | null;
+  rationCardNumber?: string | null;
+}
+
+export async function updateFamilyWith(
+  database: Db,
+  id: string,
+  input: UpdateFamilyInput
+): Promise<void> {
+  const patch: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(input)) {
+    if (value !== undefined) patch[key] = value;
+  }
+  if (Object.keys(patch).length === 0) return;
+  await database.update(schema.families).set(patch).where(eq(schema.families.id, id));
+}
+
 export const createFamily = (input: CreateFamilyInput) => createFamilyWith(defaultDb, input);
+export const updateFamily = (id: string, input: UpdateFamilyInput) =>
+  updateFamilyWith(defaultDb, id, input);
 export const listFamiliesForProject = (projectId: string) =>
   listFamiliesForProjectWith(defaultDb, projectId);
 export const getFamilyById = (id: string) => getFamilyByIdWith(defaultDb, id);

@@ -4,6 +4,8 @@ import { can } from "@/lib/rbac";
 import { advanceTenderStatus, getTenderById, TENDER_STATUSES } from "@/db/tenders";
 import { getProject } from "@/db/projects";
 import { canViewProject } from "@/lib/project-scope";
+import { withAudit } from "@/db/audit";
+import { clientIp } from "@/lib/request-context";
 
 const NEXT_STATUS: Record<string, string | undefined> = {
   AWARDED: "IN_PROGRESS",
@@ -11,7 +13,7 @@ const NEXT_STATUS: Record<string, string | undefined> = {
 };
 
 export async function POST(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await getSession();
@@ -34,6 +36,19 @@ export async function POST(
   if (!next) {
     return NextResponse.json({ error: `Cannot advance from ${tender.status}` }, { status: 400 });
   }
-  await advanceTenderStatus(id, next as (typeof TENDER_STATUSES)[number]);
+  await withAudit(
+    {
+      actor: { userId: session.userId, role: session.role },
+      action: "STATUS_CHANGE",
+      entityType: "TENDER",
+      entityId: id,
+      projectId: tender.projectId,
+      summary: `Tender "${tender.title}" moved from ${tender.status} to ${next}`,
+      ip: clientIp(request),
+      loadBefore: async () => ({ status: tender.status }),
+      loadAfter: async () => ({ status: next }),
+    },
+    () => advanceTenderStatus(id, next as (typeof TENDER_STATUSES)[number])
+  );
   return NextResponse.json({ status: next });
 }

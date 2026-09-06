@@ -25,6 +25,10 @@ import {
 } from "@/components/ui/table";
 import { Bilingual } from "@/components/bilingual";
 import { compensationTone, parcelStatusTone, toneBadgeClass } from "@/lib/status-colors";
+import { RecordHistory } from "@/components/record-history";
+import { RecordEditDialog } from "@/components/record-edit-dialog";
+import { LAND_CLASSIFICATIONS, landClassificationLabel } from "@/lib/land-records";
+import { PARCEL_STATUSES } from "@/lib/parcel-status";
 import { formatArea, formatCurrency, formatCurrencyCompact, formatDateTime } from "@/lib/format";
 
 export interface CompensationDetail {
@@ -50,6 +54,7 @@ export interface ParcelWithCompensation {
   surveyNumber: string | null;
   pattaNumber: string | null;
   status: string;
+  landClassification: string | null;
   withinImpact: boolean;
   compensation: CompensationDetail | null;
   ownerName?: string | null;
@@ -148,9 +153,13 @@ function AwardBreakdown({
 
 function ParcelDetailDialog({
   parcel,
+  projectId,
+  canEdit,
   onOpenChange,
 }: {
   parcel: ParcelWithCompensation | null;
+  projectId: string;
+  canEdit: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
   return (
@@ -245,6 +254,68 @@ function ParcelDetailDialog({
                   No compensation has been assessed for this parcel yet.
                 </p>
               )}
+
+              <div className="flex flex-wrap items-center gap-2 border-t pt-3">
+                {canEdit && (
+                  <RecordEditDialog
+                    endpoint={"/api/parcels/" + parcel.id}
+                    title={"Correct " + parcelLabel(parcel)}
+                    description="Correct the register entry for this plot. The boundary itself is redrawn on the map, not here, so it keeps the provenance of the document it came from."
+                    fields={[
+                      {
+                        name: "surveyNumber",
+                        label: "Survey number",
+                        type: "text",
+                        value: parcel.surveyNumber,
+                        hint: "How the plot is identified in the revenue record. A titleholder is matched to their land by this.",
+                      },
+                      { name: "pattaNumber", label: "Patta number", type: "text", value: parcel.pattaNumber },
+                      { name: "village", label: "Village", type: "text", value: parcel.village },
+                      {
+                        name: "areaHectares",
+                        label: "Extent (hectares)",
+                        type: "number",
+                        step: "0.0001",
+                        value: parcel.areaHectares,
+                        hint: "The award is computed from this. Changing it after an assessment does not recompute the award — reassess the parcel.",
+                      },
+                      {
+                        name: "landClassification",
+                        label: "Land classification",
+                        type: "select",
+                        value: parcel.landClassification ?? null,
+                        options: LAND_CLASSIFICATIONS.map((c) => ({
+                          value: c,
+                          label: landClassificationLabel(c),
+                        })),
+                        hint: "Nanjai/punjai drives guideline value, so this is not cosmetic.",
+                      },
+                      {
+                        name: "status",
+                        label: "Acquisition status",
+                        type: "select",
+                        value: parcel.status,
+                        options: PARCEL_STATUSES.map((st) => ({ value: st, label: st })),
+                        hint: "Normally advanced step by step through the workflow. Set it directly only to correct a mistake.",
+                      },
+                    ]}
+                  />
+                )}
+                <RecordHistory
+                  entityType="PARCEL"
+                  entityId={parcel.id}
+                  projectId={projectId}
+                  label={parcelLabel(parcel)}
+                />
+                {parcel.compensation && (
+                  <RecordHistory
+                    entityType="COMPENSATION"
+                    entityId={parcel.compensation.id}
+                    projectId={projectId}
+                    label={"Award for " + parcelLabel(parcel)}
+                  />
+                )}
+              </div>
             </div>
           </>
         )}
@@ -384,6 +455,7 @@ export function CompensationPanel({
   parcels,
   rateHistory,
   hasActiveStay,
+  canEdit = false,
 }: {
   projectId: string;
   canManageRate: boolean;
@@ -393,6 +465,7 @@ export function CompensationPanel({
   parcels: ParcelWithCompensation[];
   rateHistory: RateHistoryEntry[];
   hasActiveStay?: boolean;
+  canEdit?: boolean;
 }) {
   const router = useRouter();
   const [pending, setPending] = useState<string | null>(null);
@@ -684,6 +757,8 @@ export function CompensationPanel({
 
       <ParcelDetailDialog
         parcel={openParcel}
+        projectId={projectId}
+        canEdit={canEdit}
         onOpenChange={(open) => !open && setOpenParcel(null)}
       />
     </div>

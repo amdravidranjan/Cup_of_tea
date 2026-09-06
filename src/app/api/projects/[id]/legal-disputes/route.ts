@@ -4,6 +4,8 @@ import { can } from "@/lib/rbac";
 import { createLegalDispute, listLegalDisputesForProject } from "@/db/legal-disputes";
 import { getProject } from "@/db/projects";
 import { canViewProject } from "@/lib/project-scope";
+import { recordAudit } from "@/db/audit";
+import { clientIp } from "@/lib/request-context";
 
 export async function GET(
   _request: NextRequest,
@@ -53,7 +55,7 @@ export async function POST(
   if (!body.caseNumber || !body.court || !body.title || !body.filedDate || !body.summary) {
     return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
   }
-  const disputeId = await createLegalDispute({
+  const disputeInput = {
     projectId: id,
     caseNumber: body.caseNumber,
     court: body.court,
@@ -64,6 +66,26 @@ export async function POST(
     summary: body.summary,
     isStayOrder: body.isStayOrder ?? false,
     createdBy: session.userId,
+  };
+  const disputeId = await createLegalDispute(disputeInput);
+  await recordAudit({
+    actor: { userId: session.userId, role: session.role },
+    action: "CREATE",
+    entityType: "LEGAL_DISPUTE",
+    entityId: disputeId,
+    projectId: id,
+    summary: disputeInput.isStayOrder
+      ? `Logged case ${disputeInput.caseNumber} in ${disputeInput.court} WITH a stay order - compensation and possession now blocked`
+      : `Logged case ${disputeInput.caseNumber} in ${disputeInput.court}`,
+    ip: clientIp(request),
+    after: {
+      caseNumber: disputeInput.caseNumber,
+      court: disputeInput.court,
+      title: disputeInput.title,
+      partyName: disputeInput.partyName ?? null,
+      filedDate: disputeInput.filedDate,
+      isStayOrder: disputeInput.isStayOrder,
+    },
   });
   return NextResponse.json({ id: disputeId }, { status: 201 });
 }

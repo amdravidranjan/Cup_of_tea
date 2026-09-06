@@ -5,9 +5,11 @@ import { advanceParcelStatus, getParcel } from "@/db/parcels";
 import { getProject } from "@/db/projects";
 import { canViewProject } from "@/lib/project-scope";
 import { hasActiveStay } from "@/db/legal-disputes";
+import { withAudit } from "@/db/audit";
+import { clientIp } from "@/lib/request-context";
 
 export async function POST(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ parcelId: string }> }
 ) {
   const session = await getSession();
@@ -33,7 +35,20 @@ export async function POST(
     );
   }
   try {
-    const status = await advanceParcelStatus(parcelId);
+    const status = await withAudit(
+      {
+        actor: { userId: session.userId, role: session.role },
+        action: "STATUS_CHANGE",
+        entityType: "PARCEL",
+        entityId: parcelId,
+        projectId: parcel.projectId,
+        summary: `Advanced parcel ${parcel.surveyNumber ?? parcel.id} from ${parcel.status}`,
+        ip: clientIp(request),
+        loadBefore: async () => ({ status: parcel.status }),
+        loadAfter: async () => ({ status: (await getParcel(parcelId))?.status ?? null }),
+      },
+      () => advanceParcelStatus(parcelId)
+    );
     return NextResponse.json({ status });
   } catch (err) {
     return NextResponse.json({ error: (err as Error).message }, { status: 400 });

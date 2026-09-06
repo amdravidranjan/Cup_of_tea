@@ -3,6 +3,8 @@ import { getSession } from "@/lib/auth";
 import { can } from "@/lib/rbac";
 import { getProject } from "@/db/projects";
 import { canViewProject } from "@/lib/project-scope";
+import { recordAudit } from "@/db/audit";
+import { clientIp } from "@/lib/request-context";
 import { listParcels } from "@/db/parcels";
 import { listCompensationsForProject } from "@/db/compensation";
 import { createDocument } from "@/db/documents";
@@ -83,5 +85,22 @@ export async function POST(
     uploadedBy: session.userId,
   });
 
+  await recordAudit({
+    actor: { userId: session.userId, role: session.role },
+    action: "CREATE",
+    entityType: "DOCUMENT",
+    entityId: docId,
+    projectId: id,
+    summary: `Generated ${GENERATED_DOCUMENT_TITLES[body.type]} for "${project.name}"`,
+    ip: clientIp(request),
+    after: {
+      fileName,
+      category: body.type,
+      mimeType: "application/pdf",
+      sizeBytes,
+      issuedBy: session.name,
+      generatedAtStage: project.stage,
+    },
+  });
   return NextResponse.json({ id: docId }, { status: 201 });
 }

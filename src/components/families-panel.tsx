@@ -38,6 +38,15 @@ import {
   type FamilyCategory,
 } from "@/lib/entitlements";
 import { toneBadgeClass } from "@/lib/status-colors";
+import { RecordHistory } from "@/components/record-history";
+import { RecordEditDialog } from "@/components/record-edit-dialog";
+import {
+  AFFECTED_FAMILY_BASES,
+  AFFECTED_FAMILY_BASIS_LABELS,
+  affectedFamilyBasisLabel,
+  familySourceLabel,
+  type AffectedFamilyBasis,
+} from "@/lib/land-records";
 
 interface Entitlement {
   id: string;
@@ -49,6 +58,16 @@ interface Entitlement {
   note: string | null;
 }
 
+/** The plot a family holds, as it reads in the revenue record. */
+export interface LinkedParcel {
+  id: string;
+  surveyNumber: string | null;
+  pattaNumber: string | null;
+  village: string;
+  areaHectares: number;
+  status: string;
+}
+
 interface Family {
   id: string;
   headOfHouseholdName: string;
@@ -57,11 +76,17 @@ interface Family {
   memberCount: number;
   vulnerableGroup: boolean;
   contactPhone?: string | null;
+  contactEmail?: string | null;
   parcelId?: string | null;
   surveyedBy?: string | null;
   surveyedAt?: Date | string | null;
   deceasedAt?: Date | string | null;
   successionNote?: string | null;
+  source?: string | null;
+  sourceDocumentId?: string | null;
+  entitlementBasis?: string | null;
+  aadhaarMasked?: string | null;
+  rationCardNumber?: string | null;
   entitlements: Entitlement[];
 }
 
@@ -73,10 +98,18 @@ function entitlementTone(status: string): "pending" | "success" {
 
 function FamilyDetailDialog({
   family,
+  parcel,
+  projectId,
+  canEdit,
+  parcelOptions,
   open,
   onClose,
 }: {
   family: Family | null;
+  parcel: LinkedParcel | null;
+  projectId: string;
+  canEdit: boolean;
+  parcelOptions: LinkedParcel[];
   open: boolean;
   onClose: () => void;
 }) {
@@ -125,17 +158,71 @@ function FamilyDetailDialog({
 
             {family.contactPhone && (
               <div>
-                <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Contact</span>
-                <p className="font-medium text-sm mt-0.5">{family.contactPhone}</p>
+                <span className="text-muted-foreground">Contact (WhatsApp)</span>
+                <p className="font-medium">{family.contactPhone}</p>
               </div>
             )}
-            {family.parcelId && (
+            {family.contactEmail && (
               <div>
-                <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Linked parcel</span>
-                <p className="font-mono text-xs mt-0.5">{family.parcelId}</p>
+                <span className="text-muted-foreground">Email</span>
+                <p className="font-medium">{family.contactEmail}</p>
               </div>
             )}
+            {parcel ? (
+              <>
+                <div>
+                  <span className="text-muted-foreground">Survey number</span>
+                  <p className="font-medium">{parcel.surveyNumber ?? "Not recorded"}</p>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Patta number</span>
+                  <p className="font-medium">{parcel.pattaNumber ?? "Not recorded"}</p>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Extent held</span>
+                  <p className="font-medium">{parcel.areaHectares} ha</p>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Parcel status</span>
+                  <p className="font-medium">{parcel.status}</p>
+                </div>
+              </>
+            ) : (
+              <div className="col-span-2 rounded-md border border-dashed p-2 text-xs text-muted-foreground">
+                No plot is linked to this household. A titleholder without a survey number
+                cannot be matched to a land record - link a parcel, or record the basis on
+                which they qualify without one.
+              </div>
+            )}
+            {family.aadhaarMasked && (
+              <div>
+                <span className="text-muted-foreground">Aadhaar</span>
+                <p className="font-medium">{family.aadhaarMasked}</p>
+              </div>
+            )}
+            {family.rationCardNumber && (
+              <div>
+                <span className="text-muted-foreground">Ration card</span>
+                <p className="font-medium">{family.rationCardNumber}</p>
+              </div>
+            )}
+            <div>
+              <span className="text-muted-foreground">How this family was identified</span>
+              <p className="font-medium">{familySourceLabel(family.source)}</p>
+            </div>
           </div>
+
+          {/* Why this household counts as affected at all. For anyone who is
+              not the titleholder this is the entire basis of the claim. */}
+          {family.entitlementBasis && (
+            <div className="rounded-lg border bg-muted/40 p-3 text-xs">
+              <p className="font-semibold uppercase tracking-wide text-muted-foreground">
+                Basis for entitlement
+              </p>
+              <p className="mt-1">{affectedFamilyBasisLabel(family.entitlementBasis)}</p>
+            </div>
+          )}
+
           {/* Succession */}
           {family.deceasedAt && (
             <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-amber-900">
@@ -192,6 +279,62 @@ function FamilyDetailDialog({
               RFCTLARR Act 2013, Second Schedule — entitlements for affected families
               including housing, employment, subsistence, and transportation.
             </p>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2 border-t pt-3">
+            {canEdit && (
+              <RecordEditDialog
+                endpoint={"/api/families/" + family.id}
+                title={"Correct the record for " + family.headOfHouseholdName}
+                fields={[
+                  { name: "headOfHouseholdName", label: "Head of household", type: "text", value: family.headOfHouseholdName },
+                  { name: "village", label: "Village", type: "text", value: family.village },
+                  {
+                    name: "category",
+                    label: "Category",
+                    type: "select",
+                    value: family.category,
+                    options: FAMILY_CATEGORIES.map((c) => ({
+                      value: c,
+                      label: (FAMILY_CATEGORY_LABELS as Record<string, string>)[c] ?? c,
+                    })),
+                  },
+                  { name: "memberCount", label: "Household size", type: "number", value: family.memberCount },
+                  { name: "vulnerableGroup", label: "Vulnerable group (SC/ST/BPL)", type: "boolean", value: family.vulnerableGroup },
+                  { name: "contactPhone", label: "Contact number", type: "text", value: family.contactPhone ?? null },
+                  { name: "contactEmail", label: "Email", type: "text", value: family.contactEmail ?? null },
+                  {
+                    name: "parcelId",
+                    label: "Linked parcel",
+                    type: "select",
+                    value: family.parcelId ?? null,
+                    options: parcelOptions.map((p) => ({
+                      value: p.id,
+                      label: (p.surveyNumber ?? "no survey no.") + " — " + p.village + " (" + p.areaHectares + " ha)",
+                    })),
+                    hint: "The plot this household holds. Only parcels on this project can be linked.",
+                  },
+                  {
+                    name: "entitlementBasis",
+                    label: "Basis for entitlement",
+                    type: "select",
+                    value: family.entitlementBasis ?? null,
+                    options: AFFECTED_FAMILY_BASES.map((b) => ({
+                      value: b,
+                      label: AFFECTED_FAMILY_BASIS_LABELS[b],
+                    })),
+                    hint: "The limb of s.3(c) that makes this household an affected family. For a non-titleholder this is the whole basis of the claim.",
+                  },
+                  { name: "rationCardNumber", label: "Ration card", type: "text", value: family.rationCardNumber ?? null },
+                ]}
+              />
+            )}
+            <RecordHistory
+              entityType="FAMILY"
+              entityId={family.id}
+              projectId={projectId}
+              label={family.headOfHouseholdName}
+            />
           </div>
         </div>
       </DialogContent>
@@ -264,6 +407,12 @@ function NewFamilyForm({ projectId }: { projectId: string }) {
   const router = useRouter();
   const [pending, setPending] = useState(false);
   const [category, setCategory] = useState<FamilyCategory>("landowner");
+  // Titleholders now arrive by reading a patta extract, so a family entered
+  // by hand is usually someone the land record does not name — a tenant,
+  // labourer or long-standing resident. Their basis under s.3(c) has to be
+  // recorded, because it is the only thing justifying their entitlement.
+  const [entitlementBasis, setEntitlementBasis] =
+    useState<AffectedFamilyBasis>("S3C_II_LIVELIHOOD");
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -271,6 +420,7 @@ function NewFamilyForm({ projectId }: { projectId: string }) {
     const formData = new FormData(event.currentTarget);
     const vulnerableGroup = formData.get("vulnerableGroup") === "on";
     const contactPhone = formData.get("contactPhone");
+    const contactEmail = formData.get("contactEmail");
     const res = await fetch(`/api/projects/${projectId}/families`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -281,6 +431,8 @@ function NewFamilyForm({ projectId }: { projectId: string }) {
         memberCount: Number(formData.get("memberCount")),
         vulnerableGroup,
         contactPhone: contactPhone ? String(contactPhone) : undefined,
+        contactEmail: contactEmail ? String(contactEmail) : undefined,
+        entitlementBasis,
       }),
     });
     const body = (await res.json()) as { error?: string };
@@ -324,8 +476,35 @@ function NewFamilyForm({ projectId }: { projectId: string }) {
         <Input id="memberCount" name="memberCount" type="number" min="1" required />
       </div>
       <div className="space-y-1">
-        <Label htmlFor="contactPhone">Contact phone (optional)</Label>
-        <Input id="contactPhone" name="contactPhone" />
+        <Label htmlFor="contactPhone">WhatsApp number (optional)</Label>
+        <Input id="contactPhone" name="contactPhone" placeholder="e.g. 98765 43210" />
+      </div>
+      <div className="space-y-1">
+        <Label htmlFor="contactEmail">Email (optional)</Label>
+        <Input id="contactEmail" name="contactEmail" type="email" placeholder="family@example.com" />
+      </div>
+      <div className="space-y-1 sm:col-span-2">
+        <Label htmlFor="entitlementBasis">Basis for entitlement — RFCTLARR s.3(c)</Label>
+        <Select
+          value={entitlementBasis}
+          onValueChange={(v) => setEntitlementBasis(v as AffectedFamilyBasis)}
+        >
+          <SelectTrigger id="entitlementBasis">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {AFFECTED_FAMILY_BASES.map((b) => (
+              <SelectItem key={b} value={b}>
+                {AFFECTED_FAMILY_BASIS_LABELS[b]}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <p className="text-xs text-muted-foreground">
+          Families named on a patta are registered by reading the land record. Use this form for
+          those the record does not name — tenants, share-croppers, labourers and residents who
+          are still affected families under the Act.
+        </p>
       </div>
       <div className="flex items-center gap-2 self-end pb-2">
         <input id="vulnerableGroup" name="vulnerableGroup" type="checkbox" className="h-4 w-4" />
@@ -413,13 +592,17 @@ function SuccessionForm({ familyId, onDone }: { familyId: string; onDone: () => 
 export function FamiliesPanel({
   projectId,
   families,
+  parcels = [],
   canManage,
   canGrant,
+  canEdit = false,
 }: {
   projectId: string;
   families: Family[];
+  parcels?: LinkedParcel[];
   canManage: boolean;
   canGrant: boolean;
+  canEdit?: boolean;
 }) {
   const router = useRouter();
   const [successionOpenFor, setSuccessionOpenFor] = useState<string | null>(null);
@@ -518,6 +701,11 @@ export function FamiliesPanel({
                       Vulnerable group
                     </Badge>
                   )}
+                  {family.source === "LAND_RECORD" && (
+                    <Badge variant="outline" className="border-blue-300 bg-blue-50 text-blue-900">
+                      From land record
+                    </Badge>
+                  )}
                   {family.deceasedAt && (
                     <Badge variant="outline" className="border-amber-300 bg-amber-50 text-amber-900">
                       Succession recorded
@@ -572,6 +760,14 @@ export function FamiliesPanel({
 
       <FamilyDetailDialog
         family={selectedFamily}
+        parcel={
+          selectedFamily?.parcelId
+            ? (parcels.find((p) => p.id === selectedFamily.parcelId) ?? null)
+            : null
+        }
+        projectId={projectId}
+        canEdit={canEdit}
+        parcelOptions={parcels}
         open={selectedFamily !== null}
         onClose={() => setSelectedFamily(null)}
       />

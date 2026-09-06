@@ -4,6 +4,8 @@ import { can } from "@/lib/rbac";
 import { getParcel } from "@/db/parcels";
 import { getProject, getStageHistory } from "@/db/projects";
 import { canViewProject } from "@/lib/project-scope";
+import { recordAudit } from "@/db/audit";
+import { clientIp } from "@/lib/request-context";
 import { getCurrentCompensationRate, createCompensation } from "@/db/compensation";
 import { calculateCompensation, resolveCompensationDates } from "@/lib/compensation";
 
@@ -58,9 +60,10 @@ export async function POST(
     awardDate: dates.awardDate,
   });
 
+  const projectId = body.projectId;
   const id = await createCompensation({
     parcelId,
-    projectId: body.projectId,
+    projectId,
     ratePerHectare: rate.ratePerHectare,
     multiplier: rate.multiplier,
     assetsValue: body.assetsValue,
@@ -70,6 +73,29 @@ export async function POST(
     interest: breakdown.interest,
     total: breakdown.total,
     assessedBy: session.userId,
+  });
+  // The whole award is recorded, not just the total: a challenge under
+  // s.26-30 is argued over the individual components, and the rate and
+  // multiplier in force at the moment of assessment can change later.
+  await recordAudit({
+    actor: { userId: session.userId, role: session.role },
+    action: "CREATE",
+    entityType: "COMPENSATION",
+    entityId: id,
+    projectId,
+    summary: `Assessed ${breakdown.total} for parcel ${parcel.surveyNumber ?? parcel.id} (${parcel.areaHectares} ha)`,
+    ip: clientIp(request),
+    after: {
+      parcelId,
+      ratePerHectare: rate.ratePerHectare,
+      multiplier: rate.multiplier,
+      assetsValue: body.assetsValue,
+      marketValue: breakdown.marketValue,
+      multipliedMarketValue: breakdown.multipliedMarketValue,
+      solatium: breakdown.solatium,
+      interest: breakdown.interest,
+      total: breakdown.total,
+    },
   });
   return NextResponse.json({ id, breakdown }, { status: 201 });
 }

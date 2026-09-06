@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import {
   MapLibreMap,
   NavigationControl,
+  FullscreenControl,
   ScaleControl,
   setWorkerUrl,
   type GeoJSONSource,
@@ -22,9 +23,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import type { Geometry, PolygonGeometry, Position } from "@/lib/geo";
-import { polygonAreaHectares } from "@/lib/geo";
+import { polygonAreaHectares, computeBbox } from "@/lib/geo";
 import { PARCEL_STATUSES, type ParcelStatus } from "@/lib/parcel-status";
-import { SATELLITE_TILE_URL } from "@/components/project-map";
+import { SATELLITE_SOURCE_CONFIG, VECTOR_STYLE_URL } from "@/lib/tile-cache";
+import { RecenterControl } from "@/lib/map-controls";
 
 let workerUrlConfigured = false;
 function ensureWorkerUrlConfigured() {
@@ -74,6 +76,23 @@ export function GeometryEditor({
   const suggestedArea = mode === "parcel" && points.length >= 3 ? polygonAreaHectares(points) : 0;
   const area = areaOverride ?? suggestedArea;
 
+  const recenterFnRef = useRef<() => void>(() => {});
+
+  const handleRecenter = useCallback(() => {
+    const map = mapRef.current;
+    if (!map) return;
+    const geoms: Geometry[] = [];
+    if (alignment) geoms.push(alignment);
+    for (const p of parcels) geoms.push(p.geometry);
+    if (geoms.length === 0) return;
+    const bounds = computeBbox(geoms);
+    map.fitBounds(bounds, { padding: 50, duration: 800 });
+  }, [alignment, parcels]);
+
+  useEffect(() => {
+    recenterFnRef.current = handleRecenter;
+  }, [handleRecenter]);
+
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return;
     ensureWorkerUrlConfigured();
@@ -89,12 +108,14 @@ export function GeometryEditor({
 
     const map = new MapLibreMap({
       container: containerRef.current,
-      style: "https://tiles.openfreemap.org/styles/liberty",
+      style: VECTOR_STYLE_URL,
       center,
       zoom: 13,
     });
     mapRef.current = map;
     map.addControl(new NavigationControl(), "top-right");
+    map.addControl(new FullscreenControl(), "top-right");
+    map.addControl(new RecenterControl(() => recenterFnRef.current()), "top-right");
     map.addControl(new ScaleControl({ unit: "metric" }), "bottom-right");
 
     // Live coordinate readout. Drawing a boundary against a basemap is
@@ -107,13 +128,7 @@ export function GeometryEditor({
       // Satellite basemap beneath the vector style: a parcel boundary has to
       // be drawn against what is actually on the ground (field bunds, roads,
       // structures), which the road-map style does not show.
-      map.addSource("satellite", {
-        type: "raster",
-        tiles: [SATELLITE_TILE_URL],
-        tileSize: 256,
-        maxzoom: 19,
-        attribution: "Esri, Maxar, Earthstar Geographics",
-      });
+      map.addSource("satellite", SATELLITE_SOURCE_CONFIG);
       // Added with no beforeId, so it sits ON TOP of the vector basemap.
       // Inserting it underneath instead hides it completely: the OpenFreeMap
       // style's first layer is an opaque background fill. The draft geometry
@@ -356,6 +371,31 @@ export function GeometryEditor({
             ? `${cursor[1].toFixed(6)}° N, ${cursor[0].toFixed(6)}° E`
             : "Move the cursor over the map for coordinates"}
         </div>
+
+        {/* Recenter button */}
+        <button
+          type="button"
+          onClick={() => {
+            const map = mapRef.current;
+            if (!map) return;
+            const geoms: Geometry[] = [];
+            if (alignment) geoms.push(alignment);
+            for (const p of parcels) geoms.push(p.geometry);
+            if (geoms.length === 0) return;
+            const bounds = computeBbox(geoms);
+            map.fitBounds(bounds, { padding: 50, duration: 800 });
+          }}
+          title="Recenter map"
+          className="absolute right-3 top-[7.5rem] z-10 flex h-[29px] w-[29px] items-center justify-center rounded border bg-background shadow-sm hover:bg-accent"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="3" />
+            <line x1="12" y1="2" x2="12" y2="6" />
+            <line x1="12" y1="18" x2="12" y2="22" />
+            <line x1="2" y1="12" x2="6" y2="12" />
+            <line x1="18" y1="12" x2="22" y2="12" />
+          </svg>
+        </button>
       </div>
 
       {points.length > 0 && (

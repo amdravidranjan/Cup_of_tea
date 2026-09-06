@@ -24,7 +24,14 @@ export type Permission =
   | "gram-sabha:manage"
   | "land-bank:manage"
   | "notice-draft:manage"
-  | "encroachment:review";
+  | "encroachment:review"
+  // Reading the audit trail is a supervisory act, not an editing one: an
+  // officer who can change a record is not automatically the person who
+  // should be able to review who else changed it.
+  | "audit:view"
+  // Correcting a record already on the file, as distinct from creating one.
+  // Every edit demands a written reason and lands in the audit trail.
+  | "record:edit";
 
 const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
   // "project:transition" here is the coarse gate ("can this role attempt
@@ -37,6 +44,7 @@ const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
     "document:upload",
     "project:geometry:edit",
     "tender:manage",
+    "record:edit",
   ],
   district: [
     "project:create",
@@ -62,6 +70,8 @@ const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
     "land-bank:manage",
     "notice-draft:manage",
     "encroachment:review",
+    "audit:view",
+    "record:edit",
   ],
   state: [
     "project:view:all",
@@ -73,12 +83,15 @@ const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
     "conflict:review",
     "land-bank:manage",
     "encroachment:review",
+    "audit:view",
+    "record:edit",
   ],
   central: [
     "project:view:all",
     "project:transition",
     "conflict:review",
     "encroachment:review",
+    "audit:view",
   ],
   field: [
     "project:view:own",

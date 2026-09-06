@@ -3,6 +3,8 @@ import { getSession } from "@/lib/auth";
 import { can } from "@/lib/rbac";
 import { getProject } from "@/db/projects";
 import { canViewProject } from "@/lib/project-scope";
+import { recordAudit, withAudit } from "@/db/audit";
+import { clientIp } from "@/lib/request-context";
 import { getCurrentCompensationRate, setCompensationRate } from "@/db/compensation";
 
 export async function GET(
@@ -42,12 +44,30 @@ export async function POST(
   if (typeof body.ratePerHectare !== "number" || typeof body.multiplier !== "number") {
     return NextResponse.json({ error: "Invalid rate" }, { status: 400 });
   }
-  const rateId = await setCompensationRate({
+  const rateInput = {
     state: project.state,
     district: project.district,
     ratePerHectare: body.ratePerHectare,
     multiplier: body.multiplier,
     setBy: session.userId,
+  };
+  // The rate is the single input every award in the district is computed
+  // from, so who set it and to what is the first thing a challenge asks.
+  const rateId = await setCompensationRate(rateInput);
+  await recordAudit({
+    actor: { userId: session.userId, role: session.role },
+    action: "CREATE",
+    entityType: "COMPENSATION_RATE",
+    entityId: rateId,
+    projectId: id,
+    summary: `Set the ${project.district} rate to ${rateInput.ratePerHectare}/ha at multiplier ${rateInput.multiplier}`,
+    ip: clientIp(request),
+    after: {
+      state: rateInput.state,
+      district: rateInput.district,
+      ratePerHectare: rateInput.ratePerHectare,
+      multiplier: rateInput.multiplier,
+    },
   });
   return NextResponse.json({ id: rateId }, { status: 201 });
 }

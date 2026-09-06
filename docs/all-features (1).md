@@ -78,7 +78,7 @@ white project-identity section, and seven tabs.
 
 ### Community tab
 - **Gram Sabha (village council) consultation records** — date, village, attendance count, minutes, and resolution, tied to the project. Real, structured record — not just a free-text form.
-- **Multi-channel notifications to affected families** — voice call, email, SMS, and postal notice, each logged with a status. *Voice/Email/SMS are simulated* (no telephony/SMTP/SMS provider is connected — this is a demo). *Postal is the one channel with something real behind it*: it can carry an id of a real generated PDF document, plus a real tracking-id field and delivery-status field that staff update once the physical notice is actually sent.
+- **Multi-channel notifications to affected families** — voice call, email, SMS, WhatsApp, and postal notice, each logged with a status. **Email and WhatsApp are real** (see `docs/NOTIFICATIONS.md`): sent via the sender's own Gmail account and the sender's own WhatsApp number (no company API key for either), using the family's contact details on file, with the actual send result (SENT/FAILED, and the reason if it failed) recorded in the log — not simulated. *Voice call and SMS remain simulated* (no telephony/SMS provider is connected). *Postal is the one channel with a real physical artifact behind it*: it can carry an id of a real generated PDF document, plus a real tracking-id field and delivery-status field that staff update once the physical notice is actually sent.
 
 ### Documents tab
 - Document checklist (required vs. uploaded), upload form, auto-generate statutory documents
@@ -118,9 +118,11 @@ including the ones added in this pass.
 
 Being direct about this, since it matters for anyone evaluating the system:
 
-- **Voice calls, SMS, and email** to affected families are logged with a
-  realistic status lifecycle but nothing is actually dialed, texted, or
-  emailed — there's no telephony/SMS/SMTP provider connected.
+- **Voice calls and SMS** to affected families are logged with a realistic
+  status lifecycle but nothing is actually dialed or texted — there's no
+  telephony/SMS provider connected. **Email and WhatsApp are the exception:
+  both actually send** (Gmail via the sender's own account, WhatsApp via
+  the sender's own linked number) — see `docs/NOTIFICATIONS.md`.
 - **Satellite encroachment checking** and the **AI risk score** / **AI land
   rate prediction** / **AI document extraction** are deterministic,
   explainable formulas over this app's own real data — not trained models

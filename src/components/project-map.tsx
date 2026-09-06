@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import {
   MapLibreMap,
   NavigationControl,
@@ -11,9 +11,15 @@ import {
 } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import type { Geometry, PolygonGeometry } from "@/lib/geo";
-import { IMPACT_BUFFER_METERS } from "@/lib/geo";
+import { IMPACT_BUFFER_METERS, computeBbox } from "@/lib/geo";
 import { parcelStatusTone, toneHex } from "@/lib/status-colors";
 import { PARCEL_STATUSES } from "@/lib/parcel-status";
+import {
+  SATELLITE_TILE_URL as _SATELLITE_TILE_URL,
+  SATELLITE_SOURCE_CONFIG,
+  VECTOR_STYLE_URL,
+} from "@/lib/tile-cache";
+import { RecenterControl } from "@/lib/map-controls";
 
 // v6 requires this one-time call for every bundler — import.meta.url
 // doesn't reliably resolve to the worker file inside a bundler's module
@@ -44,10 +50,9 @@ interface ParcelFeature {
 const ALIGNMENT_COLOR = "#2563eb";
 const IMPACT_OUTLINE_COLOR = "#ea580c";
 
-// Esri World Imagery: free, keyless satellite/aerial basemap (Esri, Maxar,
-// Earthstar Geographics — attribution required, shown in the legend).
-export const SATELLITE_TILE_URL =
-  "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}";
+// Re-export from tile-cache so existing imports from other components
+// continue to work without changing their import paths.
+export const SATELLITE_TILE_URL = _SATELLITE_TILE_URL;
 
 function statusHex(status: string): string {
   return toneHex(parcelStatusTone(status));
@@ -66,6 +71,22 @@ export function ProjectMap({
   const [showParcels, setShowParcels] = useState(true);
   const [showImpact, setShowImpact] = useState(true);
   const [showSatellite, setShowSatellite] = useState(false);
+  const recenterFnRef = useRef<() => void>(() => {});
+
+  const handleRecenter = useCallback(() => {
+    const map = mapRef.current;
+    if (!map) return;
+    const geoms: Geometry[] = [];
+    if (alignment) geoms.push(alignment);
+    for (const p of parcels) geoms.push(p.geometry);
+    if (geoms.length === 0) return;
+    const bounds = computeBbox(geoms);
+    map.fitBounds(bounds, { padding: 50, duration: 800 });
+  }, [alignment, parcels]);
+
+  useEffect(() => {
+    recenterFnRef.current = handleRecenter;
+  }, [handleRecenter]);
 
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return;
@@ -83,32 +104,18 @@ export function ProjectMap({
 
     const map = new MapLibreMap({
       container: containerRef.current,
-      // OpenFreeMap: free, keyless, full OSM detail (roads, buildings,
-      // labels) — demotiles.maplibre.org is a bare placeholder tileset
-      // with no street-level content, never meant for real use.
-      style: "https://tiles.openfreemap.org/styles/liberty",
+      style: VECTOR_STYLE_URL,
       center,
       zoom: 12,
     });
     mapRef.current = map;
     map.addControl(new NavigationControl(), "top-right");
     map.addControl(new FullscreenControl(), "top-right");
+    map.addControl(new RecenterControl(() => recenterFnRef.current()), "top-right");
     map.addControl(new ScaleControl({ unit: "metric" }), "bottom-right");
 
     map.on("load", () => {
-      map.addSource("satellite", {
-        type: "raster",
-        tiles: [SATELLITE_TILE_URL],
-        tileSize: 256,
-        maxzoom: 19,
-        attribution: "Esri, Maxar, Earthstar Geographics",
-      });
-      // No beforeId: appends on top of the vector basemap's own layers
-      // (which is everything that currently exists at this point in
-      // `load`) but every alignment/parcel layer added below will stack
-      // on top of this one in turn — satellite ends up sandwiched
-      // between the base map and this project's own overlays, exactly
-      // where a basemap swap belongs.
+      map.addSource("satellite", SATELLITE_SOURCE_CONFIG);
       map.addLayer({
         id: "satellite-raster",
         type: "raster",

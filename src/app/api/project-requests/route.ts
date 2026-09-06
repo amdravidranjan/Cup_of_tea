@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
 import { can } from "@/lib/rbac";
 import { createProjectRequest, listProjectRequests } from "@/db/project-requests";
+import { recordAudit } from "@/db/audit";
+import { clientIp } from "@/lib/request-context";
 
 interface CreateBody {
   title?: string;
@@ -38,6 +40,23 @@ export async function POST(request: NextRequest) {
     village: body.village,
     requesterName: body.requesterName,
     requesterContact: body.requesterContact,
+  });
+  await recordAudit({
+    actor: { userId: "public", role: "citizen" },
+    action: "CREATE",
+    entityType: "PROJECT_REQUEST",
+    entityId: id,
+    summary: `Citizen ${body.requesterName} requested "${body.title}" in ${body.district}, ${body.state}`,
+    ip: clientIp(request),
+    after: {
+      title: body.title,
+      purpose: body.purpose,
+      state: body.state,
+      district: body.district,
+      village: body.village ?? null,
+      requesterName: body.requesterName,
+      status: "SUBMITTED",
+    },
   });
   return NextResponse.json({ trackingNumber: id }, { status: 201 });
 }

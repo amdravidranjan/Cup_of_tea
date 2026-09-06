@@ -4,7 +4,10 @@ import { can } from "@/lib/rbac";
 import { createFamily, listFamiliesForProject } from "@/db/families";
 import { getProject } from "@/db/projects";
 import { canViewProject } from "@/lib/project-scope";
+import { recordAudit, withAudit } from "@/db/audit";
+import { clientIp } from "@/lib/request-context";
 import { FAMILY_CATEGORIES } from "@/lib/entitlements";
+import { AFFECTED_FAMILY_BASES, type AffectedFamilyBasis } from "@/lib/land-records";
 
 export async function GET(
   _request: NextRequest,
@@ -30,7 +33,9 @@ interface CreateFamilyBody {
   memberCount?: number;
   vulnerableGroup?: boolean;
   contactPhone?: string;
+  contactEmail?: string;
   parcelId?: string;
+  entitlementBasis?: string;
 }
 
 export async function POST(
@@ -60,8 +65,14 @@ export async function POST(
   if (!body.memberCount || body.memberCount < 1) {
     return NextResponse.json({ error: "Member count must be at least 1" }, { status: 400 });
   }
+  if (
+    body.entitlementBasis &&
+    !AFFECTED_FAMILY_BASES.includes(body.entitlementBasis as AffectedFamilyBasis)
+  ) {
+    return NextResponse.json({ error: "Invalid entitlement basis" }, { status: 400 });
+  }
 
-  const familyId = await createFamily({
+  const familyInput = {
     projectId: id,
     parcelId: body.parcelId,
     headOfHouseholdName: body.headOfHouseholdName,
@@ -70,7 +81,32 @@ export async function POST(
     memberCount: body.memberCount,
     vulnerableGroup: body.vulnerableGroup ?? false,
     contactPhone: body.contactPhone,
+    contactEmail: body.contactEmail,
     surveyedBy: session.userId,
+    // Everything entered through this route was found by a person, not read
+    // off a land record — that is what the ingest route is for.
+    source: "SIA_SURVEY" as const,
+    entitlementBasis: body.entitlementBasis as AffectedFamilyBasis | undefined,
+  };
+  const familyId = await createFamily(familyInput);
+  await recordAudit({
+    actor: { userId: session.userId, role: session.role },
+    action: "CREATE",
+    entityType: "FAMILY",
+    entityId: familyId,
+    projectId: id,
+    summary: `Registered affected family ${familyInput.headOfHouseholdName} of ${familyInput.village} (${familyInput.memberCount} members)`,
+    ip: clientIp(request),
+    after: {
+      headOfHouseholdName: familyInput.headOfHouseholdName,
+      village: familyInput.village,
+      category: familyInput.category,
+      memberCount: familyInput.memberCount,
+      vulnerableGroup: familyInput.vulnerableGroup,
+      parcelId: familyInput.parcelId ?? null,
+      entitlementBasis: familyInput.entitlementBasis ?? null,
+      source: "SIA_SURVEY",
+    },
   });
   return NextResponse.json({ familyId });
 }

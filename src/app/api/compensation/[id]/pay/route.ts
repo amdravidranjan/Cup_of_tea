@@ -5,9 +5,11 @@ import { getCompensationById, markCompensationPaid } from "@/db/compensation";
 import { getProject } from "@/db/projects";
 import { canViewProject } from "@/lib/project-scope";
 import { hasActiveStay } from "@/db/legal-disputes";
+import { withAudit } from "@/db/audit";
+import { clientIp } from "@/lib/request-context";
 
 export async function POST(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await getSession();
@@ -32,6 +34,19 @@ export async function POST(
       { status: 409 }
     );
   }
-  await markCompensationPaid(id);
+  await withAudit(
+    {
+      actor: { userId: session.userId, role: session.role },
+      action: "PAY",
+      entityType: "COMPENSATION",
+      entityId: id,
+      projectId: compensation.projectId,
+      summary: `Recorded compensation payment of ${compensation.total} on parcel ${compensation.parcelId}`,
+      ip: clientIp(request),
+      loadBefore: async () => ({ ...(await getCompensationById(id)) }),
+      loadAfter: async () => ({ ...(await getCompensationById(id)) }),
+    },
+    () => markCompensationPaid(id)
+  );
   return NextResponse.json({ ok: true });
 }

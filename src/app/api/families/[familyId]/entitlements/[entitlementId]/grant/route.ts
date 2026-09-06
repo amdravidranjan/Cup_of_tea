@@ -4,6 +4,8 @@ import { can } from "@/lib/rbac";
 import { getFamilyById, grantEntitlement } from "@/db/families";
 import { getProject } from "@/db/projects";
 import { canViewProject } from "@/lib/project-scope";
+import { withAudit } from "@/db/audit";
+import { clientIp } from "@/lib/request-context";
 
 export async function POST(
   request: NextRequest,
@@ -29,12 +31,32 @@ export async function POST(
   if (typeof body.amount !== "number" || body.amount <= 0) {
     return NextResponse.json({ error: "Amount must be a positive number" }, { status: 400 });
   }
+  const amount = body.amount;
   try {
-    await grantEntitlement(entitlementId, {
-      amount: body.amount,
-      grantedBy: session.userId,
-      note: body.note,
-    });
+    await withAudit(
+      {
+        actor: { userId: session.userId, role: session.role },
+        action: "GRANT",
+        entityType: "ENTITLEMENT",
+        entityId: entitlementId,
+        projectId: family.projectId,
+        summary: `Granted entitlement of ${amount} to ${family.headOfHouseholdName}`,
+        reason: body.note ?? null,
+        ip: clientIp(request),
+        loadAfter: async () => ({
+          status: "GRANTED",
+          amount,
+          grantedBy: session.userId,
+          note: body.note ?? null,
+        }),
+      },
+      () =>
+        grantEntitlement(entitlementId, {
+          amount,
+          grantedBy: session.userId,
+          note: body.note,
+        })
+    );
     return NextResponse.json({ ok: true });
   } catch (err) {
     return NextResponse.json({ error: (err as Error).message }, { status: 400 });

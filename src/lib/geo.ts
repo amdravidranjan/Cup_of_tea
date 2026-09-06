@@ -143,3 +143,36 @@ export function computeParcelsWithImpact<T extends { geometry: PolygonGeometry }
       : false,
   }));
 }
+
+/**
+ * Computes a tight bounding box encompassing one or more geometries.
+ * Returns a [[minLng, minLat], [maxLng, maxLat]] pair suitable for
+ * passing directly to MapLibre's `fitBounds`.
+ */
+export function computeBbox(
+  geometries: Geometry[]
+): [[number, number], [number, number]] {
+  let minLng = Infinity;
+  let minLat = Infinity;
+  let maxLng = -Infinity;
+  let maxLat = -Infinity;
+
+  for (const geom of geometries) {
+    const positions: Position[] =
+      geom.type === "LineString"
+        ? geom.coordinates
+        : geom.coordinates.flat();
+
+    for (const [lng, lat] of positions) {
+      if (lng < minLng) minLng = lng;
+      if (lng > maxLng) maxLng = lng;
+      if (lat < minLat) minLat = lat;
+      if (lat > maxLat) maxLat = lat;
+    }
+  }
+
+  return [
+    [minLng, minLat],
+    [maxLng, maxLat],
+  ];
+}

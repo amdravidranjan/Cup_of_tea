@@ -4,6 +4,8 @@ import { can } from "@/lib/rbac";
 import { approveNoticeDraft, getNoticeDraftById } from "@/db/notice-drafts";
 import { getProject } from "@/db/projects";
 import { canViewProject } from "@/lib/project-scope";
+import { withAudit } from "@/db/audit";
+import { clientIp } from "@/lib/request-context";
 
 export async function POST(
   request: NextRequest,
@@ -29,6 +31,23 @@ export async function POST(
   if (!body.editedText) {
     return NextResponse.json({ error: "Missing editedText" }, { status: 400 });
   }
-  await approveNoticeDraft(id, { editedText: body.editedText, approvedBy: session.userId });
+  const editedText = body.editedText;
+  // The point of the human-in-the-loop step is that a person is accountable
+  // for the wording that goes out, so the text as approved is recorded
+  // against the text that was drafted.
+  await withAudit(
+    {
+      actor: { userId: session.userId, role: session.role },
+      action: "APPROVE",
+      entityType: "NOTICE_DRAFT",
+      entityId: id,
+      projectId: draft.projectId,
+      summary: "Approved the citizen notice draft",
+      ip: clientIp(request),
+      loadBefore: async () => ({ status: draft.status, draftText: draft.draftText }),
+      loadAfter: async () => ({ status: "APPROVED", draftText: editedText, approvedBy: session.userId }),
+    },
+    () => approveNoticeDraft(id, { editedText, approvedBy: session.userId })
+  );
   return NextResponse.json({ ok: true });
 }

@@ -5,6 +5,7 @@ import { parcels } from "./schema";
 import * as schema from "./schema";
 import { nextParcelStatus, type ParcelStatus } from "@/lib/parcel-status";
 import type { PolygonGeometry } from "@/lib/geo";
+import type { BoundaryMethod, LandClassification } from "@/lib/land-records";
 
 type Db = LibSQLDatabase<typeof schema>;
 
@@ -16,6 +17,9 @@ export interface CreateParcelInput {
   geometry: PolygonGeometry;
   surveyNumber?: string;
   pattaNumber?: string;
+  boundaryMethod?: BoundaryMethod;
+  sourceDocumentId?: string;
+  landClassification?: LandClassification;
 }
 
 export interface Parcel {
@@ -28,6 +32,9 @@ export interface Parcel {
   createdAt: Date;
   surveyNumber: string | null;
   pattaNumber: string | null;
+  boundaryMethod: string | null;
+  sourceDocumentId: string | null;
+  landClassification: string | null;
 }
 
 function toParcel(row: {
@@ -40,6 +47,9 @@ function toParcel(row: {
   createdAt: Date;
   surveyNumber: string | null;
   pattaNumber: string | null;
+  boundaryMethod: string | null;
+  sourceDocumentId: string | null;
+  landClassification: string | null;
 }): Parcel {
   return {
     id: row.id,
@@ -51,6 +61,9 @@ function toParcel(row: {
     createdAt: row.createdAt,
     surveyNumber: row.surveyNumber,
     pattaNumber: row.pattaNumber,
+    boundaryMethod: row.boundaryMethod,
+    sourceDocumentId: row.sourceDocumentId,
+    landClassification: row.landClassification,
   };
 }
 
@@ -69,8 +82,21 @@ export async function createParcelWith(
     createdAt: new Date(),
     surveyNumber: input.surveyNumber ?? null,
     pattaNumber: input.pattaNumber ?? null,
+    boundaryMethod: input.boundaryMethod ?? null,
+    sourceDocumentId: input.sourceDocumentId ?? null,
+    landClassification: input.landClassification ?? null,
   });
   return id;
+}
+
+/** Attaches the record-of-rights identifiers to a parcel once a patta
+ *  extract for it has been read. */
+export async function setParcelPattaNumberWith(
+  database: Db,
+  id: string,
+  pattaNumber: string
+): Promise<void> {
+  await database.update(parcels).set({ pattaNumber }).where(eq(parcels.id, id));
 }
 
 export async function listParcelsWith(database: Db, projectId: string): Promise<Parcel[]> {
@@ -97,7 +123,41 @@ export async function advanceParcelStatusWith(database: Db, id: string): Promise
   return next;
 }
 
+/**
+ * Fields an officer is allowed to correct on a parcel already on the file.
+ *
+ * Geometry is deliberately absent: a boundary is redrawn through the map
+ * editor, which carries its own provenance (`boundaryMethod`,
+ * `sourceDocumentId`), and letting it be patched as a plain field would
+ * quietly detach a plot from the document that justifies its shape.
+ */
+export interface UpdateParcelInput {
+  village?: string;
+  surveyNumber?: string | null;
+  pattaNumber?: string | null;
+  areaHectares?: number;
+  landClassification?: string | null;
+  status?: ParcelStatus;
+}
+
+export async function updateParcelWith(
+  database: Db,
+  id: string,
+  input: UpdateParcelInput
+): Promise<void> {
+  const patch: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(input)) {
+    if (value !== undefined) patch[key] = value;
+  }
+  if (Object.keys(patch).length === 0) return;
+  await database.update(parcels).set(patch).where(eq(parcels.id, id));
+}
+
 export const createParcel = (input: CreateParcelInput) => createParcelWith(defaultDb, input);
+export const updateParcel = (id: string, input: UpdateParcelInput) =>
+  updateParcelWith(defaultDb, id, input);
+export const setParcelPattaNumber = (id: string, pattaNumber: string) =>
+  setParcelPattaNumberWith(defaultDb, id, pattaNumber);
 export const listParcels = (projectId: string) => listParcelsWith(defaultDb, projectId);
 export const getParcel = (id: string) => getParcelWith(defaultDb, id);
 export const advanceParcelStatus = (id: string) => advanceParcelStatusWith(defaultDb, id);

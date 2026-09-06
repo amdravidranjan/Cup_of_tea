@@ -49,7 +49,12 @@ export default async function Project3DPage({
           <CardTitle className="text-sm font-medium">Draped satellite + real terrain</CardTitle>
         </CardHeader>
         <CardContent>
-          <Project3DView alignment={alignment} parcels={parcelsWithImpact} />
+          <Project3DView
+            alignment={alignment}
+            parcels={parcelsWithImpact}
+            projectName={project.name}
+            projectPurpose={project.purpose ?? ""}
+          />
         </CardContent>
       </Card>
     </div>

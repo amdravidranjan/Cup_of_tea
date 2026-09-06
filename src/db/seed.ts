@@ -26,6 +26,7 @@ import { saveElevationProfile } from "./elevation";
 import { surveyNumberFor, pattaNumberFor } from "@/lib/land-records";
 import { ENTITLEMENT_TYPES } from "@/lib/entitlements";
 import type { DocumentCategory } from "@/lib/document-categories";
+import { fetchOSMFeatures, findCorridorCrossings, findGridEdges } from "@/lib/osm-features";
 import { INFRASTRUCTURE_ITEMS } from "@/lib/infrastructure";
 
 /**
@@ -239,6 +240,22 @@ async function createSeedProject(input: SeedProjectInput): Promise<SeededParcel[
     setBy: "u-district-1",
   });
 
+  // Fetch real-world features from OSM to shape parcel boundaries.
+  // The bbox is computed from the geometry's extent with a small buffer.
+  const allCoords: [number, number][] = input.geometry.type === "LineString"
+    ? input.geometry.coordinates as [number, number][]
+    : (input.geometry.coordinates[0] as [number, number][]);
+  const lngs = allCoords.map(c => c[0]);
+  const lats = allCoords.map(c => c[1]);
+  const osmBbox: [number, number, number, number] = [
+    Math.min(...lngs) - 0.01,
+    Math.min(...lats) - 0.01,
+    Math.max(...lngs) + 0.01,
+    Math.max(...lats) + 0.01,
+  ];
+  console.log(`  fetching OSM features for ${input.name}...`);
+  const osmFeatures = await fetchOSMFeatures(osmBbox);
+
   const generated =
     input.parcelGenerator.kind === "corridor"
       ? generateCorridorParcels(input.geometry as LineGeometry, {
@@ -247,11 +264,17 @@ async function createSeedProject(input: SeedProjectInput): Promise<SeededParcel[
           maxSegmentMeters: 80,
           villages: input.parcelGenerator.villages,
           seed: input.seed,
+          osmCrossings: findCorridorCrossings(
+            (input.geometry as LineGeometry).coordinates as [number, number][],
+            (input.parcelGenerator.rowWidthMeters ?? 45) / 2,
+            osmFeatures
+          ),
         })
       : generateGridParcels(input.geometry as PolygonGeometry, {
           targetParcelHectares: input.parcelGenerator.targetParcelHectares ?? 1.2,
           villages: input.parcelGenerator.villages,
           seed: input.seed,
+          osmEdges: findGridEdges(osmFeatures),
         });
 
   const now = new Date();
@@ -571,10 +594,11 @@ async function seedInfraForProject(
   completedFraction: number,
 ): Promise<void> {
   const completedCount = Math.round(count * completedFraction);
+  const rows = [];
   for (let i = 0; i < count; i++) {
     const item = INFRA_ITEMS[i % INFRA_ITEMS.length];
     const isComplete = i < completedCount;
-    await db.insert(infrastructureItems).values({
+    rows.push({
       id: crypto.randomUUID(),
       projectId,
       item,
@@ -582,6 +606,9 @@ async function seedInfraForProject(
       completedBy: isComplete ? "u-district-1" : null,
       completedAt: isComplete ? monthsAgo(1 + (i % 3)) : null,
     });
+  }
+  if (rows.length > 0) {
+    await db.insert(infrastructureItems).values(rows);
   }
 }
 
@@ -593,8 +620,9 @@ async function seedGramSabhaForProject(
   villages: string[],
   count: number,
 ): Promise<void> {
+  const rows = [];
   for (let i = 0; i < count; i++) {
-    await db.insert(gramSabhaConsultations).values({
+    rows.push({
       id: crypto.randomUUID(),
       projectId,
       village: villages[i % villages.length],
@@ -605,6 +633,9 @@ async function seedGramSabhaForProject(
       recordedBy: "u-district-1",
       createdAt: monthsAgo(6 + i * 2),
     });
+  }
+  if (rows.length > 0) {
+    await db.insert(gramSabhaConsultations).values(rows);
   }
 }
 
@@ -618,10 +649,11 @@ async function seedNotificationsForFamilies(
 ): Promise<void> {
   const channels = ["SMS", "VOICE", "POST", "EMAIL"];
   const statuses = ["SENT", "DELIVERED", "DELIVERED", "FAILED"]; // mostly delivered
+  const rows = [];
   for (let i = 0; i < familyIds.length; i++) {
     for (let c = 0; c < channelsPerFamily && c < channels.length; c++) {
       const channel = channels[c];
-      await db.insert(notificationLog).values({
+      rows.push({
         id: crypto.randomUUID(),
         familyId: familyIds[i],
         projectId,
@@ -635,6 +667,9 @@ async function seedNotificationsForFamilies(
         updatedAt: monthsAgo(1.5 + (i % 2)),
       });
     }
+  }
+  if (rows.length > 0) {
+    await db.insert(notificationLog).values(rows);
   }
 }
 
@@ -826,18 +861,28 @@ async function main() {
     const alignment: LineGeometry = {
       type: "LineString",
       coordinates: [
-        [82.61317, 18.72248],
-        [82.6224, 18.72031],
+        [82.7464, 18.7319],
+        [82.7616, 18.7348],
       ],
     };
     await setProjectGeometry(projectId, alignment);
+
+    // Fetch OSM features for realistic parcel edges
+    console.log("  fetching OSM features for Koraput Bridge...");
+    const bridgeOsm = await fetchOSMFeatures([82.74, 18.71, 82.78, 18.76]);
+    const bridgeCrossings = findCorridorCrossings(
+      alignment.coordinates as [number, number][],
+      22.5,
+      bridgeOsm
+    );
 
     const generated = generateCorridorParcels(alignment, {
       rowWidthMeters: 45,
       minSegmentMeters: 20,
       maxSegmentMeters: 80,
-      villages: ["Similiguda", "Kotpad"],
+      villages: ["Suku", "Koraput"],
       seed: 0,
+      osmCrossings: bridgeCrossings,
     });
     const bridgeVillageCounters = new Map<string, number>();
     const parcelRows = generated.map((p, globalIndex) => {
@@ -887,7 +932,27 @@ async function main() {
   // ═══════════════════════════════════════════════════════════════
   {
     const id = "p-tn-chennai-salem";
-    const alignment: LineGeometry = { type: "LineString", coordinates: [[78.3567, 12.5426], [78.43599, 12.41444], [78.4939, 12.2753]] };
+    const alignment: LineGeometry = {
+      type: "LineString",
+      coordinates: [
+        [78.3567, 12.5426],
+        [78.3682, 12.5284],
+        [78.3795, 12.5112],
+        [78.3910, 12.4925],
+        [78.4024, 12.4740],
+        [78.4145, 12.4538],
+        [78.4258, 12.4342],
+        [78.4360, 12.4144],
+        [78.4452, 12.3950],
+        [78.4538, 12.3745],
+        [78.4618, 12.3530],
+        [78.4702, 12.3325],
+        [78.4776, 12.3120],
+        [78.4839, 12.2985],
+        [78.4892, 12.2862],
+        [78.4939, 12.2753],
+      ],
+    };
     const parcelList = await createSeedProject({
       id,
       name: "Chennai–Salem Green Corridor Expressway",
@@ -1266,7 +1331,7 @@ async function main() {
   // ═══════════════════════════════════════════════════════════════
   {
     const id = "p-tn-tuticorin-rail";
-    const alignment: LineGeometry = { type: "LineString", coordinates: [[78.16, 8.75], [78.18, 8.78]] };
+    const alignment: LineGeometry = { type: "LineString", coordinates: [[78.138, 8.782], [78.158, 8.750]] };
     const parcelList = await createSeedProject({
       id, name: "Tuticorin Port Dedicated Freight Rail Link", purpose: "Rail connectivity to VOC Port",
       state: "Tamil Nadu", district: "Thoothukudi", createdBy: "u-agency-1", createdAt: monthsAgo(18),

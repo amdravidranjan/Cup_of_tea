@@ -4,6 +4,8 @@ import { can } from "@/lib/rbac";
 import { createDocument, listDocuments } from "@/db/documents";
 import { getProject } from "@/db/projects";
 import { canViewProject } from "@/lib/project-scope";
+import { recordAudit } from "@/db/audit";
+import { clientIp } from "@/lib/request-context";
 import { saveFile } from "@/lib/storage";
 import { DOCUMENT_CATEGORIES, type DocumentCategory } from "@/lib/document-categories";
 
@@ -63,6 +65,22 @@ export async function POST(
     sizeBytes,
     storagePath,
     uploadedBy: session.userId,
+  });
+  await recordAudit({
+    actor: { userId: session.userId, role: session.role },
+    action: "UPLOAD",
+    entityType: "DOCUMENT",
+    entityId: docId,
+    projectId: id,
+    summary: `Uploaded ${file.name} as ${category}`,
+    ip: clientIp(request),
+    after: {
+      fileName: file.name,
+      category,
+      mimeType: file.type || "application/octet-stream",
+      sizeBytes,
+      storagePath,
+    },
   });
   return NextResponse.json({ id: docId }, { status: 201 });
 }

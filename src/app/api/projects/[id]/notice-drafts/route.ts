@@ -5,6 +5,8 @@ import { createNoticeDraft, listNoticeDraftsForProject } from "@/db/notice-draft
 import { getFamilyById } from "@/db/families";
 import { getProject } from "@/db/projects";
 import { canViewProject } from "@/lib/project-scope";
+import { recordAudit } from "@/db/audit";
+import { clientIp } from "@/lib/request-context";
 import { draftCitizenNotice } from "@/lib/notice-template";
 
 export async function GET(
@@ -61,5 +63,17 @@ export async function POST(
     village,
   });
   const draftId = await createNoticeDraft({ projectId: id, familyId: body.familyId, draftText });
+  await recordAudit({
+    actor: { userId: session.userId, role: session.role },
+    action: "CREATE",
+    entityType: "NOTICE_DRAFT",
+    entityId: draftId,
+    projectId: id,
+    summary: familyName
+      ? `Drafted a citizen notice for ${familyName}`
+      : "Drafted a project-wide citizen notice",
+    ip: clientIp(request),
+    after: { familyId: body.familyId ?? null, status: "DRAFT", draftText },
+  });
   return NextResponse.json({ id: draftId, draftText }, { status: 201 });
 }

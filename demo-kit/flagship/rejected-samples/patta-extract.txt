@@ -1,0 +1,4 @@
+Patta 1247 Survey 112/2A R. Murugan 0.84 ha
+
+This is what the old demo shipped as a land record.
+No revenue office issues a .txt, and the platform now says so.

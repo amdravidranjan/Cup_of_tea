@@ -62,7 +62,8 @@ export async function createTestDb(): Promise<LibSQLDatabase<typeof schema>> {
       id TEXT PRIMARY KEY, project_id TEXT NOT NULL, village TEXT NOT NULL,
       area_hectares REAL NOT NULL, status TEXT NOT NULL,
       geometry_geo_json TEXT NOT NULL, created_at INTEGER NOT NULL,
-      survey_number TEXT, patta_number TEXT, site_photo_url TEXT
+      survey_number TEXT, patta_number TEXT, site_photo_url TEXT,
+      boundary_method TEXT, source_document_id TEXT, land_classification TEXT
     );
   `);
 
@@ -98,8 +99,11 @@ export async function createTestDb(): Promise<LibSQLDatabase<typeof schema>> {
       id TEXT PRIMARY KEY, project_id TEXT NOT NULL, parcel_id TEXT,
       head_of_household_name TEXT NOT NULL, village TEXT NOT NULL, category TEXT NOT NULL,
       member_count INTEGER NOT NULL, vulnerable_group INTEGER NOT NULL DEFAULT 0,
-      contact_phone TEXT, surveyed_by TEXT NOT NULL, surveyed_at INTEGER NOT NULL,
-      deceased_at INTEGER, succession_note TEXT
+      contact_phone TEXT, contact_email TEXT,
+      surveyed_by TEXT NOT NULL, surveyed_at INTEGER NOT NULL,
+      deceased_at INTEGER, succession_note TEXT,
+      source TEXT NOT NULL DEFAULT 'SIA_SURVEY', source_document_id TEXT,
+      entitlement_basis TEXT, aadhaar_masked TEXT, ration_card_number TEXT
     );
   `);
 
@@ -236,6 +240,16 @@ export async function createTestDb(): Promise<LibSQLDatabase<typeof schema>> {
       id TEXT PRIMARY KEY, project_id TEXT NOT NULL, family_id TEXT,
       draft_text TEXT NOT NULL, status TEXT NOT NULL DEFAULT 'DRAFT',
       approved_by TEXT, approved_at INTEGER, created_at INTEGER NOT NULL
+    );
+  `);
+
+  await db.run(sql`
+    CREATE TABLE audit_log (
+      id TEXT PRIMARY KEY, seq INTEGER NOT NULL, actor_id TEXT NOT NULL,
+      actor_role TEXT NOT NULL, action TEXT NOT NULL, entity_type TEXT NOT NULL,
+      entity_id TEXT NOT NULL, project_id TEXT, before TEXT, after TEXT,
+      reason TEXT, summary TEXT NOT NULL, ip TEXT,
+      prev_hash TEXT NOT NULL, hash TEXT NOT NULL, created_at INTEGER NOT NULL
     );
   `);
 
