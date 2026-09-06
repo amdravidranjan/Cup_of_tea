@@ -861,15 +861,15 @@ async function main() {
     const alignment: LineGeometry = {
       type: "LineString",
       coordinates: [
-        [82.7538, 18.7333],
-        [82.7612, 18.7347],
+        [82.7464, 18.7319],
+        [82.7616, 18.7348],
       ],
     };
     await setProjectGeometry(projectId, alignment);
 
     // Fetch OSM features for realistic parcel edges
     console.log("  fetching OSM features for Koraput Bridge...");
-    const bridgeOsm = await fetchOSMFeatures([82.75, 18.72, 82.78, 18.75]);
+    const bridgeOsm = await fetchOSMFeatures([82.74, 18.71, 82.78, 18.76]);
     const bridgeCrossings = findCorridorCrossings(
       alignment.coordinates as [number, number][],
       22.5,
@@ -1331,7 +1331,7 @@ async function main() {
   // ═══════════════════════════════════════════════════════════════
   {
     const id = "p-tn-tuticorin-rail";
-    const alignment: LineGeometry = { type: "LineString", coordinates: [[78.16, 8.75], [78.18, 8.78]] };
+    const alignment: LineGeometry = { type: "LineString", coordinates: [[78.138, 8.782], [78.158, 8.750]] };
     const parcelList = await createSeedProject({
       id, name: "Tuticorin Port Dedicated Freight Rail Link", purpose: "Rail connectivity to VOC Port",
       state: "Tamil Nadu", district: "Thoothukudi", createdBy: "u-agency-1", createdAt: monthsAgo(18),
