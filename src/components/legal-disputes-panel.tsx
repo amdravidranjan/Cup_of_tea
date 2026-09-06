@@ -1,13 +1,27 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useState, useMemo, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { Search, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -33,6 +47,112 @@ const NEXT_STATUS: Partial<Record<DisputeStatus, DisputeStatus>> = {
   STAYED: "HEARING",
 };
 
+const DISPUTE_STATUSES: DisputeStatus[] = ["FILED", "HEARING", "STAYED", "DISPOSED"];
+
+/* ── Dispute Detail Dialog ────────────────────────────────────────── */
+
+function DisputeDetailDialog({
+  dispute,
+  open,
+  onClose,
+}: {
+  dispute: LegalDispute | null;
+  open: boolean;
+  onClose: () => void;
+}) {
+  if (!dispute) return null;
+  return (
+    <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <span className="font-mono">{dispute.caseNumber}</span>
+            <Badge variant="outline" className={toneBadgeClass(STATUS_TONE[dispute.status])}>
+              {dispute.status}
+            </Badge>
+          </DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4 text-sm">
+          <div>
+            <span className="text-muted-foreground">Title</span>
+            <p className="font-medium">{dispute.title}</p>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <span className="text-muted-foreground">Court</span>
+              <p className="font-medium">{dispute.court}</p>
+            </div>
+            {dispute.partyName && (
+              <div>
+                <span className="text-muted-foreground">Petitioner / Party</span>
+                <p className="font-medium">{dispute.partyName}</p>
+              </div>
+            )}
+            <div>
+              <span className="text-muted-foreground">Filed date</span>
+              <p className="font-medium">{formatDate(dispute.filedDate)}</p>
+            </div>
+            <div>
+              <span className="text-muted-foreground">Next hearing</span>
+              <p className="font-medium">
+                {dispute.nextHearingDate ? formatDate(dispute.nextHearingDate) : "Not scheduled"}
+              </p>
+            </div>
+          </div>
+
+          <div>
+            <span className="text-muted-foreground">Summary</span>
+            <p className="mt-1 whitespace-pre-wrap">{dispute.summary}</p>
+          </div>
+
+          {dispute.outcome && (
+            <div>
+              <span className="text-muted-foreground">Outcome</span>
+              <p className="mt-1 font-medium">{dispute.outcome}</p>
+            </div>
+          )}
+
+          {/* Stay order section */}
+          {dispute.isStayOrder && (
+            <div
+              className={`rounded-lg border p-3 ${
+                dispute.stayClearedAt
+                  ? "border-green-200 bg-green-50 text-green-900"
+                  : "border-red-200 bg-red-50 text-red-900"
+              }`}
+            >
+              <p className="font-semibold text-xs uppercase tracking-wide">
+                {dispute.stayClearedAt ? "Stay order — cleared" : "Stay order — active"}
+              </p>
+              <p className="mt-1">
+                {dispute.stayClearedAt
+                  ? "This stay order has been cleared. Compensation and possession actions are unblocked."
+                  : "This stay order blocks compensation payment and parcel possession actions on the project until it is logged as cleared."}
+              </p>
+            </div>
+          )}
+
+          {/* Legal basis */}
+          <div className="rounded-lg border border-blue-200 bg-blue-50 p-3 text-xs text-blue-900">
+            <p className="font-semibold">Legal basis</p>
+            <p>
+              RFCTLARR Act 2013, Sec 64–65 — disputes and references to court
+              regarding land acquisition proceedings.
+            </p>
+          </div>
+
+          <div className="text-xs text-muted-foreground">
+            Recorded by: {dispute.createdBy} · Created: {formatDate(dispute.createdAt)}
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+/* ── Main Panel ───────────────────────────────────────────────────── */
+
 export function LegalDisputesPanel({
   projectId,
   disputes,
@@ -46,8 +166,28 @@ export function LegalDisputesPanel({
   const [showForm, setShowForm] = useState(false);
   const [pending, setPending] = useState(false);
   const [updating, setUpdating] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [selectedDispute, setSelectedDispute] = useState<LegalDispute | null>(null);
 
   const activeStay = disputes.find((d) => d.isStayOrder && !d.stayClearedAt && d.status !== "DISPOSED");
+
+  const filtered = useMemo(() => {
+    return disputes.filter((d) => {
+      const q = search.toLowerCase();
+      if (
+        q &&
+        !d.caseNumber.toLowerCase().includes(q) &&
+        !d.title.toLowerCase().includes(q) &&
+        !(d.partyName ?? "").toLowerCase().includes(q) &&
+        !d.court.toLowerCase().includes(q)
+      ) {
+        return false;
+      }
+      if (statusFilter !== "all" && d.status !== statusFilter) return false;
+      return true;
+    });
+  }, [disputes, search, statusFilter]);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -133,9 +273,48 @@ export function LegalDisputesPanel({
         </div>
       )}
 
-      {disputes.length === 0 ? (
-        <p className="text-sm text-muted-foreground">
-          No litigation on record for this project.
+      {/* Search & Filter Bar */}
+      <div className="flex flex-wrap items-center gap-2">
+        <div className="relative flex-1 min-w-[200px]">
+          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search by case number, title, party…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="h-9 pl-9"
+          />
+          {search && (
+            <button
+              type="button"
+              onClick={() => setSearch("")}
+              className="absolute right-2 top-2.5 text-muted-foreground hover:text-foreground"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
+        </div>
+        <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <SelectTrigger className="h-9 w-[150px]">
+            <SelectValue placeholder="Status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All statuses</SelectItem>
+            {DISPUTE_STATUSES.map((s) => (
+              <SelectItem key={s} value={s}>{s}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      <p className="text-xs text-muted-foreground">
+        {filtered.length} of {disputes.length} disputes
+      </p>
+
+      {filtered.length === 0 ? (
+        <p className="text-sm text-muted-foreground py-4 text-center">
+          {disputes.length === 0
+            ? "No litigation on record for this project."
+            : "No disputes match your search."}
         </p>
       ) : (
         <Table>
@@ -150,12 +329,13 @@ export function LegalDisputesPanel({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {disputes.map((d) => {
+            {filtered.map((d) => {
               const urgent = d.status === "HEARING" || d.status === "FILED";
               return (
                 <TableRow
                   key={d.id}
-                  className={urgent ? "border-l-4 border-l-red-500" : undefined}
+                  className={`cursor-pointer hover:bg-muted/50 ${urgent ? "border-l-4 border-l-red-500" : ""}`}
+                  onClick={() => setSelectedDispute(d)}
                 >
                   <TableCell>
                     <div className="font-mono text-sm font-medium">{d.caseNumber}</div>
@@ -184,7 +364,7 @@ export function LegalDisputesPanel({
                     {d.nextHearingDate ? formatDate(d.nextHearingDate) : "—"}
                   </TableCell>
                   {canManage && (
-                    <TableCell>
+                    <TableCell onClick={(e) => e.stopPropagation()}>
                       {NEXT_STATUS[d.status] && (
                         <Button
                           type="button"
@@ -262,6 +442,12 @@ export function LegalDisputesPanel({
           )}
         </div>
       )}
+
+      <DisputeDetailDialog
+        dispute={selectedDispute}
+        open={selectedDispute !== null}
+        onClose={() => setSelectedDispute(null)}
+      />
     </div>
   );
 }
