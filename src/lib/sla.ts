@@ -100,7 +100,9 @@ export function computeSLAMetrics(
     ? new Date(Math.max(...(paidDates as Date[]).map((d) => d.getTime())))
     : null;
 
-  const rrAwardedAt = findByToStage(input.rrHistory, "RR_AWARDED");
+  const rrAwardedAt =
+    findByToStage(input.rrHistory, "RR_AWARDED") ??
+    findByToStage(input.stageHistory, "POSSESSION");
 
   const infrastructureItems = input.infrastructureItems ?? [];
   const infrastructureCompletedDates = infrastructureItems
