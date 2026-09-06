@@ -86,92 +86,109 @@ function FamilyDetailDialog({
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>{family.headOfHouseholdName}</DialogTitle>
+      <DialogContent className="w-[95vw] sm:max-w-4xl lg:max-w-5xl max-h-[90vh] overflow-y-auto p-6">
+        <DialogHeader className="pb-2 border-b">
+          <div className="flex flex-wrap items-center gap-2">
+            <DialogTitle className="text-xl font-bold">{family.headOfHouseholdName}</DialogTitle>
+            <Badge variant="outline" className="capitalize">
+              {(FAMILY_CATEGORY_LABELS as Record<string, string>)[family.category] ?? family.category}
+            </Badge>
+            {family.vulnerableGroup && (
+              <Badge variant="secondary" className="text-xs">
+                Vulnerable (SC/ST/BPL)
+              </Badge>
+            )}
+          </div>
         </DialogHeader>
-        <div className="space-y-4 text-sm">
-          {/* Identity */}
-          <div className="grid grid-cols-2 gap-3">
+
+        <div className="space-y-5 text-sm pt-2">
+          {/* Household & Land Record Information */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 p-4 rounded-lg bg-muted/30 border">
             <div>
-              <span className="text-muted-foreground">Village</span>
-              <p className="font-medium">{family.village}</p>
+              <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Village</span>
+              <p className="font-medium text-sm mt-0.5">{family.village}</p>
             </div>
             <div>
-              <span className="text-muted-foreground">Category</span>
-              <p className="font-medium">
+              <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Category</span>
+              <p className="font-medium text-sm mt-0.5">
                 {(FAMILY_CATEGORY_LABELS as Record<string, string>)[family.category] ?? family.category}
               </p>
             </div>
             <div>
-              <span className="text-muted-foreground">Household size</span>
-              <p className="font-medium">{family.memberCount} members</p>
+              <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Household size</span>
+              <p className="font-medium text-sm mt-0.5">{family.memberCount} members</p>
             </div>
             <div>
-              <span className="text-muted-foreground">Vulnerable group</span>
-              <p className="font-medium">{family.vulnerableGroup ? "Yes (SC/ST/BPL)" : "No"}</p>
+              <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Vulnerable group</span>
+              <p className="font-medium text-sm mt-0.5">{family.vulnerableGroup ? "Yes (SC/ST/BPL)" : "No"}</p>
             </div>
+
             {family.contactPhone && (
               <div>
-                <span className="text-muted-foreground">Contact</span>
-                <p className="font-medium">{family.contactPhone}</p>
+                <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Contact</span>
+                <p className="font-medium text-sm mt-0.5">{family.contactPhone}</p>
               </div>
             )}
             {family.parcelId && (
               <div>
-                <span className="text-muted-foreground">Linked parcel</span>
-                <p className="font-mono text-xs">{family.parcelId}</p>
+                <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Linked parcel</span>
+                <p className="font-mono text-xs mt-0.5">{family.parcelId}</p>
               </div>
             )}
           </div>
-
           {/* Succession */}
           {family.deceasedAt && (
             <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-amber-900">
               <p className="font-semibold text-xs uppercase tracking-wide">Succession recorded</p>
-              {family.successionNote && <p className="mt-1">{family.successionNote}</p>}
+              {family.successionNote && <p className="mt-1 text-sm">{family.successionNote}</p>}
             </div>
           )}
 
           {/* Entitlements table */}
           <div>
-            <p className="font-semibold text-xs uppercase tracking-wide text-muted-foreground mb-2">
-              Entitlements ({granted.length} granted, {pending.length} pending)
-            </p>
+            <div className="flex items-center justify-between mb-2">
+              <p className="font-semibold text-xs uppercase tracking-wide text-muted-foreground">
+                Entitlements ({granted.length} granted, {pending.length} pending)
+              </p>
+            </div>
             {family.entitlements.length === 0 ? (
-              <p className="text-muted-foreground">No entitlements registered.</p>
+              <p className="text-muted-foreground text-sm">No entitlements registered.</p>
             ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Type</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Amount</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {family.entitlements.map((e) => (
-                    <TableRow key={e.id}>
-                      <TableCell>{ENTITLEMENT_LABELS[e.type]}</TableCell>
-                      <TableCell>
-                        <Badge variant="outline" className={toneBadgeClass(entitlementTone(e.status))}>
-                          {e.status}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="font-mono">
-                        {e.amount != null ? `₹${e.amount.toLocaleString("en-IN")}` : "—"}
-                      </TableCell>
+              <div className="rounded-lg border overflow-hidden">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-muted/40">
+                      <TableHead className="w-[55%]">Type</TableHead>
+                      <TableHead className="w-[20%]">Status</TableHead>
+                      <TableHead className="w-[25%] text-right">Statutory Amount</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {family.entitlements.map((e) => (
+                      <TableRow key={e.id}>
+                        <TableCell className="font-medium text-sm py-3">
+                          {ENTITLEMENT_LABELS[e.type]}
+                        </TableCell>
+                        <TableCell className="py-3">
+                          <Badge variant="outline" className={toneBadgeClass(entitlementTone(e.status))}>
+                            {e.status}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="font-mono text-right font-medium text-sm py-3">
+                          {e.amount != null ? `₹${e.amount.toLocaleString("en-IN")}` : "—"}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
             )}
           </div>
 
           {/* Legal basis */}
-          <div className="rounded-lg border border-blue-200 bg-blue-50 p-3 text-xs text-blue-900">
+          <div className="rounded-lg border border-blue-200 bg-blue-50/70 p-3 text-xs text-blue-900">
             <p className="font-semibold">Legal basis</p>
-            <p>
+            <p className="mt-0.5">
               RFCTLARR Act 2013, Second Schedule — entitlements for affected families
               including housing, employment, subsistence, and transportation.
             </p>

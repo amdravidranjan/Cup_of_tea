@@ -1282,6 +1282,12 @@ async function main() {
     await seedProjectTransition(id, "PUBLISH_DECLARATION", "district", monthsAgo(16.0));
     await seedProjectTransition(id, "PASS_AWARD", "district", monthsAgo(14.0));
     await seedProjectTransition(id, "START_RR", "district", monthsAgo(13.9));
+    await seedRRTransition(id, "COMPLETE_SURVEY", "district", monthsAgo(13.5));
+    await seedRRTransition(id, "COMPLETE_SCHEME", "district", monthsAgo(13.0));
+    await seedRRTransition(id, "COMPLETE_HEARING", "district", monthsAgo(12.5));
+    await seedRRTransition(id, "SUBMIT_TO_COLLECTOR", "district", monthsAgo(12.0));
+    await seedRRTransition(id, "APPROVE_RR_SCHEME", "state", monthsAgo(11.0));
+    await seedRRTransition(id, "PASS_RR_AWARD", "district", monthsAgo(10.5));
     await seedProjectTransition(id, "COMPLETE_RR", "district", monthsAgo(10.0));
     await seedProjectTransition(id, "COMPLETE_INFRASTRUCTURE", "district", monthsAgo(8.0));
 

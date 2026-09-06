@@ -52,6 +52,7 @@ export interface ParcelWithCompensation {
   status: string;
   withinImpact: boolean;
   compensation: CompensationDetail | null;
+  ownerName?: string | null;
 }
 
 interface RateHistoryEntry {
@@ -174,6 +175,10 @@ function ParcelDetailDialog({
                 <div>
                   <dt className="text-xs text-muted-foreground">Patta number</dt>
                   <dd className="font-mono">{parcel.pattaNumber ?? "—"}</dd>
+                </div>
+                <div>
+                  <dt className="text-xs text-muted-foreground">Owner</dt>
+                  <dd>{parcel.ownerName ?? "—"}</dd>
                 </div>
                 <div>
                   <dt className="text-xs text-muted-foreground">Village</dt>

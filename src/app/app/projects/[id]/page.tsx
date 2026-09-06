@@ -121,18 +121,31 @@ export default async function ProjectDetailPage({
   const compensationByParcel = new Map(compensationList.map((c) => [c.parcelId, c]));
   // Audit columns store user ids; resolve them once so the UI shows people.
   const userMap = await getUserMap();
+  // The affected-family register is compiled during the SIA census (s.4-6)
+  // and grows as land records are read in, so it is loaded from day one. Only
+  // the R&R workflow below waits for the RR_IN_PROGRESS stage.
+  const families = await listFamiliesForProject(id);
+  const ownerByParcel = new Map<string, string>();
+  for (const f of families) {
+    if (f.parcelId && f.category === "landowner") {
+      ownerByParcel.set(f.parcelId, f.headOfHouseholdName);
+    }
+  }
+
   // The award breakdown is passed through in full rather than just the total:
   // the compensation table lets a user open any parcel and see exactly how its
   // figure was arrived at (market value x multiplier, assets, solatium,
   // interest), which is the part that has to be defensible to a landowner.
   const parcelsWithCompensation = parcelsWithImpact.map((p) => {
     const comp = compensationByParcel.get(p.id);
+    const owner = ownerByParcel.get(p.id) ?? null;
     return {
       id: p.id,
       village: p.village,
       areaHectares: p.areaHectares,
       surveyNumber: p.surveyNumber,
       pattaNumber: p.pattaNumber,
+      ownerName: owner,
       status: p.status,
       withinImpact: p.withinImpact,
       compensation: comp
@@ -155,11 +168,12 @@ export default async function ProjectDetailPage({
     };
   });
 
+  const isPastRR = STAGES.indexOf(currentStage) > STAGES.indexOf("RR_IN_PROGRESS");
   const showRRPanel = STAGES.indexOf(currentStage) >= STAGES.indexOf("RR_IN_PROGRESS");
-  const rrStage = showRRPanel ? await getRRStage(id) : null;
+  const rawRRStage = showRRPanel ? await getRRStage(id) : null;
+  const rrStage = isPastRR ? (rawRRStage ?? "RR_AWARDED") : rawRRStage;
   const rrHistory = showRRPanel ? await getRRHistory(id) : [];
-  const rrAvailableActions = showRRPanel ? getAvailableRRActions(rrStage, session.role) : [];
-  const families = showRRPanel ? await listFamiliesForProject(id) : [];
+  const rrAvailableActions = showRRPanel && !isPastRR ? getAvailableRRActions(rrStage, session.role) : [];
   const canManageFamilies = can(session.role, "family:manage");
   const canGrantEntitlements = can(session.role, "entitlement:grant");
 

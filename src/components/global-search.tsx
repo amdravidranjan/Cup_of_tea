@@ -53,7 +53,7 @@ export function GlobalSearch() {
         className="h-8 bg-background text-foreground"
       />
       {showDropdown && (
-        <div className="absolute right-0 top-full z-20 mt-1 max-h-96 w-80 overflow-y-auto rounded-lg border bg-popover p-2 text-popover-foreground shadow-md">
+        <div className="absolute right-0 top-full z-[1000] mt-1 max-h-96 w-80 overflow-y-auto rounded-lg border bg-popover p-2 text-popover-foreground shadow-lg">
           {totalResults === 0 ? (
             <p className="px-2 py-3 text-sm text-muted-foreground">No matches for &ldquo;{query}&rdquo;.</p>
           ) : (

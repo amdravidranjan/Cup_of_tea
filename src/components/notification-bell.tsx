@@ -77,7 +77,7 @@ export function NotificationBell() {
           )}
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-80">
+      <DropdownMenuContent align="end" className="w-80 z-[1000] shadow-xl">
         {events.length === 0 ? (
           <div className="px-2 py-4 text-center text-sm text-muted-foreground">
             No recent activity.
