@@ -15,6 +15,7 @@ import {
   SATELLITE_SOURCE_CONFIG,
   TERRAIN_SOURCE_CONFIG,
 } from "@/lib/tile-cache";
+import { RecenterControl } from "@/lib/map-controls";
 
 let workerUrlConfigured = false;
 function ensureWorkerUrlConfigured() {
@@ -212,6 +213,86 @@ function bufferLineToPolygon(
   return [...left, ...right.reverse(), left[0]];
 }
 
+function resampleLineString(coords: Position[], targetCount: number = 24): Position[] {
+  if (coords.length <= 2 && targetCount <= 2) return coords;
+  const cumDist: number[] = [0];
+  for (let i = 1; i < coords.length; i++) {
+    const [x1, y1] = coords[i - 1];
+    const [x2, y2] = coords[i];
+    const d = Math.hypot(x2 - x1, y2 - y1);
+    cumDist.push(cumDist[i - 1] + d);
+  }
+  const total = cumDist[cumDist.length - 1];
+  if (total === 0) return coords;
+
+  const count = Math.max(coords.length, targetCount);
+  const waypoints: Position[] = [];
+  for (let s = 0; s <= count; s++) {
+    const targetDist = (s / count) * total;
+    let seg = 0;
+    for (let i = 1; i < cumDist.length; i++) {
+      if (cumDist[i] >= targetDist) {
+        seg = i - 1;
+        break;
+      }
+    }
+    const segLen = cumDist[seg + 1] - cumDist[seg];
+    const t = segLen === 0 ? 0 : (targetDist - cumDist[seg]) / segLen;
+    const [x1, y1] = coords[seg];
+    const [x2, y2] = coords[seg + 1];
+    waypoints.push([x1 + (x2 - x1) * t, y1 + (y2 - y1) * t]);
+  }
+  return waypoints;
+}
+
+function computeCumulativeDistances(coords: Position[]): { cumDist: number[]; totalDist: number } {
+  const cumDist: number[] = [0];
+  for (let i = 1; i < coords.length; i++) {
+    const [x1, y1] = coords[i - 1];
+    const [x2, y2] = coords[i];
+    const meanLat = (((y1 + y2) / 2) * Math.PI) / 180;
+    const dx = (x2 - x1) * Math.cos(meanLat) * 111320;
+    const dy = (y2 - y1) * 110540;
+    cumDist.push(cumDist[i - 1] + Math.hypot(dx, dy));
+  }
+  return { cumDist, totalDist: cumDist[cumDist.length - 1] };
+}
+
+function interpolateAlongPath(coords: Position[], cumDist: number[], distMeters: number): Position {
+  const total = cumDist[cumDist.length - 1];
+  const target = Math.max(0, Math.min(total, distMeters));
+  let seg = 0;
+  for (let i = 1; i < cumDist.length; i++) {
+    if (cumDist[i] >= target) {
+      seg = i - 1;
+      break;
+    }
+  }
+  const segLen = cumDist[seg + 1] - cumDist[seg];
+  const t = segLen === 0 ? 0 : (target - cumDist[seg]) / segLen;
+  const [x1, y1] = coords[seg];
+  const [x2, y2] = coords[seg + 1];
+  return [x1 + (x2 - x1) * t, y1 + (y2 - y1) * t];
+}
+
+function computeLookaheadBearing(
+  coords: Position[],
+  cumDist: number[],
+  distMeters: number,
+  lookaheadMeters: number = 45
+): number {
+  const total = cumDist[cumDist.length - 1];
+  const currentPt = interpolateAlongPath(coords, cumDist, distMeters);
+  const targetDist = Math.min(total, distMeters + lookaheadMeters);
+  const targetPt = interpolateAlongPath(coords, cumDist, targetDist);
+  if (Math.hypot(targetPt[0] - currentPt[0], targetPt[1] - currentPt[1]) < 1e-7) {
+    const prevDist = Math.max(0, distMeters - lookaheadMeters);
+    const prevPt = interpolateAlongPath(coords, cumDist, prevDist);
+    return bearingBetween(prevPt, currentPt);
+  }
+  return bearingBetween(currentPt, targetPt);
+}
+
 // ── Speed presets ────────────────────────────────────────────────────
 const SPEED_PRESETS = [
   { label: "0.5×", value: 0.5 },
@@ -237,123 +318,27 @@ export function Project3DView({
   const [exaggeration, setExaggeration] = useState(1.5);
   const [isFlying, setIsFlying] = useState(false);
   const [status, setStatus] = useState<"loading" | "ready" | "error">("loading");
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [speed, setSpeed] = useState(1);
+  const speedRef = useRef(speed);
+  const animFrameRef = useRef<number | null>(null);
   const [flyProgress, setFlyProgress] = useState("");
   const flyAbortRef = useRef(false);
+  const recenterFnRef = useRef<() => void>(() => {});
+
+  useEffect(() => {
+    speedRef.current = speed;
+  }, [speed]);
+
+  useEffect(() => {
+    return () => {
+      if (animFrameRef.current !== null) {
+        cancelAnimationFrame(animFrameRef.current);
+      }
+    };
+  }, []);
 
   const assetKind = classifyProject(projectName, projectPurpose);
   const config = ASSET_CONFIG[assetKind];
-
-  // ── Cinematic fly-through (LineString: fly along, Polygon: orbit) ──
-  async function flyAlongAlignment() {
-    const map = mapRef.current;
-    if (!map || !alignment) return;
-    flyAbortRef.current = false;
-    setIsFlying(true);
-
-    try {
-      if (alignment.type === "LineString" && alignment.coordinates.length >= 2) {
-        const coords = alignment.coordinates;
-        const mid = coords[Math.floor(coords.length / 2)];
-        const totalSegments = coords.length - 1;
-
-        // Establish overview
-        await flyToAsync(map, {
-          center: mid,
-          zoom: 15,
-          pitch: 30,
-          bearing: 0,
-          duration: 1500 / speed,
-        });
-
-        // Fly along each segment
-        for (let i = 0; i < coords.length - 1; i++) {
-          if (flyAbortRef.current) break;
-          setFlyProgress(`Segment ${i + 1}/${totalSegments}`);
-          const bearing = bearingBetween(coords[i], coords[i + 1]);
-          // Gentle banking on turns
-          const bankOffset = i > 0
-            ? (bearingBetween(coords[i - 1], coords[i]) - bearing + 360) % 360
-            : 0;
-          const bank = bankOffset > 180 ? -(360 - bankOffset) * 0.02 : bankOffset * 0.02;
-
-          // Ease-in on first segment
-          const segDuration = i === 0 ? 2200 / speed : 2600 / speed;
-
-          await flyToAsync(map, {
-            center: coords[i],
-            zoom: 18,
-            pitch: 75,
-            bearing: bearing + bank,
-            duration: segDuration,
-          });
-          if (flyAbortRef.current) break;
-          await flyToAsync(map, {
-            center: coords[i + 1],
-            zoom: 18,
-            pitch: 75,
-            bearing: bearing + bank,
-            duration: 3200 / speed,
-          });
-        }
-
-        // Return to overview
-        if (!flyAbortRef.current) {
-          setFlyProgress("Returning…");
-          await flyToAsync(map, { center: mid, zoom: 15, pitch: 45, bearing: 0, duration: 2200 / speed });
-        }
-      } else if (alignment.type === "Polygon") {
-        // Orbit animation for polygon projects (airports, solar parks, etc.)
-        const centroid = polygonCentroid(alignment);
-        const totalSteps = 12;
-
-        setFlyProgress("Starting orbit…");
-        await flyToAsync(map, {
-          center: centroid,
-          zoom: 15,
-          pitch: 20,
-          bearing: 0,
-          duration: 1500 / speed,
-        });
-
-        for (let i = 0; i < totalSteps; i++) {
-          if (flyAbortRef.current) break;
-          setFlyProgress(`Orbit ${i + 1}/${totalSteps}`);
-          const bearing = (360 / totalSteps) * (i + 1);
-          const pitch = 60 + Math.sin((i / totalSteps) * Math.PI) * 15;
-          await flyToAsync(map, {
-            center: centroid,
-            zoom: 16.5,
-            pitch,
-            bearing,
-            duration: 2500 / speed,
-          });
-        }
-
-        if (!flyAbortRef.current) {
-          setFlyProgress("Returning…");
-          await flyToAsync(map, {
-            center: centroid,
-            zoom: 15,
-            pitch: 45,
-            bearing: 0,
-            duration: 2000 / speed,
-          });
-        }
-      }
-    } finally {
-      setIsFlying(false);
-      setFlyProgress("");
-    }
-  }
-
-  function stopFlight() {
-    flyAbortRef.current = true;
-    mapRef.current?.stop();
-    setIsFlying(false);
-    setFlyProgress("");
-  }
 
   const handleRecenter = useCallback(() => {
     const map = mapRef.current;
@@ -365,6 +350,172 @@ export function Project3DView({
     const bounds = computeBbox(geoms);
     map.fitBounds(bounds, { padding: 50, duration: 800 });
   }, [alignment, parcels]);
+
+  useEffect(() => {
+    recenterFnRef.current = handleRecenter;
+  }, [handleRecenter]);
+
+  // ── Cinematic road walkthrough & orbit animations (100% continuous, zero pauses) ──
+  async function flyAlongAlignment() {
+    const map = mapRef.current;
+    if (!map || !alignment) return;
+    if (animFrameRef.current !== null) {
+      cancelAnimationFrame(animFrameRef.current);
+      animFrameRef.current = null;
+    }
+    flyAbortRef.current = false;
+    setIsFlying(true);
+
+    try {
+      if (alignment.type === "LineString" && alignment.coordinates.length >= 2) {
+        const rawCoords = alignment.coordinates as Position[];
+        const waypoints = resampleLineString(rawCoords, Math.max(30, rawCoords.length * 3));
+        const { cumDist, totalDist } = computeCumulativeDistances(waypoints);
+        if (totalDist <= 0) return;
+
+        setFlyProgress("Aligning with road…");
+        const startBearing = computeLookaheadBearing(waypoints, cumDist, 0, 50);
+
+        await new Promise<void>((resolve) => {
+          map.flyTo({
+            center: waypoints[0],
+            zoom: 17.2,
+            pitch: 75,
+            bearing: startBearing,
+            duration: 1500,
+          });
+          map.once("moveend", () => resolve());
+        });
+
+        if (flyAbortRef.current) return;
+
+        // Smooth continuous 60fps walkthrough with zero pauses
+        let currentDist = 0;
+        let lastTime = performance.now();
+        const baseMetersPerSec = Math.max(35, totalDist / 25);
+
+        await new Promise<void>((resolve) => {
+          const loop = (now: number) => {
+            if (flyAbortRef.current) {
+              resolve();
+              return;
+            }
+            const dt = Math.min((now - lastTime) / 1000, 0.08);
+            lastTime = now;
+
+            currentDist += baseMetersPerSec * speedRef.current * dt;
+
+            if (currentDist >= totalDist) {
+              setFlyProgress("Walkthrough 100%");
+              resolve();
+              return;
+            }
+
+            const pct = Math.round((currentDist / totalDist) * 100);
+            setFlyProgress(`Walkthrough ${pct}%`);
+
+            const currentPt = interpolateAlongPath(waypoints, cumDist, currentDist);
+            const bearing = computeLookaheadBearing(waypoints, cumDist, currentDist, 50);
+
+            map.jumpTo({
+              center: currentPt,
+              bearing: bearing,
+              pitch: 75,
+              zoom: 17.4,
+            });
+
+            animFrameRef.current = requestAnimationFrame(loop);
+          };
+          animFrameRef.current = requestAnimationFrame(loop);
+        });
+
+        if (!flyAbortRef.current) {
+          setFlyProgress("Returning to overview…");
+          const mid = rawCoords[Math.floor(rawCoords.length / 2)];
+          await new Promise<void>((resolve) => {
+            map.easeTo({ center: mid, zoom: 15, pitch: 45, bearing: 0, duration: 2200 });
+            map.once("moveend", () => resolve());
+          });
+        }
+      } else if (alignment.type === "Polygon") {
+        const centroid = polygonCentroid(alignment);
+        setFlyProgress("Aligning orbit…");
+
+        await new Promise<void>((resolve) => {
+          map.flyTo({
+            center: centroid,
+            zoom: 15.5,
+            pitch: 58,
+            bearing: 0,
+            duration: 1500,
+          });
+          map.once("moveend", () => resolve());
+        });
+
+        if (flyAbortRef.current) return;
+
+        let currentAngle = 0;
+        let lastTime = performance.now();
+        const baseDegPerSec = 18; // 20s for full 360° at 1x
+
+        await new Promise<void>((resolve) => {
+          const loop = (now: number) => {
+            if (flyAbortRef.current) {
+              resolve();
+              return;
+            }
+            const dt = Math.min((now - lastTime) / 1000, 0.08);
+            lastTime = now;
+
+            currentAngle += baseDegPerSec * speedRef.current * dt;
+            if (currentAngle >= 360) {
+              setFlyProgress("Orbit 100%");
+              resolve();
+              return;
+            }
+
+            const pct = Math.round((currentAngle / 360) * 100);
+            setFlyProgress(`Orbit ${pct}%`);
+
+            const pitch = 58 + Math.sin((currentAngle * Math.PI) / 90) * 7;
+
+            map.jumpTo({
+              center: centroid,
+              bearing: currentAngle,
+              pitch,
+              zoom: 15.5,
+            });
+
+            animFrameRef.current = requestAnimationFrame(loop);
+          };
+          animFrameRef.current = requestAnimationFrame(loop);
+        });
+
+        if (!flyAbortRef.current) {
+          setFlyProgress("Returning…");
+          await new Promise<void>((resolve) => {
+            map.easeTo({ center: centroid, zoom: 15, pitch: 45, bearing: 0, duration: 2000 });
+            map.once("moveend", () => resolve());
+          });
+        }
+      }
+    } finally {
+      setIsFlying(false);
+      setFlyProgress("");
+    }
+  }
+
+  function stopFlight() {
+    flyAbortRef.current = true;
+    if (animFrameRef.current !== null) {
+      cancelAnimationFrame(animFrameRef.current);
+      animFrameRef.current = null;
+    }
+    mapRef.current?.stop();
+    setIsFlying(false);
+    setFlyProgress("");
+  }
+
 
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return;
@@ -385,14 +536,21 @@ export function Project3DView({
           satellite: SATELLITE_SOURCE_CONFIG,
           "terrain-dem": TERRAIN_SOURCE_CONFIG,
         },
-        layers: [{ id: "satellite", type: "raster", source: "satellite" }],
+        layers: [
+          {
+            id: "background",
+            type: "background",
+            paint: { "background-color": "#18221b" },
+          },
+          { id: "satellite", type: "raster", source: "satellite" },
+        ],
         sky: {
-          "sky-color": "#87ceeb",
-          "sky-horizon-blend": 0.5,
-          "horizon-color": "#fef3c7",
-          "horizon-fog-blend": 0.5,
-          "fog-color": "#d1e9ff",
-          "fog-ground-blend": 0.5,
+          "sky-color": "#38bdf8",
+          "sky-horizon-blend": 0.15,
+          "horizon-color": "#bae6fd",
+          "horizon-fog-blend": 0.1,
+          "fog-color": "#e0f2fe",
+          "fog-ground-blend": 0.05,
         },
       },
       center,
@@ -404,15 +562,18 @@ export function Project3DView({
     mapRef.current = map;
     map.addControl(new NavigationControl({ visualizePitch: true }), "top-right");
     map.addControl(new FullscreenControl(), "top-right");
+    map.addControl(new RecenterControl(() => recenterFnRef.current()), "top-right");
 
     map.on("error", (e) => {
-      console.error("3D view map error:", e.error);
-      setStatus("error");
-      setErrorMessage(e.error?.message ?? "Map tiles failed to load.");
+      console.warn("3D view tile notice (non-fatal):", e.error);
     });
 
     map.on("load", () => {
-      map.setTerrain({ source: "terrain-dem", exaggeration });
+      try {
+        map.setTerrain({ source: "terrain-dem", exaggeration });
+      } catch (err) {
+        console.warn("Terrain DEM unavailable (non-critical):", err);
+      }
 
       if (alignment) {
         map.addSource("alignment", {
@@ -435,8 +596,9 @@ export function Project3DView({
         }, "alignment-line");
 
         // 3D volume: buffer the alignment into a polygon and extrude it
-        // so the structure (bridge deck, road surface, viaduct) has 3D mass
-        if (alignment.type === "LineString" && alignment.coordinates.length >= 2) {
+        // For bridge projects, the procedural Three.js bridge model provides full 3D deck, piers, pylons and railings,
+        // so skip alignment-volume-extrusion to avoid Z-fighting and flickering polygons.
+        if (assetKind !== "bridge" && alignment.type === "LineString" && alignment.coordinates.length >= 2) {
           const buffered = bufferLineToPolygon(
             alignment.coordinates as [number, number][],
             10 // 10 meter half-width for the 3D volume
@@ -516,16 +678,20 @@ export function Project3DView({
       // Lazily load procedural 3D models after the map is ready
       // Using dynamic import so Three.js doesn't increase initial bundle
       import("@/components/three-model-layer").then(
-        ({ addProceduralModels, computeLinePlacements, computePolygonPlacement }) => {
+        ({ addProceduralModels, computeLinePlacements, computePolygonPlacement, computeBridgePlacements }) => {
           try {
             let placements: Parameters<typeof addProceduralModels>[2] = [];
 
             if (alignment?.type === "LineString") {
-              placements = computeLinePlacements(
-                alignment.coordinates,
-                600, // one model every 600m
-                0.8
-              );
+              if (assetKind === "bridge") {
+                placements = computeBridgePlacements(alignment.coordinates, 1.0);
+              } else {
+                placements = computeLinePlacements(
+                  alignment.coordinates,
+                  600, // one model every 600m
+                  0.8
+                );
+              }
             } else if (alignment?.type === "Polygon") {
               const placement = computePolygonPlacement(
                 alignment.coordinates[0],
@@ -569,23 +735,18 @@ export function Project3DView({
   return (
     <div className="space-y-2">
       <div className="relative h-[32rem] w-full overflow-hidden rounded-lg border">
-        <div ref={containerRef} style={{ position: "absolute", inset: 0 }} />
+        <div
+          ref={containerRef}
+          style={{ position: "absolute", inset: 0, backgroundColor: "#18221b" }}
+        />
 
         {status === "loading" && (
           <div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center bg-background/60">
             <p className="text-sm text-muted-foreground">Loading satellite imagery and terrain…</p>
           </div>
         )}
-        {status === "error" && (
-          <div className="absolute inset-0 z-20 flex items-center justify-center bg-background/90 p-6 text-center">
-            <p className="max-w-xs text-sm text-muted-foreground">
-              Couldn&apos;t load map tiles ({errorMessage}). This view needs a live connection to
-              Esri and AWS Open Data — check your network and reload.
-            </p>
-          </div>
-        )}
 
-        {/* Controls panel */}
+        {/* Controls panel (left top) */}
         <div className="absolute left-3 top-3 z-10 space-y-3 rounded-lg border bg-background/95 p-3 text-xs shadow-sm backdrop-blur">
           <div>
             <p className="font-semibold text-foreground">Terrain exaggeration</p>
@@ -607,9 +768,9 @@ export function Project3DView({
           </div>
         </div>
 
-        {/* Cinematic flight controls */}
+        {/* Cinematic flight & walkthrough controls (positioned at bottom right to avoid any button overlap) */}
         {alignment && (
-          <div className="absolute right-3 top-3 z-10 space-y-2 rounded-lg border bg-background/95 p-3 text-xs shadow-sm backdrop-blur">
+          <div className="absolute right-3 bottom-3 z-10 space-y-2 rounded-lg border bg-background/95 p-3 text-xs shadow-sm backdrop-blur">
             <div className="flex items-center gap-2">
               {!isFlying ? (
                 <button
@@ -656,22 +817,6 @@ export function Project3DView({
             )}
           </div>
         )}
-
-        {/* Recenter button */}
-        <button
-          type="button"
-          onClick={handleRecenter}
-          title="Recenter map"
-          className="absolute right-3 bottom-3 z-10 flex h-[29px] w-[29px] items-center justify-center rounded border bg-background shadow-sm hover:bg-accent"
-        >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="12" cy="12" r="3" />
-            <line x1="12" y1="2" x2="12" y2="6" />
-            <line x1="12" y1="18" x2="12" y2="22" />
-            <line x1="2" y1="12" x2="6" y2="12" />
-            <line x1="18" y1="12" x2="22" y2="12" />
-          </svg>
-        </button>
       </div>
       <p className="text-[11px] text-muted-foreground/70">
         Real terrain: AWS Open Data Terrarium elevation tiles draped under Esri satellite

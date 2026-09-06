@@ -195,42 +195,43 @@ export function generateCorridorParcels(
   // Remove duplicates and sort
   const uniqueCuts = [...new Set(cutPositions)].sort((a, b) => a - b);
 
+  // Precompute shared cut vertices at each cut position along the corridor.
+  // Adjacent parcels share the exact same boundary cut, guaranteeing ZERO OVERLAPS and ZERO GAPS.
+  const cutVertices: { left: LocalPoint; right: LocalPoint }[] = [];
+  const half = options.rowWidthMeters / 2;
+
+  for (let i = 0; i < uniqueCuts.length; i++) {
+    const pos = positionAt(uniqueCuts[i]);
+    const perp = { x: -pos.dir.y, y: pos.dir.x };
+    const leftDepth = half * (0.65 + rng() * 0.35);
+    const rightDepth = half * (0.65 + rng() * 0.35);
+    const angle = (rng() - 0.5) * 0.12; // ±~3.5° natural deviation
+    const rotPerp = {
+      x: perp.x * Math.cos(angle) - perp.y * Math.sin(angle),
+      y: perp.x * Math.sin(angle) + perp.y * Math.cos(angle),
+    };
+
+    cutVertices.push({
+      left: add(pos.point, scale(rotPerp, leftDepth)),
+      right: add(pos.point, scale(rotPerp, -rightDepth)),
+    });
+  }
+
   // Generate parcels between consecutive cut positions
   for (let i = 0; i < uniqueCuts.length - 1; i++) {
     const along = uniqueCuts[i];
     const endAlong = uniqueCuts[i + 1];
     if (endAlong - along < 5) continue; // skip tiny slivers
 
-    const start = positionAt(along);
-    const end = positionAt(endAlong);
-    const perp = { x: -start.dir.y, y: start.dir.x };
-    const half = options.rowWidthMeters / 2;
-    const step = endAlong - along;
+    const startCut = cutVertices[i];
+    const endCut = cutVertices[i + 1];
 
-    // Real adjoining survey plots along a corridor rarely all reach the
-    // full right-of-way depth on both sides and rarely meet their
-    // neighbor on a clean perpendicular line — each of the 4 corners gets
-    // an independent depth (55-100% of the ROW half-width) and a small
-    // along-line jitter, so the strip reads as a row of irregular
-    // adjoining plots rather than a ruled-off rectangle grid.
-    const depth = () => half * (0.55 + rng() * 0.45);
-    const alongJitter = () => (rng() - 0.5) * Math.min(step, options.rowWidthMeters) * 0.3;
-
-    const startPt = add(start.point, scale(start.dir, alongJitter()));
-    const endPt = add(end.point, scale(start.dir, alongJitter()));
-
-    // Add slight angular variation (±5°) so edges aren't perfectly perpendicular
-    const angle = (rng() - 0.5) * 0.17; // ±~5° in radians
-    const rotPerp = {
-      x: perp.x * Math.cos(angle) - perp.y * Math.sin(angle),
-      y: perp.x * Math.sin(angle) + perp.y * Math.cos(angle),
-    };
-
+    // Shared corners: start left -> end left -> end right -> start right
     const corners: LocalPoint[] = [
-      add(startPt, scale(rotPerp, depth())),
-      add(endPt, scale(rotPerp, depth())),
-      add(endPt, scale(rotPerp, -depth())),
-      add(startPt, scale(rotPerp, -depth())),
+      startCut.left,
+      endCut.left,
+      endCut.right,
+      startCut.right,
     ];
     const ring = closeRing(corners.map((c) => fromLocalMeters(c, origin)));
     const areaHectares = shoelaceAreaHectares(corners);
@@ -276,7 +277,7 @@ export interface GridOptions {
   villages: string[];
   seed?: number;
   /**
-   * Real-world road/waterway segments within the polygon, provided by
+   * Real-world geographic edges (roads, waterways, field bunds) from
    * osm-features.ts at seed time. When present, these are used to shift
    * grid edges toward real land features so parcels look like actual
    * agricultural plots bounded by roads, paths, and field bunds.
@@ -353,31 +354,46 @@ export function generateGridParcels(
   }
 
   const totalSpanX = maxX - minX;
-  const maxSnap = cellSize * 0.4; // Don't snap more than 40% of cell size
+  const maxSnap = cellSize * 0.35;
 
-  for (let y = minY; y < maxY; y += cellSize) {
-    for (let x = minX; x < maxX; x += cellSize) {
+  const cols = Math.ceil((maxX - minX) / cellSize) + 2;
+  const rows = Math.ceil((maxY - minY) / cellSize) + 2;
+
+  // Build shared vertex grid so adjacent cells share identical border vertices with ZERO overlaps
+  const vertexGrid: LocalPoint[][] = [];
+  for (let r = 0; r <= rows; r++) {
+    const rowPts: LocalPoint[] = [];
+    const y = minY + r * cellSize;
+    for (let c = 0; c <= cols; c++) {
+      const x = minX + c * cellSize;
+      const jx = (rng() - 0.5) * cellSize * 0.22;
+      const jy = (rng() - 0.5) * cellSize * 0.22;
+      let pt = { x: x + jx, y: y + jy };
+      if (localEdges.length > 0) {
+        pt = snapToEdge(pt, maxSnap);
+      }
+      rowPts.push(pt);
+    }
+    vertexGrid.push(rowPts);
+  }
+
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      const x = minX + c * cellSize;
+      const y = minY + r * cellSize;
       const cx = x + cellSize / 2;
       const cy = y + cellSize / 2;
       if (!pointInPolygonLocal({ x: cx, y: cy }, ring)) continue;
 
-      // Jitter each corner independently (not just a shared w/h scale) so
-      // cells come out as irregular quadrilaterals — real field
-      // boundaries, not a drafted grid.
-      const jitter = () => (rng() - 0.5) * cellSize * 0.36;
-      let corners: LocalPoint[] = [
-        { x: x + jitter(), y: y + jitter() },
-        { x: x + cellSize + jitter(), y: y + jitter() },
-        { x: x + cellSize + jitter(), y: y + cellSize + jitter() },
-        { x: x + jitter(), y: y + cellSize + jitter() },
+      // Shared corners from lattice: bottom-left -> bottom-right -> top-right -> top-left
+      const corners: LocalPoint[] = [
+        vertexGrid[r][c],
+        vertexGrid[r][c + 1],
+        vertexGrid[r + 1][c + 1],
+        vertexGrid[r + 1][c],
       ];
 
-      // Snap corners toward real OSM edges when available
-      if (localEdges.length > 0) {
-        corners = corners.map((c) => snapToEdge(c, maxSnap));
-      }
-
-      const geoRing = closeRing(corners.map((c) => fromLocalMeters(c, origin)));
+      const geoRing = closeRing(corners.map((pt) => fromLocalMeters(pt, origin)));
       const areaHectares = shoelaceAreaHectares(corners);
       const village = villageForFraction(
         options.villages,

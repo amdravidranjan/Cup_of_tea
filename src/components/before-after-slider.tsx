@@ -1,10 +1,12 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { MapLibreMap, setWorkerUrl, type StyleSpecification } from "maplibre-gl";
+import { MapLibreMap, FullscreenControl, setWorkerUrl, type StyleSpecification } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import type { Geometry, PolygonGeometry } from "@/lib/geo";
+import { computeBbox } from "@/lib/geo";
 import { SATELLITE_SOURCE_CONFIG } from "@/lib/tile-cache";
+import { RecenterControl } from "@/lib/map-controls";
 import { parcelStatusTone, toneHex } from "@/lib/status-colors";
 
 let workerUrlConfigured = false;
@@ -56,7 +58,22 @@ export function BeforeAfterSlider({
   const afterMapRef = useRef<MapLibreMap | null>(null);
   const [percent, setPercent] = useState(50);
   const [status, setStatus] = useState<"loading" | "ready" | "error">("loading");
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const recenterFnRef = useRef<() => void>(() => {});
+
+  const handleRecenter = () => {
+    const before = beforeMapRef.current;
+    if (!before) return;
+    const geoms: Geometry[] = [];
+    if (alignment) geoms.push(alignment);
+    for (const p of parcels) geoms.push(p.geometry);
+    if (geoms.length === 0) return;
+    const bounds = computeBbox(geoms);
+    before.fitBounds(bounds, { padding: 50, duration: 800 });
+  };
+
+  useEffect(() => {
+    recenterFnRef.current = handleRecenter;
+  });
 
   useEffect(() => {
     if (!beforeContainerRef.current || !afterContainerRef.current || beforeMapRef.current) return;
@@ -87,14 +104,16 @@ export function BeforeAfterSlider({
     beforeMapRef.current = before;
     afterMapRef.current = after;
 
-    const onError = (e: { error?: { message?: string } }) => {
-      console.error("Before/after slider map error:", e.error);
-      setStatus("error");
-      setErrorMessage(e.error?.message ?? "Satellite tiles failed to load.");
-    };
-    before.on("error", onError);
-    after.on("error", onError);
-    before.on("load", () => setStatus((s) => (s === "error" ? s : "ready")));
+    before.addControl(new FullscreenControl(), "top-right");
+    before.addControl(new RecenterControl(() => recenterFnRef.current()), "top-right");
+
+    before.on("error", (e) => {
+      console.warn("Before/after slider tile notice:", e.error);
+    });
+    after.on("error", (e) => {
+      console.warn("Before/after slider tile notice:", e.error);
+    });
+    before.on("load", () => setStatus("ready"));
 
     before.on("move", () => {
       after.jumpTo({
@@ -187,14 +206,7 @@ export function BeforeAfterSlider({
             <p className="text-sm text-muted-foreground">Loading satellite imagery…</p>
           </div>
         )}
-        {status === "error" && (
-          <div className="absolute inset-0 z-20 flex items-center justify-center bg-background/90 p-6 text-center">
-            <p className="max-w-xs text-sm text-muted-foreground">
-              Couldn&apos;t load satellite imagery ({errorMessage}). This view needs a live
-              connection to Esri&apos;s tile service — check your network and reload.
-            </p>
-          </div>
-        )}
+
 
         <div
           className="pointer-events-none absolute top-0 bottom-0 z-10 w-0.5 bg-white"
@@ -204,7 +216,7 @@ export function BeforeAfterSlider({
         <div className="pointer-events-none absolute left-3 top-3 z-10 rounded bg-background/90 px-2 py-1 text-[11px] font-medium shadow-sm">
           Satellite imagery today
         </div>
-        <div className="pointer-events-none absolute right-3 top-3 z-10 rounded bg-background/90 px-2 py-1 text-[11px] font-medium shadow-sm">
+        <div className="pointer-events-none absolute right-14 top-3 z-10 rounded bg-background/90 px-2 py-1 text-[11px] font-medium shadow-sm">
           Planned alignment overlay
         </div>
 

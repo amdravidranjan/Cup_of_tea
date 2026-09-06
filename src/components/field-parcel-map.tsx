@@ -18,6 +18,7 @@ import { PARCEL_STATUSES } from "@/lib/parcel-status";
 import { Input } from "@/components/ui/input";
 import { FieldParcelCard } from "@/components/field-parcel-card";
 import { VECTOR_STYLE_URL } from "@/lib/tile-cache";
+import { RecenterControl } from "@/lib/map-controls";
 
 let workerUrlConfigured = false;
 function ensureWorkerUrlConfigured() {
@@ -80,6 +81,19 @@ export function FieldParcelMap({
   const filtered = useMemo(() => parcels.filter((p) => matchesQuery(p, query)), [parcels, query]);
   const filteredIds = useMemo(() => new Set(filtered.map((p) => p.id)), [filtered]);
 
+  const recenterFnRef = useRef<() => void>(() => {});
+
+  const handleRecenter = useCallback(() => {
+    const map = mapRef.current;
+    if (!map || parcels.length === 0) return;
+    const bounds = computeBbox(parcels.map((p) => p.geometry));
+    map.fitBounds(bounds, { padding: 50, duration: 800 });
+  }, [parcels]);
+
+  useEffect(() => {
+    recenterFnRef.current = handleRecenter;
+  }, [handleRecenter]);
+
   useEffect(() => {
     if (!containerRef.current || mapRef.current || parcels.length === 0) return;
     ensureWorkerUrlConfigured();
@@ -94,6 +108,7 @@ export function FieldParcelMap({
     mapRef.current = map;
     map.addControl(new NavigationControl(), "top-right");
     map.addControl(new FullscreenControl(), "top-right");
+    map.addControl(new RecenterControl(() => recenterFnRef.current()), "top-right");
     map.addControl(
       new GeolocateControl({ positionOptions: { enableHighAccuracy: true }, trackUserLocation: true }),
       "top-right"
@@ -217,26 +232,7 @@ export function FieldParcelMap({
         <div ref={containerRef} style={{ position: "absolute", inset: 0 }} />
 
         {/* Recenter button */}
-        <button
-          type="button"
-          onClick={() => {
-            const map = mapRef.current;
-            if (!map || parcels.length === 0) return;
-            const geoms: Geometry[] = parcels.map((p) => p.geometry);
-            const bounds = computeBbox(geoms);
-            map.fitBounds(bounds, { padding: 50, duration: 800 });
-          }}
-          title="Recenter map"
-          className="absolute right-3 top-[7.5rem] z-10 flex h-[29px] w-[29px] items-center justify-center rounded border bg-background shadow-sm hover:bg-accent"
-        >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="12" cy="12" r="3" />
-            <line x1="12" y1="2" x2="12" y2="6" />
-            <line x1="12" y1="18" x2="12" y2="22" />
-            <line x1="2" y1="12" x2="6" y2="12" />
-            <line x1="18" y1="12" x2="22" y2="12" />
-          </svg>
-        </button>
+
         {status === "loading" && (
           <div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center bg-background/60">
             <p className="text-sm text-muted-foreground">Loading map…</p>

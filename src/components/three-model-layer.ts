@@ -19,7 +19,7 @@
  * glTF files needed. Loaded lazily to avoid impacting initial bundle size.
  */
 
-import type { MapLibreMap } from "maplibre-gl";
+import { MapLibreMap, MercatorCoordinate } from "maplibre-gl";
 import type { Position } from "@/lib/geo";
 import * as THREE from "three";
 
@@ -41,14 +41,6 @@ interface ModelPlacement {
   scale?: number;
 }
 
-// Mercator math for placing Three.js objects on a MapLibre map
-const MERCATOR_A = 6378137.0;
-function lngLatToMercator(lng: number, lat: number): [number, number] {
-  const x = (lng * Math.PI * MERCATOR_A) / 180;
-  const y = MERCATOR_A * Math.log(Math.tan(Math.PI / 4 + (lat * Math.PI) / 360));
-  return [x, y];
-}
-
 /**
  * Creates procedural 3D models and adds them as a MapLibre custom layer.
  * Call this after the map's "load" event.
@@ -61,27 +53,37 @@ export async function addProceduralModels(
 ): Promise<void> {
   if (placements.length === 0) return;
 
-  const scene = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera();
+  const camera = new THREE.Camera();
 
-  // Create models for each placement
-  for (const placement of placements) {
-    const group = createModel(assetKind, placement.scale ?? 1);
-    const [mx, my] = lngLatToMercator(placement.position[0], placement.position[1]);
-    group.userData.mercatorX = mx;
-    group.userData.mercatorY = my;
-    group.userData.bearing = placement.bearing;
-    scene.add(group);
+  interface ModelItem {
+    scene: THREE.Scene;
+    position: Position;
+    bearing: number;
+    scale: number;
   }
 
-  // Ambient + directional light for realistic shading
-  const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
-  scene.add(ambientLight);
-  const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
-  dirLight.position.set(100, 200, 150);
-  scene.add(dirLight);
+  const items: ModelItem[] = [];
 
-  // Create a custom layer
+  for (const placement of placements) {
+    const scene = new THREE.Scene();
+    const group = createModel(assetKind, placement.scale ?? 1);
+    scene.add(group);
+
+    // Warm, natural sunlight with ambient fill — prevents washed out white surfaces
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.45);
+    scene.add(ambientLight);
+    const dirLight = new THREE.DirectionalLight(0xfff8eb, 0.75);
+    dirLight.position.set(100, 150, 200);
+    scene.add(dirLight);
+
+    items.push({
+      scene,
+      position: placement.position,
+      bearing: placement.bearing,
+      scale: placement.scale ?? 1,
+    });
+  }
+
   let renderer: THREE.WebGLRenderer | null = null;
 
   const customLayer = {
@@ -101,28 +103,37 @@ export async function addProceduralModels(
     render(_gl: WebGLRenderingContext, options: { defaultProjectionData: { mainMatrix: Float32Array } }) {
       if (!renderer) return;
 
-      const projMatrix = new THREE.Matrix4().fromArray(
+      const mainMatrix = new THREE.Matrix4().fromArray(
         options.defaultProjectionData.mainMatrix
       );
 
-      // Position each model group in Mercator coordinates
-      for (const child of scene.children) {
-        if (child.userData.mercatorX !== undefined) {
-          const worldSize = (1 << Math.round(map.getZoom())) * 512;
-          const scale = worldSize / (Math.PI * 2 * MERCATOR_A);
-          const x = child.userData.mercatorX * scale;
-          const y = -child.userData.mercatorY * scale;
-
-          child.position.set(x, y, 0);
-          child.rotation.z = -((child.userData.bearing * Math.PI) / 180);
-          child.scale.setScalar(scale * 0.8);
-        }
-      }
-
-      camera.projectionMatrix = projMatrix;
-
       renderer.resetState();
-      renderer.render(scene, camera);
+
+      for (const item of items) {
+        let elevation = 0;
+        if (typeof (map as any).queryTerrainElevation === "function") {
+          const elev = (map as any).queryTerrainElevation(item.position);
+          if (elev !== null && elev !== undefined && !Number.isNaN(elev)) {
+            elevation = elev;
+          }
+        }
+
+        const coord = MercatorCoordinate.fromLngLat(item.position, elevation);
+        const s = coord.meterInMercatorCoordinateUnits() * item.scale;
+
+        const rotZ = new THREE.Matrix4().makeRotationZ(
+          -(((item.bearing - 90) * Math.PI) / 180)
+        );
+
+        // Precise translation to Mercator coordinate, scale in meters, flip Y
+        const l = new THREE.Matrix4()
+          .makeTranslation(coord.x, coord.y, coord.z)
+          .scale(new THREE.Vector3(s, -s, s))
+          .multiply(rotZ);
+
+        camera.projectionMatrix = mainMatrix.clone().multiply(l);
+        renderer.render(item.scene, camera);
+      }
     },
 
     onRemove() {
@@ -172,41 +183,211 @@ function createModel(kind: AssetKind, modelScale: number): THREE.Group {
       break;
   }
 
+  // Ensure every mesh and material across all procedural models has DoubleSide and depth testing
+  // so no face is ever culled by backface culling, negative determinant winding, or camera angles
+  group.traverse((obj) => {
+    if (obj instanceof THREE.Mesh && obj.material) {
+      if (Array.isArray(obj.material)) {
+        for (const m of obj.material) {
+          m.side = THREE.DoubleSide;
+          m.depthTest = true;
+          m.depthWrite = true;
+        }
+      } else {
+        obj.material.side = THREE.DoubleSide;
+        obj.material.depthTest = true;
+        obj.material.depthWrite = true;
+      }
+    }
+  });
+
   return group;
 }
 
-// ── Bridge: deck + pylons + cable stays ─────────────────────────────
+// ── Bridge: elongated deck + river bank abutments + viaduct piers + twin pylons + cable stays ──────────
 function createBridgeModel(group: THREE.Group, s: number): void {
-  const deckMat = new THREE.MeshStandardMaterial({ color: 0x94a3b8 });
-  const pylonMat = new THREE.MeshStandardMaterial({ color: 0x64748b });
-  const cableMat = new THREE.MeshStandardMaterial({ color: 0xa3a3a3 });
+  const deckMat = new THREE.MeshStandardMaterial({
+    color: 0x334155, // Dark slate concrete / asphalt
+    roughness: 0.6,
+    metalness: 0.1,
+    side: THREE.DoubleSide,
+  });
+  const pylonMat = new THREE.MeshStandardMaterial({
+    color: 0x475569, // Structural concrete tower
+    roughness: 0.5,
+    side: THREE.DoubleSide,
+  });
+  const cableMat = new THREE.MeshStandardMaterial({
+    color: 0x94a3b8, // Steel cable stays
+    roughness: 0.4,
+    metalness: 0.6,
+    side: THREE.DoubleSide,
+  });
+  const waterPierMat = new THREE.MeshStandardMaterial({
+    color: 0x1e293b, // Dark submerged river piers
+    roughness: 0.8,
+    side: THREE.DoubleSide,
+  });
+  const approachPierMat = new THREE.MeshStandardMaterial({
+    color: 0x334155, // Concrete approach piers
+    roughness: 0.7,
+    side: THREE.DoubleSide,
+  });
+  const abutmentMat = new THREE.MeshStandardMaterial({
+    color: 0x475569, // Heavy bank abutments
+    roughness: 0.8,
+    side: THREE.DoubleSide,
+  });
+  const railingMat = new THREE.MeshStandardMaterial({
+    color: 0x94a3b8, // Steel safety crash barriers
+    roughness: 0.4,
+    metalness: 0.3,
+    side: THREE.DoubleSide,
+  });
+  const markingMat = new THREE.MeshStandardMaterial({
+    color: 0xfbbf24, // Amber road center line
+    side: THREE.DoubleSide,
+  });
+  const beaconMat = new THREE.MeshStandardMaterial({
+    color: 0xf59e0b,
+    emissive: 0xd97706,
+    side: THREE.DoubleSide,
+  });
 
-  // Bridge deck
+  // Total span 760m (connecting West bank at -380m to East bank at +380m across the river)
+  const totalLength = 760 * s;
+
+  // 1. Bridge deck spanning completely across both banks (760m)
   const deck = new THREE.Mesh(
-    new THREE.BoxGeometry(200 * s, 20 * s, 5 * s),
+    new THREE.BoxGeometry(totalLength, 24 * s, 5 * s),
     deckMat
   );
-  deck.position.set(0, 0, 15 * s);
+  deck.position.set(0, 0, 16 * s);
   group.add(deck);
 
-  // Pylons
-  for (const xOff of [-60 * s, 60 * s]) {
-    const pylon = new THREE.Mesh(
-      new THREE.BoxGeometry(8 * s, 8 * s, 40 * s),
+  // 2. Amber road center divider line (760m)
+  const centerLine = new THREE.Mesh(
+    new THREE.BoxGeometry(totalLength, 1.2 * s, 0.4 * s),
+    markingMat
+  );
+  centerLine.position.set(0, 0, 18.7 * s);
+  group.add(centerLine);
+
+  // 3. Side safety crash barriers and pedestrian walkways on both sides (760m)
+  for (const yRailing of [-11.6 * s, 11.6 * s]) {
+    const railing = new THREE.Mesh(
+      new THREE.BoxGeometry(totalLength, 0.6 * s, 2.5 * s),
+      railingMat
+    );
+    railing.position.set(0, yRailing, 20 * s);
+    group.add(railing);
+
+    const sidewalk = new THREE.Mesh(
+      new THREE.BoxGeometry(totalLength, 2 * s, 1 * s),
+      deckMat
+    );
+    sidewalk.position.set(0, yRailing > 0 ? yRailing - 1.2 * s : yRailing + 1.2 * s, 19 * s);
+    group.add(sidewalk);
+  }
+
+  // 4. Solid concrete abutments anchoring bridge deck onto both river banks
+  for (const xAbut of [-380 * s, 380 * s]) {
+    // Main abutment block embedded into river bank slopes
+    const abutment = new THREE.Mesh(
+      new THREE.BoxGeometry(32 * s, 28 * s, 35 * s),
+      abutmentMat
+    );
+    abutment.position.set(xAbut, 0, 4 * s);
+    group.add(abutment);
+
+    // Retaining wing walls anchoring into bank hillside
+    for (const yWing of [-14 * s, 14 * s]) {
+      const wing = new THREE.Mesh(
+        new THREE.BoxGeometry(26 * s, 5 * s, 25 * s),
+        abutmentMat
+      );
+      wing.position.set(xAbut > 0 ? xAbut + 8 * s : xAbut - 8 * s, yWing, 4 * s);
+      group.add(wing);
+    }
+  }
+
+  // 5. Approach viaduct piers stepping down valley slopes to the river
+  const approachPierOffsets = [-310 * s, -230 * s, -150 * s, 150 * s, 230 * s, 310 * s];
+  for (const xPier of approachPierOffsets) {
+    // Pier column (tall enough to reach deep ground elevation)
+    const pierCol = new THREE.Mesh(
+      new THREE.BoxGeometry(10 * s, 16 * s, 35 * s),
+      approachPierMat
+    );
+    pierCol.position.set(xPier, 0, 1 * s);
+    group.add(pierCol);
+
+    // Flared pier cap supporting deck
+    const pierCap = new THREE.Mesh(
+      new THREE.BoxGeometry(14 * s, 24 * s, 4 * s),
+      approachPierMat
+    );
+    pierCap.position.set(xPier, 0, 14 * s);
+    group.add(pierCap);
+  }
+
+  // 6. Twin Central River Cable-Stayed Pylons (Deep navigation river channel)
+  for (const xOff of [-75 * s, 75 * s]) {
+    // Massive underwater caisson pier in riverbed
+    const pier = new THREE.Mesh(
+      new THREE.BoxGeometry(20 * s, 28 * s, 42 * s),
+      waterPierMat
+    );
+    pier.position.set(xOff, 0, -3 * s);
+    group.add(pier);
+
+    // Twin pylon legs rising on both sides of traffic deck
+    for (const yLeg of [-8 * s, 8 * s]) {
+      const pylonLeg = new THREE.Mesh(
+        new THREE.BoxGeometry(6 * s, 4.5 * s, 74 * s),
+        pylonMat
+      );
+      pylonLeg.position.set(xOff, yLeg, 51 * s);
+      group.add(pylonLeg);
+    }
+
+    // Lower cross-brace under deck
+    const lowerBrace = new THREE.Mesh(
+      new THREE.BoxGeometry(5 * s, 16 * s, 4 * s),
       pylonMat
     );
-    pylon.position.set(xOff, 0, 20 * s);
-    group.add(pylon);
+    lowerBrace.position.set(xOff, 0, 14 * s);
+    group.add(lowerBrace);
 
-    // Cable stays
-    for (let i = -3; i <= 3; i++) {
-      const cable = new THREE.Mesh(
-        new THREE.CylinderGeometry(0.3 * s, 0.3 * s, 50 * s, 4),
-        cableMat
-      );
-      cable.position.set(xOff + i * 10 * s, 0, 30 * s);
-      cable.rotation.z = i * 0.1;
-      group.add(cable);
+    // Upper cross-beam connecting towers above roadway
+    const upperBrace = new THREE.Mesh(
+      new THREE.BoxGeometry(5 * s, 16 * s, 4 * s),
+      pylonMat
+    );
+    upperBrace.position.set(xOff, 0, 80 * s);
+    group.add(upperBrace);
+
+    // Tower peak aviation warning beacon
+    const beacon = new THREE.Mesh(
+      new THREE.BoxGeometry(1.5 * s, 1.5 * s, 2.5 * s),
+      beaconMat
+    );
+    beacon.position.set(xOff, 0, 88 * s);
+    group.add(beacon);
+
+    // Cable stays fan radiating from tower apex to deck anchors
+    const cableOffsets = [-60 * s, -45 * s, -30 * s, -15 * s, 15 * s, 30 * s, 45 * s, 60 * s];
+    for (const cOff of cableOffsets) {
+      for (const ySide of [-7.5 * s, 7.5 * s]) {
+        const cableLength = Math.hypot(cOff, 62 * s);
+        const cable = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.35 * s, 0.35 * s, cableLength, 6),
+          cableMat
+        );
+        cable.position.set(xOff + cOff / 2, ySide, 48 * s);
+        cable.rotation.z = Math.atan2(cOff, 62 * s);
+        group.add(cable);
+      }
     }
   }
 }
@@ -214,8 +395,8 @@ function createBridgeModel(group: THREE.Group, s: number): void {
 // ── Metro: elevated viaduct with platform ───────────────────────────
 function createMetroModel(group: THREE.Group, s: number): void {
   const viaductMat = new THREE.MeshStandardMaterial({ color: 0x7c3aed });
-  const platformMat = new THREE.MeshStandardMaterial({ color: 0xd4d4d4 });
-  const roofMat = new THREE.MeshStandardMaterial({ color: 0x6d28d9, transparent: true, opacity: 0.7 });
+  const platformMat = new THREE.MeshStandardMaterial({ color: 0x475569, roughness: 0.6 });
+  const roofMat = new THREE.MeshStandardMaterial({ color: 0x6d28d9, transparent: true, opacity: 0.8 });
 
   const column = new THREE.Mesh(
     new THREE.CylinderGeometry(3 * s, 4 * s, 30 * s, 8),
@@ -322,11 +503,11 @@ function createRailModel(group: THREE.Group, s: number): void {
 
 // ── Airport: terminal + control tower ───────────────────────────────
 function createAirportModel(group: THREE.Group, s: number): void {
-  const terminalMat = new THREE.MeshStandardMaterial({ color: 0xd4d4d4 });
+  const terminalMat = new THREE.MeshStandardMaterial({ color: 0x475569, roughness: 0.5 });
   const glassMat = new THREE.MeshStandardMaterial({
-    color: 0x60a5fa, transparent: true, opacity: 0.5, metalness: 0.6,
+    color: 0x2563eb, transparent: true, opacity: 0.65, metalness: 0.6,
   });
-  const towerMat = new THREE.MeshStandardMaterial({ color: 0x94a3b8 });
+  const towerMat = new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.6 });
 
   const terminal = new THREE.Mesh(
     new THREE.BoxGeometry(120 * s, 40 * s, 20 * s),
@@ -539,3 +720,30 @@ export function computePolygonPlacement(
     scale: modelScale,
   };
 }
+
+/**
+ * Computes a bridge model placement centered at the river crossing midpoint of the alignment.
+ */
+export function computeBridgePlacements(
+  coords: Position[],
+  modelScale: number = 1.2
+): ModelPlacement[] {
+  if (coords.length < 2) return [];
+  const midIdx = Math.floor(coords.length / 2);
+  const p1 = coords[Math.max(0, midIdx - 1)];
+  const p2 = coords[Math.min(coords.length - 1, midIdx + 1)];
+  const midLng = (coords[0][0] + coords[coords.length - 1][0]) / 2;
+  const midLat = (coords[0][1] + coords[coords.length - 1][1]) / 2;
+
+  const dLng = ((p2[0] - p1[0]) * Math.PI) / 180;
+  const lat1Rad = (p1[1] * Math.PI) / 180;
+  const lat2Rad = (p2[1] * Math.PI) / 180;
+  const y_b = Math.sin(dLng) * Math.cos(lat2Rad);
+  const x_b =
+    Math.cos(lat1Rad) * Math.sin(lat2Rad) -
+    Math.sin(lat1Rad) * Math.cos(lat2Rad) * Math.cos(dLng);
+  const bearing = ((Math.atan2(y_b, x_b) * 180) / Math.PI + 360) % 360;
+
+  return [{ position: [midLng, midLat], bearing, scale: modelScale }];
+}
+
