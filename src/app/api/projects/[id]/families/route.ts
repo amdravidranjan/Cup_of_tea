@@ -5,6 +5,7 @@ import { createFamily, listFamiliesForProject } from "@/db/families";
 import { getProject } from "@/db/projects";
 import { canViewProject } from "@/lib/project-scope";
 import { FAMILY_CATEGORIES } from "@/lib/entitlements";
+import { AFFECTED_FAMILY_BASES, type AffectedFamilyBasis } from "@/lib/land-records";
 
 export async function GET(
   _request: NextRequest,
@@ -30,7 +31,9 @@ interface CreateFamilyBody {
   memberCount?: number;
   vulnerableGroup?: boolean;
   contactPhone?: string;
+  contactEmail?: string;
   parcelId?: string;
+  entitlementBasis?: string;
 }
 
 export async function POST(
@@ -60,6 +63,12 @@ export async function POST(
   if (!body.memberCount || body.memberCount < 1) {
     return NextResponse.json({ error: "Member count must be at least 1" }, { status: 400 });
   }
+  if (
+    body.entitlementBasis &&
+    !AFFECTED_FAMILY_BASES.includes(body.entitlementBasis as AffectedFamilyBasis)
+  ) {
+    return NextResponse.json({ error: "Invalid entitlement basis" }, { status: 400 });
+  }
 
   const familyId = await createFamily({
     projectId: id,
@@ -70,7 +79,12 @@ export async function POST(
     memberCount: body.memberCount,
     vulnerableGroup: body.vulnerableGroup ?? false,
     contactPhone: body.contactPhone,
+    contactEmail: body.contactEmail,
     surveyedBy: session.userId,
+    // Everything entered through this route was found by a person, not read
+    // off a land record — that is what the ingest route is for.
+    source: "SIA_SURVEY",
+    entitlementBasis: body.entitlementBasis as AffectedFamilyBasis | undefined,
   });
   return NextResponse.json({ familyId });
 }

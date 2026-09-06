@@ -1,12 +1,13 @@
+import { Fragment } from "react";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { getSession } from "@/lib/auth";
 import { getProject, getStageHistory } from "@/db/projects";
 import { getAvailableActions, STAGES, type Stage } from "@/lib/workflow";
 import { ProjectActions } from "@/components/project-actions";
-import { listDocuments } from "@/db/documents";
+import { listDocuments, listIngestedDocumentIds } from "@/db/documents";
 import { computeDocumentChecklist } from "@/lib/document-requirements";
-import type { DocumentCategory } from "@/lib/document-categories";
+import { documentCategoryLabel, type DocumentCategory } from "@/lib/document-categories";
 import { can } from "@/lib/rbac";
 import { DocumentUpload } from "@/components/document-upload";
 import { GenerateDocument } from "@/components/generate-document";
@@ -46,7 +47,7 @@ import { RiskAssessmentCard } from "@/components/risk-assessment-card";
 import { predictLandRate } from "@/lib/ai/land-rate";
 import { LandRatePredictionCard } from "@/components/land-rate-prediction-card";
 import { extractDocumentFields } from "@/lib/ai/document-intelligence";
-import { DocumentInsights } from "@/components/document-insights";
+import { DocumentIngestPanel } from "@/components/document-ingest-panel";
 import { computeSLAMetrics } from "@/lib/sla";
 import { listGrievances } from "@/db/grievances";
 import { StageHeaderBar, type StageHeaderStep } from "@/components/stage-header-bar";
@@ -109,6 +110,14 @@ export default async function ProjectDetailPage({
   const alignment = parseStoredGeometry(project.geometryType, project.geometryGeoJson);
   const parcelList = await listParcels(id);
   const parcelsWithImpact = computeParcelsWithImpact(alignment, parcelList);
+  // Documents already turned into register entries, so an FMB sheet cannot
+  // be read in twice. The village and survey-number context is what lets a
+  // patta extract name a plot this project actually holds.
+  const ingestedDocumentIds = await listIngestedDocumentIds(id);
+  const knownVillages = [...new Set(parcelList.map((p) => p.village))];
+  const knownSurveyNumbers = parcelList
+    .map((p) => p.surveyNumber)
+    .filter((s): s is string => Boolean(s));
   const elevationSamples = alignment?.type === "LineString" ? await getElevationProfile(id) : null;
   const canEditGeometry = can(session.role, "project:geometry:edit");
 
@@ -159,7 +168,10 @@ export default async function ProjectDetailPage({
   const rrStage = showRRPanel ? await getRRStage(id) : null;
   const rrHistory = showRRPanel ? await getRRHistory(id) : [];
   const rrAvailableActions = showRRPanel ? getAvailableRRActions(rrStage, session.role) : [];
-  const families = showRRPanel ? await listFamiliesForProject(id) : [];
+  // The affected-family register is compiled during the SIA census (s.4-6)
+  // and grows as land records are read in, so it is loaded from day one. Only
+  // the R&R workflow below waits for the RR_IN_PROGRESS stage.
+  const families = await listFamiliesForProject(id);
   const canManageFamilies = can(session.role, "family:manage");
   const canGrantEntitlements = can(session.role, "entitlement:grant");
 
@@ -437,59 +449,62 @@ export default async function ProjectDetailPage({
 
         <TabsContent value="rr" className="space-y-6 pt-4">
           {showRRPanel ? (
-            <>
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground">
-                    Rehabilitation &amp; Resettlement
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <RRPanel
-                    projectId={project.id}
-                    stage={rrStage}
-                    history={rrHistory}
-                    availableActions={rrAvailableActions}
-                  />
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground"><Bilingual>Affected Families</Bilingual></CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <FamiliesPanel
-                    projectId={project.id}
-                    families={families}
-                    canManage={canManageFamilies}
-                    canGrant={canGrantEntitlements}
-                  />
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground"><Bilingual>Rehabilitation Facilitation</Bilingual></CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <RehabilitationPanel
-                    projectId={project.id}
-                    services={rehabServicesWithFamily}
-                    families={families.map((f) => ({
-                      id: f.id,
-                      headOfHouseholdName: f.headOfHouseholdName,
-                    }))}
-                    canManage={canManageRehab}
-                  />
-                </CardContent>
-              </Card>
-            </>
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+                  Rehabilitation &amp; Resettlement
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <RRPanel
+                  projectId={project.id}
+                  stage={rrStage}
+                  history={rrHistory}
+                  availableActions={rrAvailableActions}
+                />
+              </CardContent>
+            </Card>
           ) : (
             <p className="text-sm text-muted-foreground">
               R&amp;R has not started yet — it begins once the project reaches the RR_IN_PROGRESS
-              stage.
+              stage. Families identified before then are listed below.
             </p>
+          )}
+
+          {/* The affected-family register is not an R&R artefact — it is built
+              during the SIA census and by reading land records, both of which
+              happen long before R&R begins. */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground"><Bilingual>Affected Families</Bilingual></CardTitle>
+            </CardHeader>
+            <CardContent>
+              <FamiliesPanel
+                projectId={project.id}
+                families={families}
+                canManage={canManageFamilies}
+                canGrant={canGrantEntitlements}
+              />
+            </CardContent>
+          </Card>
+
+          {showRRPanel && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground"><Bilingual>Rehabilitation Facilitation</Bilingual></CardTitle>
+              </CardHeader>
+              <CardContent>
+                <RehabilitationPanel
+                  projectId={project.id}
+                  services={rehabServicesWithFamily}
+                  families={families.map((f) => ({
+                    id: f.id,
+                    headOfHouseholdName: f.headOfHouseholdName,
+                  }))}
+                  canManage={canManageRehab}
+                />
+              </CardContent>
+            </Card>
           )}
         </TabsContent>
 
@@ -605,7 +620,7 @@ export default async function ProjectDetailPage({
                       variant="outline"
                       className={toneBadgeClass(req.satisfied ? "success" : "danger")}
                     >
-                      {req.category} {req.satisfied ? "uploaded" : "missing"}
+                      {documentCategoryLabel(req.category)} {req.satisfied ? "uploaded" : "missing"}
                     </Badge>
                   ))}
                 </div>
@@ -632,8 +647,8 @@ export default async function ProjectDetailPage({
                   </TableHeader>
                   <TableBody>
                     {docs.map((d) => (
-                      <>
-                        <TableRow key={d.id}>
+                      <Fragment key={d.id}>
+                        <TableRow>
                           <TableCell>
                             <a
                               href={`/api/documents/${d.id}/download`}
@@ -643,7 +658,7 @@ export default async function ProjectDetailPage({
                             </a>
                           </TableCell>
                           <TableCell className="text-muted-foreground">
-                            {d.category} v{d.version}
+                            {documentCategoryLabel(d.category)} v{d.version}
                           </TableCell>
                           <TableCell className="text-muted-foreground">
                             {(d.sizeBytes / 1024).toFixed(1)} KB
@@ -652,9 +667,15 @@ export default async function ProjectDetailPage({
                             {d.uploadedBy} on {formatDateTime(d.uploadedAt)}
                           </TableCell>
                         </TableRow>
-                        <TableRow key={`${d.id}-insights`}>
+                        <TableRow>
                           <TableCell colSpan={4} className="py-1">
-                            <DocumentInsights
+                            <DocumentIngestPanel
+                              projectId={project.id}
+                              documentId={d.id}
+                              category={d.category}
+                              alreadyIngested={ingestedDocumentIds.has(d.id)}
+                              canIngestParcel={canEditGeometry}
+                              canIngestFamily={canManageFamilies}
                               extraction={extractDocumentFields({
                                 documentId: d.id,
                                 fileName: d.fileName,
@@ -665,11 +686,14 @@ export default async function ProjectDetailPage({
                                 projectPurpose: project.purpose,
                                 state: project.state,
                                 district: project.district,
+                                alignment,
+                                knownVillages,
+                                knownSurveyNumbers,
                               })}
                             />
                           </TableCell>
                         </TableRow>
-                      </>
+                      </Fragment>
                     ))}
                   </TableBody>
                 </Table>

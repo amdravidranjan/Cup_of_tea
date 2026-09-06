@@ -63,6 +63,15 @@ export const parcels = sqliteTable("parcels", {
   // Real-world site survey photo — set when a field officer photographs
   // the parcel during verification.
   sitePhotoUrl: text("site_photo_url"),
+  // Provenance of the boundary on record. An officer defending an award has
+  // to say where the line came from: a DGPS survey run for this acquisition,
+  // a historical FMB sheet, or an officer drawing on a map. Null means it
+  // was drawn by hand, which is what every parcel predating document ingest
+  // was.
+  boundaryMethod: text("boundary_method"),
+  sourceDocumentId: text("source_document_id"),
+  // Nanjai/punjai/manavari — drives guideline value, so not cosmetic.
+  landClassification: text("land_classification"),
 });
 
 export const compensationRates = sqliteTable("compensation_rates", {
@@ -115,12 +124,29 @@ export const families = sqliteTable("families", {
   memberCount: integer("member_count").notNull(),
   vulnerableGroup: integer("vulnerable_group", { mode: "boolean" }).notNull().default(false),
   contactPhone: text("contact_phone"),
+  // Added alongside real Email/WhatsApp notification sending — nullable,
+  // additive column so existing rows/seeds are unaffected.
+  contactEmail: text("contact_email"),
   surveyedBy: text("surveyed_by").notNull(),
   surveyedAt: integer("surveyed_at", { mode: "timestamp" }).notNull(),
   // Succession: set when the head of household has died mid-process and
   // their entitlement has been split across heirs (see the `heirs` table).
   deceasedAt: integer("deceased_at", { mode: "timestamp" }),
   successionNote: text("succession_note"),
+  // How this family entered the record. A land record only ever yields
+  // titleholders; tenants, labourers and long-standing residents qualify
+  // under s.3(c)(ii)-(vi) and can only be found by the SIA survey. Existing
+  // rows default to SIA_SURVEY because that is how they were entered.
+  source: text("source").notNull().default("SIA_SURVEY"),
+  sourceDocumentId: text("source_document_id"),
+  // Which limb of s.3(c) makes this family an "affected family". For a
+  // non-titleholder this is the entire justification for their entitlement,
+  // and it is what a reviewing authority checks first.
+  entitlementBasis: text("entitlement_basis"),
+  // Identity for payment/DBT. Masked at extraction — the full Aadhaar
+  // number is never stored.
+  aadhaarMasked: text("aadhaar_masked"),
+  rationCardNumber: text("ration_card_number"),
 });
 
 export const entitlements = sqliteTable("entitlements", {

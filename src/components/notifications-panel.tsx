@@ -22,6 +22,7 @@ const CHANNEL_LABELS: Record<NotificationChannel, string> = {
   VOICE: "Voice call",
   EMAIL: "Email",
   SMS: "SMS",
+  WHATSAPP: "WhatsApp",
   POST: "Postal notice",
 };
 
@@ -32,7 +33,7 @@ const STATUS_TONE: Record<NotificationStatus, StatusTone> = {
   FAILED: "danger",
 };
 
-const CHANNELS: NotificationChannel[] = ["VOICE", "EMAIL", "SMS", "POST"];
+const CHANNELS: NotificationChannel[] = ["VOICE", "EMAIL", "SMS", "WHATSAPP", "POST"];
 const STATUSES: NotificationStatus[] = ["QUEUED", "SENT", "DELIVERED", "FAILED"];
 
 export function NotificationsPanel({
@@ -235,8 +236,10 @@ export function NotificationsPanel({
             </form>
           )}
           <p className="mt-1 text-[11px] text-muted-foreground/70">
-            Voice/Email/SMS are simulated for this demo. Postal generates a real tracking entry
-            you update once the printed notice is actually handed to the postal service.
+            Email and WhatsApp send for real, using whatever contact details are on file for the
+            family — check Families for a mismatched or missing email/number if one fails. Voice
+            call and SMS are simulated for this demo. Postal generates a real tracking entry you
+            update once the printed notice is actually handed to the postal service.
           </p>
         </div>
       )}

@@ -3,6 +3,7 @@ import type { LibSQLDatabase } from "drizzle-orm/libsql";
 import { db as defaultDb } from "./client";
 import * as schema from "./schema";
 import { ENTITLEMENT_TYPES, type EntitlementType } from "@/lib/entitlements";
+import type { AffectedFamilyBasis, FamilySource } from "@/lib/land-records";
 
 type Db = LibSQLDatabase<typeof schema>;
 
@@ -15,7 +16,13 @@ export interface CreateFamilyInput {
   memberCount: number;
   vulnerableGroup: boolean;
   contactPhone?: string;
+  contactEmail?: string;
   surveyedBy: string;
+  source?: FamilySource;
+  sourceDocumentId?: string;
+  entitlementBasis?: AffectedFamilyBasis;
+  aadhaarMasked?: string;
+  rationCardNumber?: string;
 }
 
 export interface FamilyEntitlement {
@@ -38,10 +45,16 @@ export interface FamilyWithEntitlements {
   memberCount: number;
   vulnerableGroup: boolean;
   contactPhone: string | null;
+  contactEmail: string | null;
   surveyedBy: string;
   surveyedAt: Date;
   deceasedAt: Date | null;
   successionNote: string | null;
+  source: string;
+  sourceDocumentId: string | null;
+  entitlementBasis: string | null;
+  aadhaarMasked: string | null;
+  rationCardNumber: string | null;
   entitlements: FamilyEntitlement[];
 }
 
@@ -58,8 +71,14 @@ export async function createFamilyWith(database: Db, input: CreateFamilyInput): 
     memberCount: input.memberCount,
     vulnerableGroup: input.vulnerableGroup,
     contactPhone: input.contactPhone ?? null,
+    contactEmail: input.contactEmail ?? null,
     surveyedBy: input.surveyedBy,
     surveyedAt: now,
+    source: input.source ?? "SIA_SURVEY",
+    sourceDocumentId: input.sourceDocumentId ?? null,
+    entitlementBasis: input.entitlementBasis ?? null,
+    aadhaarMasked: input.aadhaarMasked ?? null,
+    rationCardNumber: input.rationCardNumber ?? null,
   });
   await database.insert(schema.entitlements).values(
     ENTITLEMENT_TYPES.map((type) => ({
@@ -97,10 +116,16 @@ export async function listFamiliesForProjectWith(
         memberCount: f.memberCount,
         vulnerableGroup: f.vulnerableGroup,
         contactPhone: f.contactPhone,
+        contactEmail: f.contactEmail,
         surveyedBy: f.surveyedBy,
         surveyedAt: f.surveyedAt,
         deceasedAt: f.deceasedAt,
         successionNote: f.successionNote,
+        source: f.source,
+        sourceDocumentId: f.sourceDocumentId,
+        entitlementBasis: f.entitlementBasis,
+        aadhaarMasked: f.aadhaarMasked,
+        rationCardNumber: f.rationCardNumber,
         entitlements: entitlementRows.map((e) => ({
           id: e.id,
           type: e.type as EntitlementType,

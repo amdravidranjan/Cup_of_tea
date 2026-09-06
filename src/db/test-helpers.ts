@@ -62,7 +62,8 @@ export async function createTestDb(): Promise<LibSQLDatabase<typeof schema>> {
       id TEXT PRIMARY KEY, project_id TEXT NOT NULL, village TEXT NOT NULL,
       area_hectares REAL NOT NULL, status TEXT NOT NULL,
       geometry_geo_json TEXT NOT NULL, created_at INTEGER NOT NULL,
-      survey_number TEXT, patta_number TEXT, site_photo_url TEXT
+      survey_number TEXT, patta_number TEXT, site_photo_url TEXT,
+      boundary_method TEXT, source_document_id TEXT, land_classification TEXT
     );
   `);
 
@@ -98,8 +99,11 @@ export async function createTestDb(): Promise<LibSQLDatabase<typeof schema>> {
       id TEXT PRIMARY KEY, project_id TEXT NOT NULL, parcel_id TEXT,
       head_of_household_name TEXT NOT NULL, village TEXT NOT NULL, category TEXT NOT NULL,
       member_count INTEGER NOT NULL, vulnerable_group INTEGER NOT NULL DEFAULT 0,
-      contact_phone TEXT, surveyed_by TEXT NOT NULL, surveyed_at INTEGER NOT NULL,
-      deceased_at INTEGER, succession_note TEXT
+      contact_phone TEXT, contact_email TEXT,
+      surveyed_by TEXT NOT NULL, surveyed_at INTEGER NOT NULL,
+      deceased_at INTEGER, succession_note TEXT,
+      source TEXT NOT NULL DEFAULT 'SIA_SURVEY', source_document_id TEXT,
+      entitlement_basis TEXT, aadhaar_masked TEXT, ration_card_number TEXT
     );
   `);
 
