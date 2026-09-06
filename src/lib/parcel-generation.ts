@@ -80,6 +80,13 @@ export interface CorridorOptions {
   maxSegmentMeters: number;
   villages: string[];
   seed?: number;
+  /**
+   * Positions along the corridor (in meters from start) where real-world
+   * features (roads, waterways) cross — provided by osm-features.ts at
+   * seed time. When present, these replace the random segment lengths
+   * so parcel boundaries align with actual land features.
+   */
+  osmCrossings?: number[];
 }
 
 /**
@@ -87,6 +94,10 @@ export interface CorridorOptions {
  * spanning the full right-of-way width — the shape a real highway/canal
  * land acquisition actually takes (a ribbon of adjoining survey plots
  * along the route), not arbitrary boxes scattered near the line.
+ *
+ * When OSM crossings are provided, parcel edges are placed at real-world
+ * feature locations (roads, canals, field boundaries) so the shapes look
+ * authentic on the satellite map.
  */
 export function generateCorridorParcels(
   line: LineGeometry,
@@ -124,17 +135,77 @@ export function generateCorridorParcels(
 
   const rng = mulberry32(options.seed ?? 1);
   const parcels: GeneratedParcel[] = [];
-  let along = 0;
 
-  while (along < totalLength) {
-    const step =
-      options.minSegmentMeters +
-      rng() * (options.maxSegmentMeters - options.minSegmentMeters);
-    const endAlong = Math.min(along + step, totalLength);
+  // Build the list of cut positions along the corridor
+  const cutPositions: number[] = [0]; // always start at 0
+
+  if (options.osmCrossings && options.osmCrossings.length > 0) {
+    // Use real-world crossings as primary cut positions
+    for (const crossing of options.osmCrossings) {
+      if (crossing > 10 && crossing < totalLength - 10) {
+        cutPositions.push(crossing);
+      }
+    }
+    // Fill in any gaps that are too large (> maxSegmentMeters)
+    // with additional cuts so parcels don't become absurdly long
+    const sorted = [...cutPositions].sort((a, b) => a - b);
+    const filled: number[] = [sorted[0]];
+    for (let i = 1; i < sorted.length; i++) {
+      const gap = sorted[i] - sorted[i - 1];
+      if (gap > options.maxSegmentMeters * 1.5) {
+        // Subdivide this gap
+        const numCuts = Math.ceil(gap / options.maxSegmentMeters);
+        const subStep = gap / numCuts;
+        for (let j = 1; j < numCuts; j++) {
+          filled.push(sorted[i - 1] + subStep * j);
+        }
+      }
+      filled.push(sorted[i]);
+    }
+    // Add final position and fill gap to end
+    const lastCut = filled[filled.length - 1];
+    const endGap = totalLength - lastCut;
+    if (endGap > options.maxSegmentMeters * 1.5) {
+      const numCuts = Math.ceil(endGap / options.maxSegmentMeters);
+      const subStep = endGap / numCuts;
+      for (let j = 1; j < numCuts; j++) {
+        filled.push(lastCut + subStep * j);
+      }
+    }
+    filled.push(totalLength);
+
+    // Rebuild cutPositions from filled
+    cutPositions.length = 0;
+    for (const pos of filled) cutPositions.push(pos);
+  } else {
+    // No OSM data — use random segment lengths (original behavior)
+    let along = 0;
+    while (along < totalLength) {
+      const step =
+        options.minSegmentMeters +
+        rng() * (options.maxSegmentMeters - options.minSegmentMeters);
+      along = Math.min(along + step, totalLength);
+      cutPositions.push(along);
+    }
+    if (cutPositions[cutPositions.length - 1] < totalLength) {
+      cutPositions.push(totalLength);
+    }
+  }
+
+  // Remove duplicates and sort
+  const uniqueCuts = [...new Set(cutPositions)].sort((a, b) => a - b);
+
+  // Generate parcels between consecutive cut positions
+  for (let i = 0; i < uniqueCuts.length - 1; i++) {
+    const along = uniqueCuts[i];
+    const endAlong = uniqueCuts[i + 1];
+    if (endAlong - along < 5) continue; // skip tiny slivers
+
     const start = positionAt(along);
     const end = positionAt(endAlong);
     const perp = { x: -start.dir.y, y: start.dir.x };
     const half = options.rowWidthMeters / 2;
+    const step = endAlong - along;
 
     // Real adjoining survey plots along a corridor rarely all reach the
     // full right-of-way depth on both sides and rarely meet their
@@ -148,11 +219,18 @@ export function generateCorridorParcels(
     const startPt = add(start.point, scale(start.dir, alongJitter()));
     const endPt = add(end.point, scale(start.dir, alongJitter()));
 
+    // Add slight angular variation (±5°) so edges aren't perfectly perpendicular
+    const angle = (rng() - 0.5) * 0.17; // ±~5° in radians
+    const rotPerp = {
+      x: perp.x * Math.cos(angle) - perp.y * Math.sin(angle),
+      y: perp.x * Math.sin(angle) + perp.y * Math.cos(angle),
+    };
+
     const corners: LocalPoint[] = [
-      add(startPt, scale(perp, depth())),
-      add(endPt, scale(perp, depth())),
-      add(endPt, scale(perp, -depth())),
-      add(startPt, scale(perp, -depth())),
+      add(startPt, scale(rotPerp, depth())),
+      add(endPt, scale(rotPerp, depth())),
+      add(endPt, scale(rotPerp, -depth())),
+      add(startPt, scale(rotPerp, -depth())),
     ];
     const ring = closeRing(corners.map((c) => fromLocalMeters(c, origin)));
     const areaHectares = shoelaceAreaHectares(corners);
@@ -163,8 +241,6 @@ export function generateCorridorParcels(
       areaHectares,
       geometry: { type: "Polygon", coordinates: [ring] },
     });
-
-    along = endAlong;
   }
 
   return parcels;
@@ -199,13 +275,20 @@ export interface GridOptions {
   targetParcelHectares: number;
   villages: string[];
   seed?: number;
+  /**
+   * Real-world road/waterway segments within the polygon, provided by
+   * osm-features.ts at seed time. When present, these are used to shift
+   * grid edges toward real land features so parcels look like actual
+   * agricultural plots bounded by roads, paths, and field bunds.
+   */
+  osmEdges?: [number, number][][];
 }
 
 /**
  * Subdivides a polygon footprint into a grid of parcels sized around a
- * realistic average landholding, jittered slightly so it doesn't read as
- * a perfectly uniform grid. Only cells whose centroid falls inside the
- * polygon are kept, so this also works for non-rectangular footprints.
+ * realistic average landholding, shaped by real-world edges when available.
+ * Only cells whose centroid falls inside the polygon are kept, so this
+ * also works for non-rectangular footprints.
  */
 export function generateGridParcels(
   polygon: PolygonGeometry,
@@ -224,7 +307,54 @@ export function generateGridParcels(
   const rng = mulberry32(options.seed ?? 1);
   const parcels: GeneratedParcel[] = [];
 
+  // Convert OSM edges to local coordinates for snapping
+  const localEdges: LocalPoint[][] = [];
+  if (options.osmEdges) {
+    for (const edge of options.osmEdges) {
+      if (edge.length >= 2) {
+        localEdges.push(edge.map((p) => toLocalMeters(p, origin)));
+      }
+    }
+  }
+
+  // Find the nearest OSM edge point to snap a grid vertex toward
+  function snapToEdge(pt: LocalPoint, maxSnap: number): LocalPoint {
+    if (localEdges.length === 0) return pt;
+    let bestDist = Infinity;
+    let bestPoint = pt;
+
+    for (const edge of localEdges) {
+      for (let i = 0; i < edge.length - 1; i++) {
+        // Project pt onto the segment edge[i]→edge[i+1]
+        const ax = edge[i].x, ay = edge[i].y;
+        const bx = edge[i + 1].x, by = edge[i + 1].y;
+        const dx = bx - ax, dy = by - ay;
+        const lenSq = dx * dx + dy * dy;
+        if (lenSq === 0) continue;
+        let t = ((pt.x - ax) * dx + (pt.y - ay) * dy) / lenSq;
+        t = Math.max(0, Math.min(1, t));
+        const closest = { x: ax + t * dx, y: ay + t * dy };
+        const d = dist(pt, closest);
+        if (d < bestDist && d < maxSnap) {
+          bestDist = d;
+          bestPoint = closest;
+        }
+      }
+    }
+
+    // Blend: snap partway toward the edge (70%) to keep some grid structure
+    if (bestDist < maxSnap) {
+      return {
+        x: pt.x + (bestPoint.x - pt.x) * 0.7,
+        y: pt.y + (bestPoint.y - pt.y) * 0.7,
+      };
+    }
+    return pt;
+  }
+
   const totalSpanX = maxX - minX;
+  const maxSnap = cellSize * 0.4; // Don't snap more than 40% of cell size
+
   for (let y = minY; y < maxY; y += cellSize) {
     for (let x = minX; x < maxX; x += cellSize) {
       const cx = x + cellSize / 2;
@@ -235,12 +365,18 @@ export function generateGridParcels(
       // cells come out as irregular quadrilaterals — real field
       // boundaries, not a drafted grid.
       const jitter = () => (rng() - 0.5) * cellSize * 0.36;
-      const corners: LocalPoint[] = [
+      let corners: LocalPoint[] = [
         { x: x + jitter(), y: y + jitter() },
         { x: x + cellSize + jitter(), y: y + jitter() },
         { x: x + cellSize + jitter(), y: y + cellSize + jitter() },
         { x: x + jitter(), y: y + cellSize + jitter() },
       ];
+
+      // Snap corners toward real OSM edges when available
+      if (localEdges.length > 0) {
+        corners = corners.map((c) => snapToEdge(c, maxSnap));
+      }
+
       const geoRing = closeRing(corners.map((c) => fromLocalMeters(c, origin)));
       const areaHectares = shoelaceAreaHectares(corners);
       const village = villageForFraction(

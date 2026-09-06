@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { MapLibreMap, setWorkerUrl, type StyleSpecification } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import type { Geometry, PolygonGeometry } from "@/lib/geo";
-import { SATELLITE_TILE_URL } from "@/components/project-map";
+import { SATELLITE_SOURCE_CONFIG } from "@/lib/tile-cache";
 import { parcelStatusTone, toneHex } from "@/lib/status-colors";
 
 let workerUrlConfigured = false;
@@ -32,13 +32,7 @@ function satelliteOnlyStyle(): StyleSpecification {
   return {
     version: 8,
     sources: {
-      satellite: {
-        type: "raster",
-        tiles: [SATELLITE_TILE_URL],
-        tileSize: 256,
-        maxzoom: 19,
-        attribution: "Esri, Maxar, Earthstar Geographics",
-      },
+      satellite: SATELLITE_SOURCE_CONFIG,
     },
     layers: [{ id: "satellite", type: "raster", source: "satellite" }],
   };

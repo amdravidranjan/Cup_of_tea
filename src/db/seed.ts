@@ -26,6 +26,7 @@ import { saveElevationProfile } from "./elevation";
 import { surveyNumberFor, pattaNumberFor } from "@/lib/land-records";
 import { ENTITLEMENT_TYPES } from "@/lib/entitlements";
 import type { DocumentCategory } from "@/lib/document-categories";
+import { fetchOSMFeatures, findCorridorCrossings, findGridEdges } from "@/lib/osm-features";
 
 /**
  * Fetches real elevation data for a linear alignment from Open-Elevation
@@ -238,6 +239,22 @@ async function createSeedProject(input: SeedProjectInput): Promise<SeededParcel[
     setBy: "u-district-1",
   });
 
+  // Fetch real-world features from OSM to shape parcel boundaries.
+  // The bbox is computed from the geometry's extent with a small buffer.
+  const allCoords: [number, number][] = input.geometry.type === "LineString"
+    ? input.geometry.coordinates as [number, number][]
+    : (input.geometry.coordinates[0] as [number, number][]);
+  const lngs = allCoords.map(c => c[0]);
+  const lats = allCoords.map(c => c[1]);
+  const osmBbox: [number, number, number, number] = [
+    Math.min(...lngs) - 0.01,
+    Math.min(...lats) - 0.01,
+    Math.max(...lngs) + 0.01,
+    Math.max(...lats) + 0.01,
+  ];
+  console.log(`  fetching OSM features for ${input.name}...`);
+  const osmFeatures = await fetchOSMFeatures(osmBbox);
+
   const generated =
     input.parcelGenerator.kind === "corridor"
       ? generateCorridorParcels(input.geometry as LineGeometry, {
@@ -246,11 +263,17 @@ async function createSeedProject(input: SeedProjectInput): Promise<SeededParcel[
           maxSegmentMeters: 80,
           villages: input.parcelGenerator.villages,
           seed: input.seed,
+          osmCrossings: findCorridorCrossings(
+            (input.geometry as LineGeometry).coordinates as [number, number][],
+            (input.parcelGenerator.rowWidthMeters ?? 45) / 2,
+            osmFeatures
+          ),
         })
       : generateGridParcels(input.geometry as PolygonGeometry, {
           targetParcelHectares: input.parcelGenerator.targetParcelHectares ?? 1.2,
           villages: input.parcelGenerator.villages,
           seed: input.seed,
+          osmEdges: findGridEdges(osmFeatures),
         });
 
   const now = new Date();
@@ -836,12 +859,22 @@ async function main() {
     };
     await setProjectGeometry(projectId, alignment);
 
+    // Fetch OSM features for realistic parcel edges
+    console.log("  fetching OSM features for Koraput Bridge...");
+    const bridgeOsm = await fetchOSMFeatures([82.60, 18.71, 82.63, 18.73]);
+    const bridgeCrossings = findCorridorCrossings(
+      alignment.coordinates as [number, number][],
+      22.5,
+      bridgeOsm
+    );
+
     const generated = generateCorridorParcels(alignment, {
       rowWidthMeters: 45,
       minSegmentMeters: 20,
       maxSegmentMeters: 80,
       villages: ["Similiguda", "Kotpad"],
       seed: 0,
+      osmCrossings: bridgeCrossings,
     });
     const bridgeVillageCounters = new Map<string, number>();
     const parcelRows = generated.map((p, globalIndex) => {

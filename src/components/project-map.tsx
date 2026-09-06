@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import {
   MapLibreMap,
   NavigationControl,
@@ -11,9 +11,14 @@ import {
 } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import type { Geometry, PolygonGeometry } from "@/lib/geo";
-import { IMPACT_BUFFER_METERS } from "@/lib/geo";
+import { IMPACT_BUFFER_METERS, computeBbox } from "@/lib/geo";
 import { parcelStatusTone, toneHex } from "@/lib/status-colors";
 import { PARCEL_STATUSES } from "@/lib/parcel-status";
+import {
+  SATELLITE_TILE_URL as _SATELLITE_TILE_URL,
+  SATELLITE_SOURCE_CONFIG,
+  VECTOR_STYLE_URL,
+} from "@/lib/tile-cache";
 
 // v6 requires this one-time call for every bundler — import.meta.url
 // doesn't reliably resolve to the worker file inside a bundler's module
@@ -44,10 +49,9 @@ interface ParcelFeature {
 const ALIGNMENT_COLOR = "#2563eb";
 const IMPACT_OUTLINE_COLOR = "#ea580c";
 
-// Esri World Imagery: free, keyless satellite/aerial basemap (Esri, Maxar,
-// Earthstar Geographics — attribution required, shown in the legend).
-export const SATELLITE_TILE_URL =
-  "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}";
+// Re-export from tile-cache so existing imports from other components
+// continue to work without changing their import paths.
+export const SATELLITE_TILE_URL = _SATELLITE_TILE_URL;
 
 function statusHex(status: string): string {
   return toneHex(parcelStatusTone(status));
@@ -83,10 +87,7 @@ export function ProjectMap({
 
     const map = new MapLibreMap({
       container: containerRef.current,
-      // OpenFreeMap: free, keyless, full OSM detail (roads, buildings,
-      // labels) — demotiles.maplibre.org is a bare placeholder tileset
-      // with no street-level content, never meant for real use.
-      style: "https://tiles.openfreemap.org/styles/liberty",
+      style: VECTOR_STYLE_URL,
       center,
       zoom: 12,
     });
@@ -96,19 +97,7 @@ export function ProjectMap({
     map.addControl(new ScaleControl({ unit: "metric" }), "bottom-right");
 
     map.on("load", () => {
-      map.addSource("satellite", {
-        type: "raster",
-        tiles: [SATELLITE_TILE_URL],
-        tileSize: 256,
-        maxzoom: 19,
-        attribution: "Esri, Maxar, Earthstar Geographics",
-      });
-      // No beforeId: appends on top of the vector basemap's own layers
-      // (which is everything that currently exists at this point in
-      // `load`) but every alignment/parcel layer added below will stack
-      // on top of this one in turn — satellite ends up sandwiched
-      // between the base map and this project's own overlays, exactly
-      // where a basemap swap belongs.
+      map.addSource("satellite", SATELLITE_SOURCE_CONFIG);
       map.addLayer({
         id: "satellite-raster",
         type: "raster",
@@ -246,9 +235,36 @@ export function ProjectMap({
     map.setLayoutProperty("satellite-raster", "visibility", showSatellite ? "visible" : "none");
   }, [showSatellite]);
 
+  const handleRecenter = useCallback(() => {
+    const map = mapRef.current;
+    if (!map) return;
+    const geoms: Geometry[] = [];
+    if (alignment) geoms.push(alignment);
+    for (const p of parcels) geoms.push(p.geometry);
+    if (geoms.length === 0) return;
+    const bounds = computeBbox(geoms);
+    map.fitBounds(bounds, { padding: 50, duration: 800 });
+  }, [alignment, parcels]);
+
   return (
     <div className="relative">
       <div ref={containerRef} className="h-[28rem] w-full overflow-hidden rounded-lg border" />
+
+      {/* Recenter button */}
+      <button
+        type="button"
+        onClick={handleRecenter}
+        title="Recenter map"
+        className="absolute right-3 top-[7.5rem] z-10 flex h-[29px] w-[29px] items-center justify-center rounded border bg-background shadow-sm hover:bg-accent"
+      >
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="12" cy="12" r="3" />
+          <line x1="12" y1="2" x2="12" y2="6" />
+          <line x1="12" y1="18" x2="12" y2="22" />
+          <line x1="2" y1="12" x2="6" y2="12" />
+          <line x1="18" y1="12" x2="22" y2="12" />
+        </svg>
+      </button>
 
       <div className="absolute left-3 top-3 z-10 w-48 space-y-2 rounded-lg border bg-background/95 p-3 text-xs shadow-sm backdrop-blur">
         <p className="font-semibold text-foreground">Layers</p>
