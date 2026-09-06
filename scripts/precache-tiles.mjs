@@ -17,7 +17,7 @@ import { join, dirname } from "path";
 
 // ── Project bounding boxes (from tile-cache.ts) ─────────────────────
 const PROJECT_BBOXES = [
-  ["koraput-bridge", [82.75, 18.72, 82.78, 18.75]],
+  ["koraput-bridge", [82.74, 18.71, 82.78, 18.76]],
   ["chennai-salem", [78.34, 12.26, 78.50, 12.55]],
   ["chennai-metro", [80.05, 13.02, 80.17, 13.06]],
   ["cvg-canal", [78.48, 9.82, 78.50, 9.89]],
@@ -27,7 +27,7 @@ const PROJECT_BBOXES = [
   ["bengaluru-prr", [77.38, 13.09, 77.77, 13.22]],
   ["madurai-metro", [78.11, 9.92, 78.13, 9.94]],
   ["trichy-airport", [78.70, 10.75, 78.73, 10.78]],
-  ["tuticorin-rail", [78.15, 8.74, 78.19, 8.79]],
+  ["tuticorin-rail", [78.13, 8.74, 78.18, 8.80]],
   ["salem-steel", [78.10, 11.65, 78.13, 11.68]],
   ["vellore-pipeline", [79.12, 12.90, 79.15, 12.93]],
   ["thanjavur-solar", [79.04, 10.71, 79.08, 10.75]],

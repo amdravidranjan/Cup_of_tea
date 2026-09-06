@@ -306,10 +306,10 @@ function createBridgeModel(group: THREE.Group, s: number): void {
     side: THREE.DoubleSide,
   });
 
-  // Total span 760m (connecting West bank at -380m to East bank at +380m across the river)
-  const totalLength = 760 * s;
+  // Total span 1520m (doubled length connecting West bank land at -760m to East bank land at +760m across the river)
+  const totalLength = 1520 * s;
 
-  // 1. Bridge deck spanning completely across both banks (760m)
+  // 1. Bridge deck spanning completely across both banks (1520m)
   const deck = new THREE.Mesh(
     new THREE.BoxGeometry(totalLength, 24 * s, 5 * s),
     deckMat
@@ -317,7 +317,7 @@ function createBridgeModel(group: THREE.Group, s: number): void {
   deck.position.set(0, 0, 16 * s);
   group.add(deck);
 
-  // 2. Amber road center divider line (760m)
+  // 2. Amber road center divider line (1520m)
   const centerLine = new THREE.Mesh(
     new THREE.BoxGeometry(totalLength, 1.2 * s, 0.4 * s),
     markingMat
@@ -325,7 +325,7 @@ function createBridgeModel(group: THREE.Group, s: number): void {
   centerLine.position.set(0, 0, 18.7 * s);
   group.add(centerLine);
 
-  // 3. Side safety crash barriers and pedestrian walkways on both sides (760m)
+  // 3. Side safety crash barriers and pedestrian walkways on both sides (1520m)
   for (const yRailing of [-11.6 * s, 11.6 * s]) {
     const railing = new THREE.Mesh(
       new THREE.BoxGeometry(totalLength, 0.6 * s, 2.5 * s),
@@ -343,7 +343,7 @@ function createBridgeModel(group: THREE.Group, s: number): void {
   }
 
   // 4. Solid concrete abutments anchoring bridge deck onto both river banks
-  for (const xAbut of [-380 * s, 380 * s]) {
+  for (const xAbut of [-760 * s, 760 * s]) {
     // Main abutment block embedded into river bank slopes
     const abutment = new THREE.Mesh(
       new THREE.BoxGeometry(32 * s, 28 * s, 35 * s),
@@ -363,15 +363,18 @@ function createBridgeModel(group: THREE.Group, s: number): void {
     }
   }
 
-  // 5. Approach viaduct piers stepping down valley slopes to the river
-  const approachPierOffsets = [-310 * s, -230 * s, -150 * s, 150 * s, 230 * s, 310 * s];
+  // 5. Approach viaduct piers stepping along the entire approach to firmly ground both sides
+  const approachPierOffsets = [
+    -680 * s, -590 * s, -500 * s, -410 * s, -320 * s, -230 * s, -150 * s,
+    150 * s, 230 * s, 320 * s, 410 * s, 500 * s, 590 * s, 680 * s,
+  ];
   for (const xPier of approachPierOffsets) {
     // Pier column (tall enough to reach deep ground elevation)
     const pierCol = new THREE.Mesh(
-      new THREE.BoxGeometry(10 * s, 16 * s, 35 * s),
+      new THREE.BoxGeometry(10 * s, 16 * s, 40 * s),
       approachPierMat
     );
-    pierCol.position.set(xPier, 0, 1 * s);
+    pierCol.position.set(xPier, 0, 0);
     group.add(pierCol);
 
     // Flared pier cap supporting deck
