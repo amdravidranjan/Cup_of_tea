@@ -1045,7 +1045,18 @@ body.high-contrast {
 }
 .chat-title { color: #fff; font-size: 13px; font-weight: 700; }
 .chat-online { color: rgba(255,255,255,0.6); font-size: 11px; }
-.chat-close { margin-left: auto; background: none; border: none; color: rgba(255,255,255,0.55); cursor: pointer; font-size: 20px; line-height: 1; }
+.chat-head-actions { margin-left: auto; display: flex; align-items: center; gap: 4px; }
+.chat-language {
+  border: 1px solid rgba(255,255,255,0.45);
+  border-radius: 4px;
+  padding: 3px 6px;
+  background: transparent;
+  color: #fff;
+  cursor: pointer;
+  font-size: 10px;
+  font-weight: 700;
+}
+.chat-close { background: none; border: none; color: rgba(255,255,255,0.55); cursor: pointer; font-size: 20px; line-height: 1; padding: 3px; }
 .chat-close:hover { color: #fff; }
 .chat-msgs {
   height: 210px;
@@ -1065,6 +1076,16 @@ body.high-contrast {
 }
 .chat-bubble.bot { background: #fff; border: 1px solid var(--ux-border); align-self: flex-start; color: var(--ux-text); }
 .chat-bubble.user { background: var(--ux-primary); color: #fff; align-self: flex-end; }
+.chat-basis { border-top: 1px solid var(--ux-grey-200); color: var(--ux-text-muted); font-size: 10px; margin-top: 7px; padding-top: 5px; }
+.chat-links, .chat-suggestions { display: flex; flex-direction: column; gap: 4px; margin-top: 7px; }
+.chat-links a, .chat-suggestions button {
+  color: var(--ux-primary);
+  font-size: 10px;
+  text-align: left;
+  text-decoration: underline;
+}
+.chat-suggestions button { background: var(--ux-grey-100); border: 1px solid var(--ux-grey-200); border-radius: 4px; cursor: pointer; padding: 4px 6px; text-decoration: none; }
+.chat-suggestions button:hover { background: var(--ux-grey-200); }
 .chat-chips {
   padding: 8px 12px;
   display: flex;
@@ -1109,3 +1130,8 @@ body.high-contrast {
   font-family: inherit;
 }
 .chat-input-row button:hover { background: var(--ux-primary-dk); }
+.chat-input-row button:disabled { cursor: wait; opacity: 0.6; }
+@media (max-width: 480px) {
+  .chat-fab { bottom: 14px; right: 14px; }
+  .chat-window { left: 0; right: 0; width: min(316px, calc(100vw - 28px)); }
+}

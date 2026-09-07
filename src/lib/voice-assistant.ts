@@ -105,9 +105,10 @@ export function getSpeechRecognition(): (new () => SpeechRecognitionLike) | null
 }
 
 /** Read `text` aloud. No-op where speechSynthesis is unavailable. */
-export function speak(text: string) {
+export function speak(text: string, language = 'en-IN') {
   if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
   const utterance = new SpeechSynthesisUtterance(text);
+  utterance.lang = language;
   utterance.rate = 1;
   window.speechSynthesis.cancel();
   window.speechSynthesis.speak(utterance);
