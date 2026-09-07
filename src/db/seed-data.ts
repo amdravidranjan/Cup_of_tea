@@ -177,6 +177,13 @@ export const DEMO_USERS: DemoUser[] = [
     district: "Salem",
   },
   {
+    id: "u-field-krishnagiri",
+    name: "Field Verification Officer, Krishnagiri",
+    role: "field",
+    state: "Tamil Nadu",
+    district: "Krishnagiri",
+  },
+  {
     id: "u-state-tn",
     name: "Tamil Nadu State Land Officer",
     role: "state",

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import {
@@ -69,10 +69,14 @@ export function GeometryEditor({
   const [suggested, setSuggested] = useState({ village: "", surveyNumber: "", pattaNumber: "" });
   const [satellite, setSatellite] = useState(true);
   const [cursor, setCursor] = useState<Position | null>(null);
+  const [canRedo, setCanRedo] = useState(false);
+  const [parcelQuery, setParcelQuery] = useState("");
+  const [parcelPage, setParcelPage] = useState(0);
   const modeRef = useRef<Mode>("idle");
   const pointsRef = useRef<Position[]>([]);
   const undoHistoryRef = useRef<Position[][]>([]);
   const redoHistoryRef = useRef<Position[][]>([]);
+  const parcelPageSize = 12;
 
   useEffect(() => {
     modeRef.current = mode;
@@ -81,6 +85,21 @@ export function GeometryEditor({
 
   const suggestedArea = mode === "parcel" && points.length >= 3 ? polygonAreaHectares(points) : 0;
   const area = areaOverride ?? suggestedArea;
+  const filteredParcels = useMemo(() => {
+    const query = parcelQuery.trim().toLowerCase();
+    if (!query) return parcels;
+    return parcels.filter((parcel) =>
+      [parcel.village, parcel.surveyNumber, parcel.pattaNumber]
+        .filter(Boolean)
+        .some((value) => value!.toLowerCase().includes(query))
+    );
+  }, [parcels, parcelQuery]);
+  const parcelPageCount = Math.max(1, Math.ceil(filteredParcels.length / parcelPageSize));
+  const currentParcelPage = Math.min(parcelPage, parcelPageCount - 1);
+  const visibleParcels = filteredParcels.slice(
+    currentParcelPage * parcelPageSize,
+    (currentParcelPage + 1) * parcelPageSize
+  );
 
   const recenterFnRef = useRef<() => void>(() => {});
 
@@ -265,12 +284,14 @@ export function GeometryEditor({
     setPoints([]);
     undoHistoryRef.current = [];
     redoHistoryRef.current = [];
+    setCanRedo(false);
   }
   function startParcel() {
     setMode("parcel");
     setPoints([]);
     undoHistoryRef.current = [];
     redoHistoryRef.current = [];
+    setCanRedo(false);
     if (suggested.village) setVillage(suggested.village);
     if (suggested.surveyNumber) setSurveyNumber(suggested.surveyNumber);
     if (suggested.pattaNumber) setPattaNumber(suggested.pattaNumber);
@@ -288,16 +309,19 @@ export function GeometryEditor({
     setVillage("");
     undoHistoryRef.current = [];
     redoHistoryRef.current = [];
+    setCanRedo(false);
   }
   function undoPoint() {
     const previous = undoHistoryRef.current.pop();
     if (!previous) return;
     redoHistoryRef.current.push(pointsRef.current);
+    setCanRedo(true);
     pointsRef.current = previous;
     setPoints(previous);
   }
   function redoPoint() {
     const next = redoHistoryRef.current.pop();
+    setCanRedo(redoHistoryRef.current.length > 0);
     if (!next) return;
     undoHistoryRef.current.push(pointsRef.current);
     pointsRef.current = next;
@@ -307,6 +331,7 @@ export function GeometryEditor({
     if (pointsRef.current.length === 0) return;
     undoHistoryRef.current.push(pointsRef.current);
     redoHistoryRef.current = [];
+    setCanRedo(false);
     pointsRef.current = [];
     setPoints([]);
   }
@@ -418,7 +443,7 @@ export function GeometryEditor({
             <Button type="button" variant="outline" size="sm" onClick={undoPoint} disabled={points.length === 0}>
               Undo point
             </Button>
-            <Button type="button" variant="outline" size="sm" onClick={redoPoint} disabled={redoHistoryRef.current.length === 0}>
+            <Button type="button" variant="outline" size="sm" onClick={redoPoint} disabled={!canRedo}>
               Redo
             </Button>
             <Button type="button" variant="outline" size="sm" onClick={clearPoints} disabled={points.length === 0}>
@@ -455,11 +480,29 @@ export function GeometryEditor({
       {parcels.length > 0 && (
         <div className="rounded-lg border p-3">
           <div className="mb-2 flex items-center justify-between">
-            <p className="text-sm font-medium">Existing parcels</p>
+            <div>
+              <p className="text-sm font-medium">Existing parcels</p>
+              <p className="text-xs text-muted-foreground">
+                Showing {filteredParcels.length === 0 ? 0 : currentParcelPage * parcelPageSize + 1}-
+                {Math.min((currentParcelPage + 1) * parcelPageSize, filteredParcels.length)} of {filteredParcels.length}
+                {parcelQuery ? ` matching “${parcelQuery}”` : ""}
+              </p>
+            </div>
             <Button type="button" variant="outline" size="sm" onClick={handleRecenter}>Focus all</Button>
           </div>
-          <div className="grid gap-2 sm:grid-cols-2">
-            {parcels.map((parcel) => (
+          <Input
+            value={parcelQuery}
+            onChange={(event) => {
+              setParcelQuery(event.target.value);
+              setParcelPage(0);
+            }}
+            placeholder="Search village, survey no., or patta no."
+            aria-label="Search existing parcels"
+            className="mb-3 h-9"
+          />
+          <div className="max-h-[24rem] overflow-y-auto pr-1">
+            <div className="grid gap-2 sm:grid-cols-2">
+            {visibleParcels.map((parcel) => (
               <div key={parcel.id} className="flex items-center justify-between rounded border px-3 py-2 text-xs">
                 <span>
                   <span className="font-medium">{parcel.surveyNumber ?? "Unnumbered parcel"}</span>
@@ -470,7 +513,36 @@ export function GeometryEditor({
                 </Button>
               </div>
             ))}
+            </div>
           </div>
+          {filteredParcels.length === 0 && (
+            <p className="py-4 text-center text-sm text-muted-foreground">No parcels match this search.</p>
+          )}
+          {parcelPageCount > 1 && (
+            <div className="mt-3 flex items-center justify-between border-t pt-3">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={currentParcelPage === 0}
+                onClick={() => setParcelPage((page) => Math.max(0, page - 1))}
+              >
+                Previous
+              </Button>
+              <span className="text-xs text-muted-foreground">
+                Page {currentParcelPage + 1} of {parcelPageCount}
+              </span>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={currentParcelPage >= parcelPageCount - 1}
+                onClick={() => setParcelPage((page) => Math.min(parcelPageCount - 1, page + 1))}
+              >
+                Next
+              </Button>
+            </div>
+          )}
         </div>
       )}
 

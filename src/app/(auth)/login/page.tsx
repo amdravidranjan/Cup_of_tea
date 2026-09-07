@@ -8,9 +8,9 @@ import { toast } from 'sonner';
 const DEMO_USERS = [
   { id: "u-central-1", label: "Central Authority (DoLR)", icon: "mdi:bank-outline", desc: "National oversight, dashboards, central approvals." },
   { id: "u-state-tn", label: "Tamil Nadu State Government", icon: "mdi:office-building-outline", desc: "State-level approvals, notifications, and project screening." },
-  { id: "u-district-salem", label: "District Collector (Salem)", icon: "mdi:badge-account-horizontal-outline", desc: "Primary LAO, compensation assessment, and SLA tracking." },
+  { id: "u-district-krishnagiri", label: "District Collector (Krishnagiri)", icon: "mdi:badge-account-horizontal-outline", desc: "Chennai-Salem expressway district officer, compensation assessment, and SLA tracking." },
   { id: "u-agency-1", label: "Requiring Body (NHAI/Metro)", icon: "mdi:transit-connection-variant", desc: "Project creation, funds deposit, DPR upload." },
-  { id: "u-field-salem", label: "Field Officer (Salem)", icon: "mdi:map-marker-path", desc: "On-ground verification, geo-tagging, and field reporting." },
+  { id: "u-field-krishnagiri", label: "Field Officer (Krishnagiri)", icon: "mdi:map-marker-path", desc: "Chennai-Salem expressway field verification, geo-tagging, and reporting." },
 ];
 
 export default function LoginPage() {

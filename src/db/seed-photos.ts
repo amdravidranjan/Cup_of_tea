@@ -1,29 +1,27 @@
 import { eq } from "drizzle-orm";
 import { db } from "./client";
 import * as schema from "./schema";
+import { downloadProjectThumbnails } from "./project-thumbnails";
 
-// Neutral placeholder photos (picsum.photos, seeded so they're stable and
-// deterministic) standing in for real site-survey/drone photography until
-// real photos are uploaded. Swap these for actual project photos before
-// any real deployment or demo that claims to show real sites.
 async function main() {
   const cvg = "p-tn-cvg-canal";
+  const thumbnails = await downloadProjectThumbnails();
   const coverPhotos: Record<string, string> = {
-    "p-demo-bridge-1": "/project-thumbnails/bridge.svg",
-    "p-tn-chennai-salem": "/project-thumbnails/expressway.svg",
-    "p-tn-chennai-metro": "/project-thumbnails/metro.svg",
-    "p-tn-cvg-canal": "/project-thumbnails/canal.svg",
-    "p-tn-ennore-kattupalli": "/project-thumbnails/port.svg",
-    "p-tn-coimbatore-bypass": "/project-thumbnails/expressway.svg",
-    "p-tn-sipcot-perambalur": "/project-thumbnails/industrial.svg",
-    "p-ka-bengaluru-prr": "/project-thumbnails/expressway.svg",
-    "p-tn-madurai-metro": "/project-thumbnails/metro.svg",
-    "p-tn-trichy-airport": "/project-thumbnails/airport.svg",
-    "p-tn-tuticorin-rail": "/project-thumbnails/rail.svg",
-    "p-tn-salem-steel": "/project-thumbnails/industrial.svg",
-    "p-tn-vellore-water": "/project-thumbnails/water.svg",
-    "p-tn-thanjavur-solar": "/project-thumbnails/solar.svg",
-    "p-tn-kanchipuram-it": "/project-thumbnails/industrial.svg",
+    "p-demo-bridge-1": thumbnails.bridge,
+    "p-tn-chennai-salem": thumbnails.expressway,
+    "p-tn-chennai-metro": thumbnails.metro,
+    "p-tn-cvg-canal": thumbnails.canal,
+    "p-tn-ennore-kattupalli": thumbnails.port,
+    "p-tn-coimbatore-bypass": thumbnails.expressway,
+    "p-tn-sipcot-perambalur": thumbnails.industrial,
+    "p-ka-bengaluru-prr": thumbnails.expressway,
+    "p-tn-madurai-metro": thumbnails.metro,
+    "p-tn-trichy-airport": thumbnails.airport,
+    "p-tn-tuticorin-rail": thumbnails.rail,
+    "p-tn-salem-steel": thumbnails.industrial,
+    "p-tn-vellore-water": thumbnails.water,
+    "p-tn-thanjavur-solar": thumbnails.solar,
+    "p-tn-kanchipuram-it": thumbnails.industrial,
   };
 
   for (const [projectId, coverPhotoUrl] of Object.entries(coverPhotos)) {

@@ -28,6 +28,7 @@ import { ENTITLEMENT_TYPES } from "@/lib/entitlements";
 import type { DocumentCategory } from "@/lib/document-categories";
 import { fetchOSMFeatures, findCorridorCrossings, findGridEdges } from "@/lib/osm-features";
 import { INFRASTRUCTURE_ITEMS } from "@/lib/infrastructure";
+import { downloadProjectThumbnails } from "./project-thumbnails";
 
 /**
  * Fetches real elevation data for a linear alignment from Open-Elevation
@@ -764,6 +765,8 @@ async function seedNoticeDrafts(
 //  MAIN SEED FUNCTION
 // ═══════════════════════════════════════════════════════════════════
 async function main() {
+  console.log("Downloading project thumbnails...");
+  const thumbnails = await downloadProjectThumbnails();
   console.log("Clearing existing data...");
 
   // Delete in FK-safe order: children first, parents last
@@ -1684,25 +1687,25 @@ async function main() {
   ]);
 
   // ═══════════════════════════════════════════════════════════════
-  //  COVER PHOTOS (merged from seed-photos.ts)
+  //  COVER PHOTOS (downloaded and cached locally during seeding)
   // ═══════════════════════════════════════════════════════════════
   console.log("Assigning cover photos...");
   const coverPhotos: Record<string, string> = {
-    "p-demo-bridge-1": "/project-thumbnails/bridge.svg",
-    "p-tn-chennai-salem": "/project-thumbnails/expressway.svg",
-    "p-tn-chennai-metro": "/project-thumbnails/metro.svg",
-    "p-tn-cvg-canal": "/project-thumbnails/canal.svg",
-    "p-tn-ennore-kattupalli": "/project-thumbnails/port.svg",
-    "p-tn-coimbatore-bypass": "/project-thumbnails/expressway.svg",
-    "p-tn-sipcot-perambalur": "/project-thumbnails/industrial.svg",
-    "p-ka-bengaluru-prr": "/project-thumbnails/expressway.svg",
-    "p-tn-madurai-metro": "/project-thumbnails/metro.svg",
-    "p-tn-trichy-airport": "/project-thumbnails/airport.svg",
-    "p-tn-tuticorin-rail": "/project-thumbnails/rail.svg",
-    "p-tn-salem-steel": "/project-thumbnails/industrial.svg",
-    "p-tn-vellore-water": "/project-thumbnails/water.svg",
-    "p-tn-thanjavur-solar": "/project-thumbnails/solar.svg",
-    "p-tn-kanchipuram-it": "/project-thumbnails/industrial.svg",
+    "p-demo-bridge-1": thumbnails.bridge,
+    "p-tn-chennai-salem": thumbnails.expressway,
+    "p-tn-chennai-metro": thumbnails.metro,
+    "p-tn-cvg-canal": thumbnails.canal,
+    "p-tn-ennore-kattupalli": thumbnails.port,
+    "p-tn-coimbatore-bypass": thumbnails.expressway,
+    "p-tn-sipcot-perambalur": thumbnails.industrial,
+    "p-ka-bengaluru-prr": thumbnails.expressway,
+    "p-tn-madurai-metro": thumbnails.metro,
+    "p-tn-trichy-airport": thumbnails.airport,
+    "p-tn-tuticorin-rail": thumbnails.rail,
+    "p-tn-salem-steel": thumbnails.industrial,
+    "p-tn-vellore-water": thumbnails.water,
+    "p-tn-thanjavur-solar": thumbnails.solar,
+    "p-tn-kanchipuram-it": thumbnails.industrial,
   };
   for (const [pid, url] of Object.entries(coverPhotos)) {
     await db.update(projects).set({ coverPhotoUrl: url }).where(eq(projects.id, pid));
