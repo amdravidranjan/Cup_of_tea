@@ -9,7 +9,7 @@
         "lint": "eslint",
         "test": "vitest run",
         "test:watch": "vitest",
-        "db:push": "drizzle-kit push",
+        "db:push": "tsx scripts/db-push.ts",
         "db:studio": "drizzle-kit studio",
         "db:seed": "tsx src/db/seed.ts",
         "db:check": "tsx scripts/db-check.ts",

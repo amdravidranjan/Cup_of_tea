@@ -8,21 +8,30 @@ import * as schema from "./schema";
 // any real deployment or demo that claims to show real sites.
 async function main() {
   const cvg = "p-tn-cvg-canal";
-  const bridge = "p-demo-bridge-1";
-  const metro = "p-tn-chennai-metro";
+  const coverPhotos: Record<string, string> = {
+    "p-demo-bridge-1": "/project-thumbnails/bridge.svg",
+    "p-tn-chennai-salem": "/project-thumbnails/expressway.svg",
+    "p-tn-chennai-metro": "/project-thumbnails/metro.svg",
+    "p-tn-cvg-canal": "/project-thumbnails/canal.svg",
+    "p-tn-ennore-kattupalli": "/project-thumbnails/port.svg",
+    "p-tn-coimbatore-bypass": "/project-thumbnails/expressway.svg",
+    "p-tn-sipcot-perambalur": "/project-thumbnails/industrial.svg",
+    "p-ka-bengaluru-prr": "/project-thumbnails/expressway.svg",
+    "p-tn-madurai-metro": "/project-thumbnails/metro.svg",
+    "p-tn-trichy-airport": "/project-thumbnails/airport.svg",
+    "p-tn-tuticorin-rail": "/project-thumbnails/rail.svg",
+    "p-tn-salem-steel": "/project-thumbnails/industrial.svg",
+    "p-tn-vellore-water": "/project-thumbnails/water.svg",
+    "p-tn-thanjavur-solar": "/project-thumbnails/solar.svg",
+    "p-tn-kanchipuram-it": "/project-thumbnails/industrial.svg",
+  };
 
-  await db
-    .update(schema.projects)
-    .set({ coverPhotoUrl: "https://picsum.photos/seed/cvg-canal-site/1200/500" })
-    .where(eq(schema.projects.id, cvg));
-  await db
-    .update(schema.projects)
-    .set({ coverPhotoUrl: "https://picsum.photos/seed/koraput-bridge-site/1200/500" })
-    .where(eq(schema.projects.id, bridge));
-  await db
-    .update(schema.projects)
-    .set({ coverPhotoUrl: "https://picsum.photos/seed/chennai-metro-site/1200/500" })
-    .where(eq(schema.projects.id, metro));
+  for (const [projectId, coverPhotoUrl] of Object.entries(coverPhotos)) {
+    await db
+      .update(schema.projects)
+      .set({ coverPhotoUrl })
+      .where(eq(schema.projects.id, projectId));
+  }
 
   const cvgParcels = await db.select().from(schema.parcels).where(eq(schema.parcels.projectId, cvg));
   for (const [i, p] of cvgParcels.slice(0, 6).entries()) {

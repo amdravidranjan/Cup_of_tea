@@ -1688,21 +1688,21 @@ async function main() {
   // ═══════════════════════════════════════════════════════════════
   console.log("Assigning cover photos...");
   const coverPhotos: Record<string, string> = {
-    "p-demo-bridge-1": "https://picsum.photos/seed/koraput-bridge-site/1200/500",
-    "p-tn-chennai-salem": "https://picsum.photos/seed/chennai-salem-expressway/1200/500",
-    "p-tn-chennai-metro": "https://picsum.photos/seed/chennai-metro-site/1200/500",
-    "p-tn-cvg-canal": "https://picsum.photos/seed/cvg-canal-site/1200/500",
-    "p-tn-ennore-kattupalli": "https://picsum.photos/seed/ennore-port-corridor/1200/500",
-    "p-tn-coimbatore-bypass": "https://picsum.photos/seed/coimbatore-bypass/1200/500",
-    "p-tn-sipcot-perambalur": "https://picsum.photos/seed/sipcot-perambalur/1200/500",
-    "p-ka-bengaluru-prr": "https://picsum.photos/seed/bengaluru-prr/1200/500",
-    "p-tn-madurai-metro": "https://picsum.photos/seed/madurai-metro/1200/500",
-    "p-tn-trichy-airport": "https://picsum.photos/seed/trichy-airport/1200/500",
-    "p-tn-tuticorin-rail": "https://picsum.photos/seed/tuticorin-rail/1200/500",
-    "p-tn-salem-steel": "https://picsum.photos/seed/salem-steel/1200/500",
-    "p-tn-vellore-water": "https://picsum.photos/seed/vellore-pipeline/1200/500",
-    "p-tn-thanjavur-solar": "https://picsum.photos/seed/thanjavur-solar/1200/500",
-    "p-tn-kanchipuram-it": "https://picsum.photos/seed/kanchipuram-it/1200/500",
+    "p-demo-bridge-1": "/project-thumbnails/bridge.svg",
+    "p-tn-chennai-salem": "/project-thumbnails/expressway.svg",
+    "p-tn-chennai-metro": "/project-thumbnails/metro.svg",
+    "p-tn-cvg-canal": "/project-thumbnails/canal.svg",
+    "p-tn-ennore-kattupalli": "/project-thumbnails/port.svg",
+    "p-tn-coimbatore-bypass": "/project-thumbnails/expressway.svg",
+    "p-tn-sipcot-perambalur": "/project-thumbnails/industrial.svg",
+    "p-ka-bengaluru-prr": "/project-thumbnails/expressway.svg",
+    "p-tn-madurai-metro": "/project-thumbnails/metro.svg",
+    "p-tn-trichy-airport": "/project-thumbnails/airport.svg",
+    "p-tn-tuticorin-rail": "/project-thumbnails/rail.svg",
+    "p-tn-salem-steel": "/project-thumbnails/industrial.svg",
+    "p-tn-vellore-water": "/project-thumbnails/water.svg",
+    "p-tn-thanjavur-solar": "/project-thumbnails/solar.svg",
+    "p-tn-kanchipuram-it": "/project-thumbnails/industrial.svg",
   };
   for (const [pid, url] of Object.entries(coverPhotos)) {
     await db.update(projects).set({ coverPhotoUrl: url }).where(eq(projects.id, pid));
