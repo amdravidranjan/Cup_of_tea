@@ -195,6 +195,10 @@ export default async function ProjectDetailPage({
   const rrStage = isPastRR ? (rawRRStage ?? "RR_AWARDED") : rawRRStage;
   const rrHistory = showRRPanel ? await getRRHistory(id) : [];
   const rrAvailableActions = showRRPanel ? getAvailableRRActions(rrStage, session.role) : [];
+  // The affected-family register is compiled during the SIA census (s.4-6)
+  // and grows as land records are read in, so it is loaded from day one. Only
+  // the R&R workflow below waits for the RR_IN_PROGRESS stage.
+  const canManageFamilies = can(session.role, "family:manage");
   const canManageFamilies = can(session.role, "family:manage");
   const canGrantEntitlements = can(session.role, "entitlement:grant");
 
