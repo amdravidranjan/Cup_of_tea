@@ -19,6 +19,7 @@
  * number). Delete that folder to force a fresh QR scan.
  */
 import path from "node:path";
+import { rm } from "node:fs/promises";
 import pino from "pino";
 import { Boom } from "@hapi/boom";
 import {
@@ -53,6 +54,19 @@ function log(...args: unknown[]) {
 }
 
 const MAX_RECONNECT_DELAY_MS = 30_000;
+
+async function resetAuthAndReconnect(): Promise<void> {
+  try {
+    await rm(AUTH_DIR, { recursive: true, force: true });
+    log("logged out — cleared the saved WhatsApp session; reconnecting for a fresh QR code");
+  } catch (err) {
+    log(
+      "could not clear the saved WhatsApp session:",
+      err instanceof Error ? err.message : String(err)
+    );
+  }
+  scheduleReconnect();
+}
 
 /** Backs off up to MAX_RECONNECT_DELAY_MS instead of retrying instantly —
  *  without this, a genuinely unreachable network (no internet, a firewalled
@@ -142,11 +156,12 @@ async function connect(): Promise<void> {
         }"`
       );
       if (loggedOut) {
-        log("logged out — delete .baileys-auth/ and restart to re-link");
+        void resetAuthAndReconnect();
       } else {
         scheduleReconnect();
       }
     }
+
   });
 }
 
