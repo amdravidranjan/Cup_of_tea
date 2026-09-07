@@ -2,9 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { existsSync, readFileSync, mkdirSync, writeFileSync } from "fs";
 import { join, dirname } from "path";
 import sharp from "sharp";
-// 1x1 fully transparent PNG buffer. When returned for missing/out-of-bounds tiles,
-// the browser image decoder succeeds with zero errors, and MapLibre never renders
-// opaque dark-green or black blocks over the landscape.
+
 const TRANSPARENT_PNG = Buffer.from(
   "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=",
   "base64"
@@ -20,13 +18,11 @@ export async function GET(
   const intZ = parseInt(z, 10);
   const intX = parseInt(cleanX, 10);
   const intY = parseInt(cleanY, 10);
-
-  // 1. FAST PATH: Check local offline pre-cached disk first (0ms latency, works offline)
   const localTilePath = join(process.cwd(), "public", "tiles", z, cleanX, `${cleanY}.jpg`);
+
   if (existsSync(localTilePath)) {
     try {
-      const localBuffer = readFileSync(localTilePath);
-      return new NextResponse(localBuffer, {
+      return new NextResponse(readFileSync(localTilePath), {
         status: 200,
         headers: {
           "Content-Type": "image/jpeg",
@@ -35,76 +31,72 @@ export async function GET(
         },
       });
     } catch {
-      // Fall through if file read fails
+      // Fall through to parent and online lookup.
     }
   }
 
+  if (!Number.isNaN(intZ) && !Number.isNaN(intX) && !Number.isNaN(intY)) {
+    let currZ = intZ - 1;
+    let currX = Math.floor(intX / 2);
+    let currY = Math.floor(intY / 2);
+    let levels = 1;
 
-// ... after intZ/intX/intY are parsed ...
-
-if (!Number.isNaN(intZ) && !Number.isNaN(intX) && !Number.isNaN(intY)) {
-  let currZ = intZ - 1;
-  let currX = Math.floor(intX / 2);
-  let currY = Math.floor(intY / 2);
-  let levels = 1;
-
-  while (currZ >= Math.max(8, intZ - 6)) { // cap how far up we go — beyond ~6 levels the crop is sub-pixel and pointless
-    const parentPath = join(process.cwd(), "public", "tiles", String(currZ), String(currX), `${currY}.jpg`);
-    if (existsSync(parentPath)) {
-      try {
-        const parentBuffer = readFileSync(parentPath);
-        const scale = 2 ** levels;               // how many child tiles the ancestor spans per side
-        const cropSize = 256 / scale;             // pixel size of our tile's slice within the ancestor
-        const offsetX = (intX - currX * scale) * cropSize;
-        const offsetY = (intY - currY * scale) * cropSize;
-
-        const cropped = await sharp(parentBuffer)
-          .extract({ left: Math.round(offsetX), top: Math.round(offsetY), width: Math.round(cropSize), height: Math.round(cropSize) })
-          .resize(256, 256, { kernel: "cubic" })  // upscale the slice back to full tile size
-          .jpeg({ quality: 80 })
-          .toBuffer();
-
-        return new NextResponse(new Uint8Array(cropped), {
-          status: 200,
-          headers: {
-            "Content-Type": "image/jpeg",
-            "Cache-Control": "public, max-age=86400",
-            "X-Tile-Source": `offline-parent-z${currZ}-cropped`,
-          },
-        });
-      } catch {
-        // fall through and keep climbing
+    while (currZ >= Math.max(8, intZ - 6)) {
+      const parentPath = join(
+        process.cwd(),
+        "public",
+        "tiles",
+        String(currZ),
+        String(currX),
+        `${currY}.jpg`
+      );
+      if (existsSync(parentPath)) {
+        try {
+          const parentBuffer = readFileSync(parentPath);
+          const scale = 2 ** levels;
+          const cropSize = Math.max(1, Math.floor(256 / scale));
+          const offsetX = Math.min(256 - cropSize, (intX - currX * scale) * cropSize);
+          const offsetY = Math.min(256 - cropSize, (intY - currY * scale) * cropSize);
+          const cropped = await sharp(parentBuffer)
+            .extract({ left: offsetX, top: offsetY, width: cropSize, height: cropSize })
+            .resize(256, 256, { kernel: "cubic" })
+            .jpeg({ quality: 80 })
+            .toBuffer();
+          return new NextResponse(new Uint8Array(cropped), {
+            status: 200,
+            headers: {
+              "Content-Type": "image/jpeg",
+              "Cache-Control": "public, max-age=86400",
+              "X-Tile-Source": `offline-parent-z${currZ}-cropped`,
+            },
+          });
+        } catch {
+          // Continue searching up.
+        }
       }
+      currZ -= 1;
+      currX = Math.floor(currX / 2);
+      currY = Math.floor(currY / 2);
+      levels += 1;
     }
-    currZ -= 1;
-    currX = Math.floor(currX / 2);
-    currY = Math.floor(currY / 2);
-    levels += 1;
   }
-}
 
-  // 3. LIVE ONLINE FETCH: Attempt fast fetch from Esri World Imagery (for areas outside precache)
-  // Note: Esri REST API tile format is {z}/{y}/{x}
   const esriUrl = `https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/${z}/${cleanY}/${cleanX}`;
-
   try {
     const onlineRes = await fetch(esriUrl, {
       signal: AbortSignal.timeout(2500),
       headers: { Accept: "image/*" },
     });
-
     if (onlineRes.ok) {
       const contentType = onlineRes.headers.get("content-type") || "image/jpeg";
       if (contentType.includes("image")) {
-        const buffer = await onlineRes.arrayBuffer();
-        const nodeBuffer = Buffer.from(buffer);
-
-        // Auto-cache to local disk in background for offline use
+        const nodeBuffer = Buffer.from(await onlineRes.arrayBuffer());
         try {
           mkdirSync(dirname(localTilePath), { recursive: true });
           writeFileSync(localTilePath, nodeBuffer);
-        } catch {}
-
+        } catch {
+          // Caching is best effort.
+        }
         return new NextResponse(nodeBuffer, {
           status: 200,
           headers: {
@@ -115,11 +107,9 @@ if (!Number.isNaN(intZ) && !Number.isNaN(intX) && !Number.isNaN(intY)) {
       }
     }
   } catch {
-    // Network offline or timeout
+    // Network offline or timeout.
   }
 
-  // 4. TRANSPARENT FALLBACK: Return 100% transparent 1x1 PNG.
-  // Never return an opaque colored block so the landscape is never covered or hidden.
   return new NextResponse(TRANSPARENT_PNG, {
     status: 200,
     headers: {

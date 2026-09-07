@@ -37,68 +37,97 @@ export interface RiskAssessmentInput {
   stage: string;
 }
 
-function bandFor(score: number): RiskBand {
-  if (score >= 70) return "Critical";
+function bandFor(score: number, openLegalDisputes: number): RiskBand {
+  if (score >= 80 || (openLegalDisputes >= 5 && score >= 50)) return "Critical";
   if (score >= 45) return "High";
-  if (score >= 20) return "Moderate";
+  if (score >= 10) return "Moderate";
   return "Low";
 }
 
 export function assessProjectRisk(input: RiskAssessmentInput): RiskAssessment {
   const factors: RiskFactor[] = [];
+  const value = (number: number) =>
+    Number.isFinite(number) ? Math.max(0, number) : 0;
+  const openGrievances = value(input.openGrievances);
+  const totalGrievances = value(input.totalGrievances);
+  const slaBreached = value(input.slaBreached);
+  const slaAtRisk = value(input.slaAtRisk);
+  const vulnerableFamilies = value(input.vulnerableFamilies);
+  const totalFamilies = value(input.totalFamilies);
+  const parcelsPossessed = value(input.parcelsPossessed);
+  const totalParcels = value(input.totalParcels);
+  const openLegalDisputes = value(input.openLegalDisputes);
+  const hadNegativeInput = [
+    input.openGrievances,
+    input.totalGrievances,
+    input.slaBreached,
+    input.slaAtRisk,
+    input.vulnerableFamilies,
+    input.totalFamilies,
+    input.parcelsPossessed,
+    input.totalParcels,
+    input.openLegalDisputes,
+  ].some((number) => Number.isFinite(number) && number < 0);
 
-  if (input.totalGrievances > 0) {
-    const openShare = input.openGrievances / input.totalGrievances;
+  if (totalGrievances > 0) {
+    const openShare = Math.min(openGrievances, totalGrievances) / totalGrievances;
     const points = Math.round(openShare * 20);
-    factors.push({
-      label: "Open grievances",
-      detail: `${input.openGrievances} of ${input.totalGrievances} filed grievances still open`,
-      points,
-    });
+    if (points > 0) {
+      factors.push({
+        label: "Open grievances",
+        detail: `${Math.min(openGrievances, totalGrievances)} of ${totalGrievances} filed grievances still open`,
+        points,
+      });
+    }
   }
 
-  if (input.slaBreached > 0) {
-    const points = Math.min(25, input.slaBreached * 12);
+  if (slaBreached > 0) {
+    const points = Math.min(25, slaBreached * 12);
     factors.push({
       label: "SLA breaches",
-      detail: `${input.slaBreached} statutory-timeline metric(s) already breached`,
+      detail: `${slaBreached} statutory-timeline metric(s) already breached`,
       points,
     });
   }
-  if (input.slaAtRisk > 0) {
-    const points = Math.min(15, input.slaAtRisk * 6);
+  if (slaAtRisk > 0) {
+    const points = Math.min(15, slaAtRisk * 6);
     factors.push({
       label: "SLA at risk",
-      detail: `${input.slaAtRisk} metric(s) approaching their deadline`,
+      detail: `${slaAtRisk} metric(s) approaching their deadline`,
       points,
     });
   }
 
-  if (input.totalFamilies > 0) {
-    const vulnShare = input.vulnerableFamilies / input.totalFamilies;
+  if (totalFamilies > 0) {
+    const vulnShare = Math.min(vulnerableFamilies, totalFamilies) / totalFamilies;
     const points = Math.round(vulnShare * 15);
-    factors.push({
-      label: "Vulnerable-household share",
-      detail: `${input.vulnerableFamilies} of ${input.totalFamilies} registered families flagged vulnerable`,
-      points,
-    });
+    if (points > 0) {
+      factors.push({
+        label: "Vulnerable-household share",
+        detail: `${Math.min(vulnerableFamilies, totalFamilies)} of ${totalFamilies} registered families flagged vulnerable`,
+        points,
+      });
+    }
   }
 
-  if (input.totalParcels > 0) {
-    const unsecuredShare = 1 - input.parcelsPossessed / input.totalParcels;
+  if (totalParcels > 0) {
+    const possessed = Math.min(parcelsPossessed, totalParcels);
+    const unsecuredShare = 1 - possessed / totalParcels;
     const points = Math.round(unsecuredShare * 20);
-    factors.push({
-      label: "Land not yet possessed",
-      detail: `${input.totalParcels - input.parcelsPossessed} of ${input.totalParcels} parcels not yet in POSSESSED status`,
-      points,
-    });
+    if (points > 0) {
+      factors.push({
+        label: "Land not yet possessed",
+        detail: `${totalParcels - possessed} of ${totalParcels} parcels not yet in POSSESSED status`,
+        points,
+      });
+    }
   }
 
-  if (input.openLegalDisputes > 0) {
-    const points = Math.min(30, input.openLegalDisputes * 15);
+  if (openLegalDisputes > 0) {
+    const points = Math.min(30, openLegalDisputes * 15);
     factors.push({
       label: "Active litigation",
-      detail: `${input.openLegalDisputes} legal dispute(s) not yet disposed`,
+      detail: `${openLegalDisputes} legal dispute(s) not yet disposed`,
       points,
     });
   }
@@ -107,13 +136,13 @@ export function assessProjectRisk(input: RiskAssessmentInput): RiskAssessment {
     factors.push({
       label: "No adverse signals",
       detail: "No grievances, SLA breaches, or litigation recorded yet for this project",
-      points: 5,
+      points: hadNegativeInput ? 5 : 0,
     });
   }
 
   const rawScore = factors.reduce((sum, f) => sum + f.points, 0);
   const score = Math.max(0, Math.min(100, rawScore));
-  const band = bandFor(score);
+  const band = bandFor(score, openLegalDisputes);
 
   const summary =
     band === "Critical"
