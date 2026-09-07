@@ -7,6 +7,7 @@ import { getProject } from "@/db/projects";
 import { canViewProject } from "@/lib/project-scope";
 import { recordAudit } from "@/db/audit";
 import { clientIp } from "@/lib/request-context";
+import { STAGES, type Stage } from "@/lib/workflow";
 
 export async function GET(
   _request: NextRequest,
@@ -20,6 +21,12 @@ export async function GET(
   const project = await getProject(id);
   if (!project || !canViewProject(session, project)) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
+  if (STAGES.indexOf(project.stage as Stage) < STAGES.indexOf("SIA")) {
+    return NextResponse.json(
+      { error: "Family notifications can be sent once the project reaches the SIA stage" },
+      { status: 400 }
+    );
   }
   const notifications = await listNotificationsForProject(id);
   return NextResponse.json({ notifications });

@@ -707,6 +707,7 @@ export default async function ProjectDetailPage({
                 notifications={notificationsWithFamily}
                 families={families.map((f) => ({ id: f.id, headOfHouseholdName: f.headOfHouseholdName }))}
                 canSend={canSendNotifications}
+                currentStage={currentStage}
               />
             </CardContent>
           </Card>

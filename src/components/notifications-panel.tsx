@@ -17,6 +17,7 @@ import {
 import { toneBadgeClass, type StatusTone } from "@/lib/status-colors";
 import { formatDateTime } from "@/lib/format";
 import type { NotificationChannel, NotificationEntry, NotificationStatus } from "@/db/notifications-log";
+import { STAGES, type Stage } from "@/lib/workflow";
 
 const CHANNEL_LABELS: Record<NotificationChannel, string> = {
   VOICE: "Voice call",
@@ -41,11 +42,13 @@ export function NotificationsPanel({
   notifications,
   families,
   canSend,
+  currentStage,
 }: {
   projectId: string;
   notifications: (NotificationEntry & { familyName: string })[];
   families: { id: string; headOfHouseholdName: string }[];
   canSend: boolean;
+  currentStage: Stage;
 }) {
   const router = useRouter();
   const [showForm, setShowForm] = useState(false);
@@ -54,6 +57,7 @@ export function NotificationsPanel({
   const [search, setSearch] = useState("");
   const [channelFilter, setChannelFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
+  const notificationsAllowed = STAGES.indexOf(currentStage) >= STAGES.indexOf("SIA");
 
   const filtered = useMemo(() => {
     return notifications.filter((n) => {
@@ -208,7 +212,13 @@ export function NotificationsPanel({
       {canSend && families.length > 0 && (
         <div>
           {!showForm ? (
-            <Button type="button" variant="outline" size="sm" onClick={() => setShowForm(true)}>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={!notificationsAllowed}
+              onClick={() => setShowForm(true)}
+            >
               Notify a family
             </Button>
           ) : (
@@ -236,6 +246,9 @@ export function NotificationsPanel({
             </form>
           )}
           <p className="mt-1 text-[11px] text-muted-foreground/70">
+            {notificationsAllowed
+              ? "Family notifications are available from the SIA stage onward. "
+              : "Family notifications become available once the project reaches the SIA stage. "}
             Email and WhatsApp send for real, using whatever contact details are on file for the
             family — check Families for a mismatched or missing email/number if one fails. Voice
             call and SMS are simulated for this demo. Postal generates a real tracking entry you
