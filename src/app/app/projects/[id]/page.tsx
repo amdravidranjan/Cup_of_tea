@@ -93,6 +93,8 @@ import { formatDateTime } from "@/lib/format";
 import { Bilingual } from "@/components/bilingual";
 import { canViewProject } from "@/lib/project-scope";
 import { getUserMap, displayName } from "@/db/users";
+import { listMediaAssets } from "@/db/media";
+import { MediaStrip, MediaUpload, type MediaStripItem } from "@/components/media-strip";
 
 export default async function ProjectDetailPage({
   params,
@@ -195,10 +197,6 @@ export default async function ProjectDetailPage({
   const rrStage = isPastRR ? (rawRRStage ?? "RR_AWARDED") : rawRRStage;
   const rrHistory = showRRPanel ? await getRRHistory(id) : [];
   const rrAvailableActions = showRRPanel ? getAvailableRRActions(rrStage, session.role) : [];
-  // The affected-family register is compiled during the SIA census (s.4-6)
-  // and grows as land records are read in, so it is loaded from day one. Only
-  // the R&R workflow below waits for the RR_IN_PROGRESS stage.
-  const families = await listFamiliesForProject(id);
   const canManageFamilies = can(session.role, "family:manage");
   const canGrantEntitlements = can(session.role, "entitlement:grant");
 
@@ -250,6 +248,33 @@ export default async function ProjectDetailPage({
   const noticeDrafts = await listNoticeDraftsForProject(id);
   const canManageNoticeDrafts = can(session.role, "notice-draft:manage");
   const canEditRecords = can(session.role, "record:edit");
+  const storedMedia = await listMediaAssets({ projectId: id });
+  const mediaItems: MediaStripItem[] = [
+    ...(project.coverPhotoUrl
+      ? [{ id: `${project.id}-cover`, kind: "PHOTO" as const, url: project.coverPhotoUrl, caption: "Project cover photo", entityType: "PROJECT" }]
+      : []),
+    ...parcelList.flatMap((parcel) =>
+      parcel.sitePhotoUrl
+        ? [{ id: `${parcel.id}-site-photo`, kind: "PHOTO" as const, url: parcel.sitePhotoUrl, caption: `Site photo — ${parcel.village}`, entityType: "PARCEL" }]
+        : []
+    ),
+    ...infrastructureItems.flatMap((item) =>
+      item.completionPhotoUrl
+        ? [{ id: `${item.id}-completion-photo`, kind: "PHOTO" as const, url: item.completionPhotoUrl, caption: `Completion photo — ${item.item}`, entityType: "INFRASTRUCTURE_ITEM" }]
+        : []
+    ),
+    ...storedMedia.map((asset) => ({
+      id: asset.id,
+      kind: asset.kind as MediaStripItem["kind"],
+      url: `/api/media/${asset.id}`,
+      mimeType: asset.mimeType,
+      caption: asset.caption,
+      latitude: asset.latitude,
+      longitude: asset.longitude,
+      capturedAt: asset.capturedAt,
+      entityType: asset.entityType,
+    })),
+  ];
 
   const projectGrievances = await listGrievances({ projectId: id });
   const slaMetrics = computeSLAMetrics({
@@ -355,6 +380,10 @@ export default async function ProjectDetailPage({
             <FileStack className="size-3.5" />
             Documents
           </TabsTrigger>
+          <TabsTrigger value="media">
+            <Icon icon="mdi:image-multiple-outline" width={15} />
+            Media
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6 pt-4">
@@ -382,7 +411,13 @@ export default async function ProjectDetailPage({
                 <GeometryEditor
                   projectId={project.id}
                   alignment={alignment}
-                  parcels={parcelsWithImpact.map((p) => ({ village: p.village, geometry: p.geometry }))}
+                  parcels={parcelsWithImpact.map((p) => ({
+                    id: p.id,
+                    village: p.village,
+                    surveyNumber: p.surveyNumber,
+                    pattaNumber: p.pattaNumber,
+                    geometry: p.geometry,
+                  }))}
                 />
               </CardContent>
             </Card>
@@ -849,6 +884,25 @@ export default async function ProjectDetailPage({
                 families={families.map((f) => ({ id: f.id, headOfHouseholdName: f.headOfHouseholdName }))}
                 canManage={canManageNoticeDrafts}
               />
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="media" className="space-y-6 pt-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+                <Bilingual>Project media gallery</Bilingual>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <MediaUpload projectId={project.id} entityId={project.id} />
+              <div className="mt-4">
+              <MediaStrip items={mediaItems} title="Photos, documents, video and audio" />
+              </div>
+              {mediaItems.length === 0 && (
+                <p className="text-sm text-muted-foreground">No media attached to this project yet.</p>
+              )}
             </CardContent>
           </Card>
         </TabsContent>

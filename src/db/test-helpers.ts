@@ -42,6 +42,15 @@ export async function createTestDb(): Promise<LibSQLDatabase<typeof schema>> {
   `);
 
   await db.run(sql`
+    CREATE TABLE media_assets (
+      id TEXT PRIMARY KEY, entity_type TEXT NOT NULL, entity_id TEXT NOT NULL,
+      project_id TEXT NOT NULL, kind TEXT NOT NULL, storage_path TEXT NOT NULL,
+      mime_type TEXT NOT NULL, caption TEXT, latitude REAL, longitude REAL,
+      captured_at INTEGER, uploaded_by TEXT NOT NULL, uploaded_at INTEGER NOT NULL
+    );
+  `);
+
+  await db.run(sql`
     CREATE TABLE stage_history (
       id TEXT PRIMARY KEY, project_id TEXT NOT NULL, from_stage TEXT, to_stage TEXT NOT NULL,
       action TEXT NOT NULL, actor_id TEXT NOT NULL, actor_role TEXT NOT NULL, created_at INTEGER NOT NULL

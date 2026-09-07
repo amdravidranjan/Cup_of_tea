@@ -14,7 +14,7 @@ export default function ContactPage() {
             Get in Touch with CLA
           </h1>
           <p style={{ fontSize: 13.5, color: 'rgba(255,255,255,0.7)', maxWidth: 820, lineHeight: 1.7 }}>
-            Reach the Commissionerate of Land Administration for queries related to land acquisition projects,
+            Reach the Department of Land Resources for queries related to land acquisition projects,
             compensation status, R&amp;R entitlements, or any other assistance.
           </p>
         </div>
@@ -39,9 +39,9 @@ export default function ContactPage() {
                   <ul>
                     {[
                       { icon: 'mdi:phone', c: '#0b5394', t: '1800-425-5500 (Toll Free)' },
-                      { icon: 'mdi:whatsapp', c: '#25d366', t: '94440-00001 (WhatsApp)' },
-                      { icon: 'mdi:phone-classic', c: '#0b5394', t: '044-2854-3800 (Landline)' },
-                      { icon: 'mdi:fax', c: '#6c757d', t: '044-2854-3801 (Fax)' },
+                      { icon: 'mdi:whatsapp', c: '#25d366', t: '6380039289 (WhatsApp)' },
+                      { icon: 'mdi:phone-classic', c: '#0b5394', t: '011-2338-1000 (Landline)' },
+                      { icon: 'mdi:fax', c: '#6c757d', t: '011-2338-1001 (Fax)' },
                     ].map(h => (
                       <li key={h.t}><span style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 14px', fontSize: 12.5, color: '#3a4a5c' }}>
                         <Icon icon={h.icon} width={14} color={h.c} /><strong>{h.t}</strong>
@@ -53,14 +53,14 @@ export default function ContactPage() {
                   <div className="link-box-head"><Icon icon="mdi:email-outline" width={16} />Email &amp; Address</div>
                   <ul>
                     <li><span style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 14px', fontSize: 12.5, color: '#3a4a5c' }}>
-                      <Icon icon="mdi:email-outline" width={14} color="#0b5394" />helpdesk@tnglms.gov.in
+                      <Icon icon="mdi:email-outline" width={14} color="#0b5394" />helpdesk@nilams.gov.in
                     </span></li>
                     <li><span style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 14px', fontSize: 12.5, color: '#3a4a5c' }}>
                       <Icon icon="mdi:email-fast-outline" width={14} color="#0b5394" />cla@tn.gov.in
                     </span></li>
                     <li><span style={{ display: 'flex', alignItems: 'flex-start', gap: 8, padding: '9px 14px', fontSize: 12.5, color: '#3a4a5c', lineHeight: 1.6 }}>
                       <Icon icon="mdi:map-marker-outline" width={14} color="#0b5394" style={{ marginTop: 3, flexShrink: 0 }} />
-                      Commissionerate of Land Administration,<br/>Ezhilagam, Chepauk, Chennai — 600 005,<br/>Tamil Nadu, India
+                      Department of Land Resources,<br/>Ministry of Rural Development, New Delhi — 110 001,<br/>India
                     </span></li>
                   </ul>
                 </div>
@@ -118,7 +118,7 @@ export default function ContactPage() {
           </div>
           <div className="links-grid">
             {[
-              { head: 'Chennai Region', districts: ['Chennai', 'Tiruvallur', 'Kancheepuram', 'Chengalpattu'] },
+              { head: 'Delhi Region', districts: ['New Delhi', 'Central Delhi', 'South Delhi', 'North Delhi'] },
               { head: 'Central Region', districts: ['Tiruchirappalli', 'Madurai', 'Salem', 'Coimbatore', 'Erode'] },
               { head: 'Southern Region', districts: ['Thoothukudi', 'Sivaganga', 'Krishnagiri', 'Perambalur', 'Vellore'] },
             ].map(region => (

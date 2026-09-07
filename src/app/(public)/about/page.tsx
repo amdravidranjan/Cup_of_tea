@@ -14,11 +14,11 @@ export default async function AboutPage() {
             About the Portal · போர்ட்டல் பற்றி
           </div>
           <h1 style={{ fontSize: 28, fontWeight: 700, color: '#ffc107', marginBottom: 8 }}>
-            Tamil Nadu Government Land Management System
+            NILAMS - National Integrated Land Acquisition Management System
           </h1>
           <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.7)', maxWidth: 820, lineHeight: 1.7 }}>
-            TN-GLMS is the unified digital platform for managing the entire lifecycle of land acquisition under the RFCTLARR Act 2013
-            — from preliminary notification to final possession — ensuring transparency, accountability, and timely compensation for affected families across Tamil Nadu.
+            NILAMS is the unified digital platform for managing the entire lifecycle of land acquisition under the RFCTLARR Act 2013
+            — from preliminary notification to final possession — ensuring transparency, accountability, and timely compensation for affected families across India.
           </p>
         </div>
       </div>
@@ -55,9 +55,9 @@ export default async function AboutPage() {
             <div>
               <div style={{ fontSize: 13.5, color: '#3a4a5c', lineHeight: 1.85 }}>
                 <p style={{ marginBottom: 14 }}>
-                  The Commissionerate of Land Administration (CLA), under the Revenue &amp; Disaster Management Department,
-                  Government of Tamil Nadu, is the nodal authority for all land acquisition proceedings in the state.
-                  TN-GLMS digitises every step mandated by the <strong>Right to Fair Compensation and Transparency in Land Acquisition, Rehabilitation and Resettlement Act, 2013</strong> (RFCTLARR Act).
+                  The Department of Land Resources, under the Ministry of Rural Development,
+                  Government of India, is the nodal authority for the national land acquisition framework.
+                  NILAMS digitises every step mandated by the <strong>Right to Fair Compensation and Transparency in Land Acquisition, Rehabilitation and Resettlement Act, 2013</strong> (RFCTLARR Act).
                 </p>
                 <p style={{ marginBottom: 14 }}>
                   The platform ensures that <strong>Section 11 preliminary notifications</strong> are published transparently,
@@ -146,7 +146,7 @@ export default async function AboutPage() {
                 items: ['Ministry of Rural Development', 'Dept. of Land Resources (DoLR)', 'RFCTLARR Act 2013 Administrator', 'National Monitoring Committee'],
               },
               {
-                head: 'State Government (Tamil Nadu)',
+                head: 'Central Government (India)',
                 icon: 'mdi:office-building-outline',
                 items: ['Commissioner of Land Administration', 'Revenue & Disaster Mgmt Dept.', 'State R&R Commissioner', 'State Expert Appraisal Committee'],
               },
@@ -197,7 +197,7 @@ export default async function AboutPage() {
                   'Tender: GIS Survey — Krishnagiri District (Closes 15 Oct 2026)',
                   'Tender: SIA Consultant — Madurai Metro Phase 1',
                   'Tender: R&R Colony Construction — Sivaganga',
-                  'Tender: DGPS Equipment Supply — CLA HQ Chennai',
+                  'Tender: DGPS Equipment Supply — DoLR HQ New Delhi',
                 ].map(it => (
                   <li key={it}><a href="/documents"><Icon icon="mdi:clipboard-text-clock-outline" width={14} color="#e56b00" />{it}</a></li>
                 ))}

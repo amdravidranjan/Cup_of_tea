@@ -10,7 +10,8 @@ import {
   getEntityHistoryWith,
   verifyAuditLogWith,
 } from "./audit";
-import { diffRecords, canonicalize, GENESIS_HASH } from "@/lib/audit";
+import { diffRecords, canonicalize } from "@/lib/audit";
+import { GENESIS_HASH } from "@/lib/audit-hash";
 
 const ACTOR = { userId: "u-district", role: "district" };
 

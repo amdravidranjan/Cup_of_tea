@@ -13,6 +13,7 @@ export interface InfrastructureChecklistItem {
   status: "PENDING" | "COMPLETE";
   completedBy: string | null;
   completedAt: Date | null;
+  completionPhotoUrl: string | null;
 }
 
 export async function ensureInfrastructureChecklistWith(
@@ -50,6 +51,7 @@ export async function listInfrastructureChecklistWith(
     status: r.status as "PENDING" | "COMPLETE",
     completedBy: r.completedBy,
     completedAt: r.completedAt,
+    completionPhotoUrl: r.completionPhotoUrl,
   }));
 }
 
@@ -70,6 +72,7 @@ export async function getInfrastructureItemByIdWith(
     status: row.status as "PENDING" | "COMPLETE",
     completedBy: row.completedBy,
     completedAt: row.completedAt,
+    completionPhotoUrl: row.completionPhotoUrl,
   };
 }
 

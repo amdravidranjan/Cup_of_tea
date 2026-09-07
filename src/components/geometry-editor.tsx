@@ -38,7 +38,10 @@ function ensureWorkerUrlConfigured() {
 type Mode = "idle" | "alignment" | "parcel";
 
 interface ParcelFeature {
+  id: string;
   village: string;
+  surveyNumber: string | null;
+  pattaNumber: string | null;
   geometry: PolygonGeometry;
 }
 
@@ -63,10 +66,13 @@ export function GeometryEditor({
   const [saving, setSaving] = useState(false);
   const [surveyNumber, setSurveyNumber] = useState("");
   const [pattaNumber, setPattaNumber] = useState("");
+  const [suggested, setSuggested] = useState({ village: "", surveyNumber: "", pattaNumber: "" });
   const [satellite, setSatellite] = useState(true);
   const [cursor, setCursor] = useState<Position | null>(null);
   const modeRef = useRef<Mode>("idle");
   const pointsRef = useRef<Position[]>([]);
+  const undoHistoryRef = useRef<Position[][]>([]);
+  const redoHistoryRef = useRef<Position[][]>([]);
 
   useEffect(() => {
     modeRef.current = mode;
@@ -201,6 +207,8 @@ export function GeometryEditor({
       map.on("click", (e) => {
         if (modeRef.current === "idle") return;
         const next: Position[] = [...pointsRef.current, [e.lngLat.lng, e.lngLat.lat]];
+        undoHistoryRef.current.push(pointsRef.current);
+        redoHistoryRef.current = [];
         pointsRef.current = next;
         setPoints(next);
       });
@@ -255,11 +263,17 @@ export function GeometryEditor({
   function startAlignment() {
     setMode("alignment");
     setPoints([]);
+    undoHistoryRef.current = [];
+    redoHistoryRef.current = [];
   }
   function startParcel() {
     setMode("parcel");
     setPoints([]);
-    setVillage("");
+    undoHistoryRef.current = [];
+    redoHistoryRef.current = [];
+    if (suggested.village) setVillage(suggested.village);
+    if (suggested.surveyNumber) setSurveyNumber(suggested.surveyNumber);
+    if (suggested.pattaNumber) setPattaNumber(suggested.pattaNumber);
     setAreaOverride(null);
   }
   function cancelDraw() {
@@ -272,9 +286,66 @@ export function GeometryEditor({
     setSurveyNumber("");
     setPattaNumber("");
     setVillage("");
+    undoHistoryRef.current = [];
+    redoHistoryRef.current = [];
   }
   function undoPoint() {
-    setPoints((prev) => prev.slice(0, -1));
+    const previous = undoHistoryRef.current.pop();
+    if (!previous) return;
+    redoHistoryRef.current.push(pointsRef.current);
+    pointsRef.current = previous;
+    setPoints(previous);
+  }
+  function redoPoint() {
+    const next = redoHistoryRef.current.pop();
+    if (!next) return;
+    undoHistoryRef.current.push(pointsRef.current);
+    pointsRef.current = next;
+    setPoints(next);
+  }
+  function clearPoints() {
+    if (pointsRef.current.length === 0) return;
+    undoHistoryRef.current.push(pointsRef.current);
+    redoHistoryRef.current = [];
+    pointsRef.current = [];
+    setPoints([]);
+  }
+
+  useEffect(() => {
+    fetch(`/api/projects/${projectId}/parcels`)
+      .then((res) => res.json())
+      .then((body: { suggestedIdentifiers?: typeof suggested }) => {
+        if (body.suggestedIdentifiers) setSuggested(body.suggestedIdentifiers);
+      })
+      .catch((error) => console.warn("Could not load parcel suggestions", error));
+  }, [projectId, parcels.length]);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    const source = map?.getSource("existing-parcels") as GeoJSONSource | undefined;
+    if (!source || !mapReady) return;
+    source.setData({
+      type: "FeatureCollection",
+      features: parcels.map((p) => ({
+        type: "Feature",
+        properties: { id: p.id, village: p.village },
+        geometry: p.geometry,
+      })),
+    });
+  }, [parcels, mapReady]);
+
+  async function removeParcel(parcel: ParcelFeature) {
+    if (!window.confirm(`Delete parcel ${parcel.surveyNumber ?? parcel.id}?`)) return;
+    const res = await fetch(`/api/projects/${projectId}/parcels?parcelId=${encodeURIComponent(parcel.id)}`, {
+      method: "DELETE",
+    });
+    if (!res.ok) {
+      const body = (await res.json()) as { error?: string };
+      toast.error(body.error ?? "Failed to delete parcel");
+      return;
+    }
+    toast.success("Parcel deleted");
+    router.refresh();
   }
 
   async function saveAlignment() {
@@ -296,8 +367,9 @@ export function GeometryEditor({
   }
 
   async function saveParcel() {
-    if (!village.trim()) {
-      toast.error("Village is required");
+    const parcelVillage = village.trim() || suggested.village;
+    if (!parcelVillage) {
+      toast.error("Village could not be generated");
       return;
     }
     setSaving(true);
@@ -305,7 +377,7 @@ export function GeometryEditor({
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        village: village.trim(),
+        village: parcelVillage,
         areaHectares: area,
         status,
         surveyNumber: surveyNumber.trim(),
@@ -346,6 +418,12 @@ export function GeometryEditor({
             <Button type="button" variant="outline" size="sm" onClick={undoPoint} disabled={points.length === 0}>
               Undo point
             </Button>
+            <Button type="button" variant="outline" size="sm" onClick={redoPoint} disabled={redoHistoryRef.current.length === 0}>
+              Redo
+            </Button>
+            <Button type="button" variant="outline" size="sm" onClick={clearPoints} disabled={points.length === 0}>
+              Clear
+            </Button>
             <Button type="button" variant="ghost" size="sm" onClick={cancelDraw}>
               Cancel
             </Button>
@@ -372,31 +450,29 @@ export function GeometryEditor({
             : "Move the cursor over the map for coordinates"}
         </div>
 
-        {/* Recenter button */}
-        <button
-          type="button"
-          onClick={() => {
-            const map = mapRef.current;
-            if (!map) return;
-            const geoms: Geometry[] = [];
-            if (alignment) geoms.push(alignment);
-            for (const p of parcels) geoms.push(p.geometry);
-            if (geoms.length === 0) return;
-            const bounds = computeBbox(geoms);
-            map.fitBounds(bounds, { padding: 50, duration: 800 });
-          }}
-          title="Recenter map"
-          className="absolute right-3 top-[7.5rem] z-10 flex h-[29px] w-[29px] items-center justify-center rounded border bg-background shadow-sm hover:bg-accent"
-        >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="12" cy="12" r="3" />
-            <line x1="12" y1="2" x2="12" y2="6" />
-            <line x1="12" y1="18" x2="12" y2="22" />
-            <line x1="2" y1="12" x2="6" y2="12" />
-            <line x1="18" y1="12" x2="22" y2="12" />
-          </svg>
-        </button>
       </div>
+
+      {parcels.length > 0 && (
+        <div className="rounded-lg border p-3">
+          <div className="mb-2 flex items-center justify-between">
+            <p className="text-sm font-medium">Existing parcels</p>
+            <Button type="button" variant="outline" size="sm" onClick={handleRecenter}>Focus all</Button>
+          </div>
+          <div className="grid gap-2 sm:grid-cols-2">
+            {parcels.map((parcel) => (
+              <div key={parcel.id} className="flex items-center justify-between rounded border px-3 py-2 text-xs">
+                <span>
+                  <span className="font-medium">{parcel.surveyNumber ?? "Unnumbered parcel"}</span>
+                  <span className="ml-2 text-muted-foreground">{parcel.village}</span>
+                </span>
+                <Button type="button" variant="ghost" size="sm" className="text-red-700" onClick={() => removeParcel(parcel)}>
+                  Delete
+                </Button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {points.length > 0 && (
         <details className="rounded-lg border p-3 text-sm">
@@ -433,7 +509,7 @@ export function GeometryEditor({
               id="geo-survey"
               value={surveyNumber}
               onChange={(e) => setSurveyNumber(e.target.value)}
-              placeholder="e.g. 104/2"
+              placeholder={suggested.surveyNumber || "e.g. 104/2"}
               className="w-32"
             />
           </div>
@@ -443,17 +519,18 @@ export function GeometryEditor({
               id="geo-patta"
               value={pattaNumber}
               onChange={(e) => setPattaNumber(e.target.value)}
-              placeholder="optional"
+              placeholder={suggested.pattaNumber || "auto-generated"}
               className="w-36"
             />
           </div>
           <div className="space-y-1">
-            <Label htmlFor="geo-village">Village</Label>
+            <Label htmlFor="geo-village">Previous / revenue village</Label>
             <Input
               id="geo-village"
               value={village}
               onChange={(e) => setVillage(e.target.value)}
-              className="w-40"
+              placeholder={suggested.village || "auto-generated"}
+              className="w-48"
             />
           </div>
           <div className="space-y-1">

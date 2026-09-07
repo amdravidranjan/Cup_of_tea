@@ -3,12 +3,12 @@
  *
  * The procedural bridge in `three-model-layer.ts` is boxes — a slab, two
  * pylons, six-sided cable cylinders — and reads as a placeholder from any
- * distance. This builds the real thing instead: a four-span composite girder
+ * distance. This builds the real thing instead: an eight-span composite girder
  * bridge with the components a bridge actually has, at the dimensions the
  * project drawings state.
  *
  * Dimensions come from the same source as the drawings and the DPR:
- *   248 m overall, four spans of 62 m
+ *   2000 m overall, eight spans of 250 m
  *   12.0 m deck: 7.0 m carriageway, 1.5 m shoulders, 0.75 m crash barriers
  *   Deck soffit 8.4 m above highest flood level
  *   Three river piers on pile caps, with cutwaters facing upstream
@@ -28,9 +28,9 @@ mkdirSync(OUT_DIR, { recursive: true });
 
 /* ── Dimensions ───────────────────────────────────────────────────────── */
 
-const SPAN = 62;
-const SPANS = 4;
-const LENGTH = SPAN * SPANS; // 248 m
+const SPAN = 250;
+const SPANS = 8;
+const LENGTH = SPAN * SPANS; // 2000 m
 const HALF = LENGTH / 2;
 
 const DECK_WIDTH = 12.0;

@@ -4,10 +4,12 @@ import { db as defaultDb } from "./client";
 import * as schema from "./schema";
 import {
   GENESIS_HASH,
-  canonicalize,
   computeEntryHash,
-  diffRecords,
   verifyAuditChain,
+} from "@/lib/audit-hash";
+import {
+  canonicalize,
+  diffRecords,
   type AuditAction,
   type AuditEntityType,
   type AuditEntryInput,

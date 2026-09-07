@@ -198,6 +198,13 @@ export function buildParcels(): FlagshipParcel[] {
           [round6(Math.min(x0, x1)), round6(y1)],
         ];
 
+        // The station check above is only a coarse guard. The river bends
+        // across the corridor, so reject the actual footprint if any corner
+        // reaches the water corridor.
+        if (boundary.some(([lon, pointLat]) => distanceToRiverMeters(lon, pointLat) <= RIVER_WIDTH_M / 2)) {
+          continue;
+        }
+
         const widthM = Math.abs(outerM - innerM);
         const extent = round4((widthM * halfHeightM * 2) / 10000);
 
@@ -242,6 +249,30 @@ export function buildParcels(): FlagshipParcel[] {
   }
 
   return parcels;
+}
+
+function distanceToRiverMeters(lon: number, lat: number): number {
+  let closest = Number.POSITIVE_INFINITY;
+  for (let i = 0; i < BHAVANI_CENTRELINE.length - 1; i++) {
+    const [x1, y1] = BHAVANI_CENTRELINE[i];
+    const [x2, y2] = BHAVANI_CENTRELINE[i + 1];
+    const scaleX = metresPerDegLon(lat);
+    const x = lon * scaleX;
+    const y = lat * METRES_PER_DEG_LAT;
+    const ax = x1 * scaleX;
+    const ay = y1 * METRES_PER_DEG_LAT;
+    const bx = x2 * scaleX;
+    const by = y2 * METRES_PER_DEG_LAT;
+    const dx = bx - ax;
+    const dy = by - ay;
+    const lengthSquared = dx * dx + dy * dy;
+    const t = lengthSquared === 0
+      ? 0
+      : Math.max(0, Math.min(1, ((x - ax) * dx + (y - ay) * dy) / lengthSquared));
+    const distance = Math.hypot(x - (ax + t * dx), y - (ay + t * dy));
+    closest = Math.min(closest, distance);
+  }
+  return closest;
 }
 
 function touches(a: FlagshipParcel, b: FlagshipParcel): boolean {

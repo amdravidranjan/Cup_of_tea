@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { Icon } from '@iconify/react';
 import { listPublicProjects, getPublicPortfolioStats } from "@/db/public";
 import { PublicProjectSearch } from "@/components/public-project-search";
@@ -22,6 +23,27 @@ export default async function ProjectsPage() {
           <p style={{ fontSize: 13.5, color: 'rgba(255,255,255,0.7)', maxWidth: 820, lineHeight: 1.7 }}>
             Search and track all active and completed land acquisition projects across Tamil Nadu. View Section 11/19 notifications, compensation awards, R&amp;R status, and possession details for each project.
           </p>
+          <div style={{ marginTop: 18 }}>
+            <Link
+              href="/request-project"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 8,
+                padding: '10px 18px',
+                borderRadius: 6,
+                background: '#ffc107',
+                color: '#0b1f2d',
+                fontWeight: 700,
+                fontSize: 13,
+                textDecoration: 'none',
+                boxShadow: '0 6px 18px rgba(255,193,7,0.25)',
+              }}
+            >
+              <Icon icon="mdi:plus-circle-outline" width={18} />
+              Request a Project
+            </Link>
+          </div>
         </div>
       </div>
 

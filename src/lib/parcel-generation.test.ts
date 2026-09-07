@@ -84,6 +84,15 @@ describe("generateCorridorParcels", () => {
     const degenerate: LineGeometry = { type: "LineString", coordinates: [[78.2, 12.52], [78.2, 12.52]] };
     expect(generateCorridorParcels(degenerate, options)).toEqual([]);
   });
+
+  it("omits parcel sections that overlap an excluded water range", () => {
+    const parcels = generateCorridorParcels(line, {
+      ...options,
+      excludedAlongRanges: [{ center: 2500, halfLength: 500 }],
+    });
+    const full = generateCorridorParcels(line, options);
+    expect(parcels.length).toBeLessThan(full.length);
+  });
 });
 
 describe("generateGridParcels", () => {

@@ -26,7 +26,7 @@
  */
 
 import { MapLibreMap, MercatorCoordinate } from "maplibre-gl";
-import type { Position } from "@/lib/geo";
+import type { PolygonGeometry, Position } from "@/lib/geo";
 import * as THREE from "three";
 
 type AssetKind =
@@ -119,6 +119,13 @@ export async function addProceduralModels(
     // item, and sharing a single object graph across them would mean the last
     // placement's transform won.
     const group = hero ? hero.clone(true) : createModel(assetKind, placement.scale ?? 1);
+    if (hero) {
+      // Hero GLBs may be authored from an end-point origin. Normalize the
+      // local X origin so the asset's physical midpoint lands on placement.
+      const bounds = new THREE.Box3().setFromObject(group);
+      const center = bounds.getCenter(new THREE.Vector3());
+      group.position.x -= center.x;
+    }
     scene.add(group);
 
     // Warm, natural sunlight with ambient fill — prevents washed out white surfaces
@@ -777,18 +784,59 @@ export function computePolygonPlacement(
 }
 
 /**
- * Computes a bridge model placement centered at the river crossing midpoint of the alignment.
+ * Computes a bridge model placement centered on the acquired plots when they
+ * are available, falling back to the route midpoint for other projects.
  */
 export function computeBridgePlacements(
   coords: Position[],
-  modelScale: number = 1.2
+  modelScale: number = 1.2,
+  plotGeometries: PolygonGeometry[] = []
 ): ModelPlacement[] {
   if (coords.length < 2) return [];
-  const midIdx = Math.floor(coords.length / 2);
-  const p1 = coords[Math.max(0, midIdx - 1)];
-  const p2 = coords[Math.min(coords.length - 1, midIdx + 1)];
-  const midLng = (coords[0][0] + coords[coords.length - 1][0]) / 2;
-  const midLat = (coords[0][1] + coords[coords.length - 1][1]) / 2;
+  const metresPerDegreeLat = 111320;
+  const metresPerDegreeLng =
+    111320 * Math.cos((coords.reduce((sum, [, lat]) => sum + lat, 0) / coords.length * Math.PI) / 180);
+  const distances = [0];
+  for (let i = 1; i < coords.length; i++) {
+    const [lng1, lat1] = coords[i - 1];
+    const [lng2, lat2] = coords[i];
+    distances.push(
+      distances[i - 1] +
+        Math.hypot(
+          (lng2 - lng1) * metresPerDegreeLng,
+          (lat2 - lat1) * metresPerDegreeLat
+        )
+    );
+  }
+
+  let midLng: number;
+  let midLat: number;
+  if (plotGeometries.length > 0) {
+    const vertices = plotGeometries.flatMap((geometry) => geometry.coordinates[0]);
+    midLng = vertices.reduce((sum, [lng]) => sum + lng, 0) / vertices.length;
+    midLat = vertices.reduce((sum, [, lat]) => sum + lat, 0) / vertices.length;
+  } else {
+    const midpointDistance = distances[distances.length - 1] / 2;
+    let segment = 0;
+    while (segment < distances.length - 2 && distances[segment + 1] < midpointDistance) {
+      segment++;
+    }
+    const segmentLength = distances[segment + 1] - distances[segment];
+    const t = segmentLength === 0
+      ? 0
+      : (midpointDistance - distances[segment]) / segmentLength;
+    const p1 = coords[segment];
+    const p2 = coords[segment + 1];
+    midLng = p1[0] + (p2[0] - p1[0]) * t;
+    midLat = p1[1] + (p2[1] - p1[1]) * t;
+  }
+
+  let bearingSegment = 0;
+  while (bearingSegment < distances.length - 2 && distances[bearingSegment + 1] < distances[distances.length - 1] / 2) {
+    bearingSegment++;
+  }
+  const p1 = coords[bearingSegment];
+  const p2 = coords[bearingSegment + 1];
 
   const dLng = ((p2[0] - p1[0]) * Math.PI) / 180;
   const lat1Rad = (p1[1] * Math.PI) / 180;
@@ -801,4 +849,3 @@ export function computeBridgePlacements(
 
   return [{ position: [midLng, midLat], bearing, scale: modelScale }];
 }
-

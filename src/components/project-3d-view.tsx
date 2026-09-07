@@ -684,7 +684,10 @@ export function Project3DView({
 
             if (alignment?.type === "LineString") {
               if (assetKind === "bridge") {
-                placements = computeBridgePlacements(alignment.coordinates, 1.0);
+                placements = computeBridgePlacements(
+                  alignment.coordinates,
+                  1.0
+                );
               } else {
                 placements = computeLinePlacements(
                   alignment.coordinates,

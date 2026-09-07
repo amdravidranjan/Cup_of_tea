@@ -44,7 +44,7 @@ export const gmailEmailProvider: EmailProvider = {
   async send(message: EmailMessage): Promise<SendResult> {
     try {
       const info = await getTransporter().sendMail({
-        from: `TN-GLMS <${process.env.GMAIL_USER}>`,
+        from: `NILAMS <${process.env.GMAIL_USER}>`,
         to: message.to,
         subject: message.subject,
         text: message.text,

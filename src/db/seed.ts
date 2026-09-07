@@ -875,14 +875,23 @@ async function main() {
       22.5,
       bridgeOsm
     );
+    const bridgeWaterCrossings = findCorridorCrossings(
+      alignment.coordinates as [number, number][],
+      22.5,
+      { roads: [], waterways: bridgeOsm.waterways, boundaries: [] }
+    );
 
     const generated = generateCorridorParcels(alignment, {
-      rowWidthMeters: 45,
+      rowWidthMeters: 65,
       minSegmentMeters: 20,
       maxSegmentMeters: 80,
       villages: ["Suku", "Koraput"],
       seed: 0,
       osmCrossings: bridgeCrossings,
+      excludedAlongRanges: bridgeWaterCrossings.map((center) => ({
+        center,
+        halfLength: 140,
+      })),
     });
     const bridgeVillageCounters = new Map<string, number>();
     const parcelRows = generated.map((p, globalIndex) => {

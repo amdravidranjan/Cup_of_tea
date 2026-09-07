@@ -335,7 +335,7 @@ export class MeshBuilder {
 
     const binary = Buffer.concat(buffers);
     const gltf = {
-      asset: { version: "2.0", generator: "TN-GLMS flagship model builder" },
+      asset: { version: "2.0", generator: "NILAMS flagship model builder" },
       scene: 0,
       scenes: [{ name: sceneName, nodes: [0] }],
       nodes: [{ name: sceneName, mesh: 0 }],

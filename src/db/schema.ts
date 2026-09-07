@@ -26,6 +26,23 @@ export const projects = sqliteTable("projects", {
   coverPhotoUrl: text("cover_photo_url"),
 });
 
+// Polymorphic attachments shared by every land-acquisition record.
+export const mediaAssets = sqliteTable("media_assets", {
+  id: text("id").primaryKey(),
+  entityType: text("entity_type").notNull(),
+  entityId: text("entity_id").notNull(),
+  projectId: text("project_id").notNull(),
+  kind: text("kind").notNull(),
+  storagePath: text("storage_path").notNull(),
+  mimeType: text("mime_type").notNull(),
+  caption: text("caption"),
+  latitude: real("latitude"),
+  longitude: real("longitude"),
+  capturedAt: integer("captured_at", { mode: "timestamp" }),
+  uploadedBy: text("uploaded_by").notNull(),
+  uploadedAt: integer("uploaded_at", { mode: "timestamp" }).notNull(),
+});
+
 export const stageHistory = sqliteTable("stage_history", {
   id: text("id").primaryKey(),
   projectId: text("project_id").notNull(),

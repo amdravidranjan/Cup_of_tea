@@ -87,6 +87,8 @@ export interface CorridorOptions {
    * so parcel boundaries align with actual land features.
    */
   osmCrossings?: number[];
+  /** Along-corridor water sections where no parcel may be generated. */
+  excludedAlongRanges?: { center: number; halfLength: number }[];
 }
 
 /**
@@ -222,6 +224,15 @@ export function generateCorridorParcels(
     const along = uniqueCuts[i];
     const endAlong = uniqueCuts[i + 1];
     if (endAlong - along < 5) continue; // skip tiny slivers
+    if (
+      options.excludedAlongRanges?.some(
+        (range) =>
+          endAlong >= range.center - range.halfLength &&
+          along <= range.center + range.halfLength
+      )
+    ) {
+      continue;
+    }
 
     const startCut = cutVertices[i];
     const endCut = cutVertices[i + 1];

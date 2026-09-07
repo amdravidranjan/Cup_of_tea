@@ -17,8 +17,6 @@
  * and `verifyAuditChain` is what demonstrates it.
  */
 
-import { createHash } from "node:crypto";
-
 /** Every record type an officer can act on. */
 export type AuditEntityType =
   | "PROJECT"
@@ -140,8 +138,6 @@ export function isNoOpChange(
   return diffRecords(before, after).length === 0;
 }
 
-/* ── Hash chain ───────────────────────────────────────────────────────── */
-
 /**
  * Deterministic JSON: object keys sorted at every depth, `Date` as ISO,
  * `undefined` as null. Two structurally equal payloads must serialize
@@ -149,6 +145,19 @@ export function isNoOpChange(
  */
 export function canonicalize(value: unknown): string {
   return JSON.stringify(canonicalValue(value));
+}
+
+/** A stored entry, as read back from the database. */
+export interface StoredAuditEntry extends AuditEntryInput {
+  id: string;
+  prevHash: string;
+  hash: string;
+}
+
+export interface ChainVerification {
+  valid: boolean;
+  checked: number;
+  brokenAt: { id: string; index: number; reason: string } | null;
 }
 
 function canonicalValue(value: unknown): unknown {
@@ -164,76 +173,6 @@ function canonicalValue(value: unknown): unknown {
     return out;
   }
   return value;
-}
-
-/** The genesis link — the `prevHash` of the very first entry in the chain. */
-export const GENESIS_HASH = "0".repeat(64);
-
-/**
- * An entry's hash. Covers the previous hash and every field that carries
- * meaning, so no part of a recorded change can be altered without detection.
- */
-export function computeEntryHash(prevHash: string, entry: AuditEntryInput): string {
-  const payload = canonicalize({
-    prevHash,
-    actorId: entry.actorId,
-    actorRole: entry.actorRole,
-    action: entry.action,
-    entityType: entry.entityType,
-    entityId: entry.entityId,
-    projectId: entry.projectId,
-    before: entry.before,
-    after: entry.after,
-    reason: entry.reason,
-    summary: entry.summary,
-    createdAt: entry.createdAt,
-  });
-  return createHash("sha256").update(payload).digest("hex");
-}
-
-/** A stored entry, as read back from the database. */
-export interface StoredAuditEntry extends AuditEntryInput {
-  id: string;
-  prevHash: string;
-  hash: string;
-}
-
-export interface ChainVerification {
-  valid: boolean;
-  checked: number;
-  /** The first entry that fails, if any — everything after it is suspect. */
-  brokenAt: { id: string; index: number; reason: string } | null;
-}
-
-/**
- * Re-derive every hash in order and confirm the chain is intact.
- *
- * `entries` must be in insertion order, oldest first, and must start at the
- * genesis link — verifying a filtered slice would report a false break,
- * because a slice legitimately has a predecessor it cannot see.
- */
-export function verifyAuditChain(entries: StoredAuditEntry[]): ChainVerification {
-  let prev = GENESIS_HASH;
-  for (let i = 0; i < entries.length; i++) {
-    const entry = entries[i];
-    if (entry.prevHash !== prev) {
-      return {
-        valid: false,
-        checked: i,
-        brokenAt: { id: entry.id, index: i, reason: "prevHash does not match the preceding entry" },
-      };
-    }
-    const expected = computeEntryHash(prev, entry);
-    if (expected !== entry.hash) {
-      return {
-        valid: false,
-        checked: i,
-        brokenAt: { id: entry.id, index: i, reason: "entry contents do not match its recorded hash" },
-      };
-    }
-    prev = entry.hash;
-  }
-  return { valid: true, checked: entries.length, brokenAt: null };
 }
 
 /* ── Presentation ─────────────────────────────────────────────────────── */

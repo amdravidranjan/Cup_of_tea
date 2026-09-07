@@ -14,9 +14,12 @@ import {
 const DEMO_USERS = [
   { id: "u-central-1", label: "Central (DoLR)" },
   { id: "u-state-1", label: "State Govt (Odisha)" },
+  { id: "u-state-tn", label: "State Govt (Tamil Nadu)" },
   { id: "u-district-1", label: "District (Koraput)" },
+  { id: "u-district-tn", label: "District (Tamil Nadu)" },
   { id: "u-agency-1", label: "Project Agency (NHAI)" },
   { id: "u-field-1", label: "Field Officer" },
+  { id: "u-field-tn", label: "Field Officer (Tamil Nadu)" },
 ] as const;
 
 export function RoleSwitcher() {

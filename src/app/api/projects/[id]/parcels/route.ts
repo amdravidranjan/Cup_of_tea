@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
 import { can } from "@/lib/rbac";
-import { createParcel, listParcels } from "@/db/parcels";
+import { createParcel, deleteParcel, listParcels } from "@/db/parcels";
 import { getProject } from "@/db/projects";
 import { canViewProject } from "@/lib/project-scope";
 import { recordAudit, withAudit } from "@/db/audit";
@@ -29,7 +29,16 @@ export async function GET(
   const alignment = parseStoredGeometry(project.geometryType, project.geometryGeoJson);
   const parcelList = await listParcels(id);
   const withImpact = computeParcelsWithImpact(alignment, parcelList);
-  return NextResponse.json({ parcels: withImpact });
+  const code = project.district.replace(/[^A-Za-z]/g, "").slice(0, 3).toUpperCase() || "LND";
+  const nextNumber = parcelList.length + 1;
+  return NextResponse.json({
+    parcels: withImpact,
+    suggestedIdentifiers: {
+      village: `${project.district} Revenue Village`,
+      surveyNumber: `${code}/ACQ/${String(nextNumber).padStart(3, "0")}`,
+      pattaNumber: `${code}-PTA-${String(10000 + nextNumber).padStart(5, "0")}`,
+    },
+  });
 }
 
 export async function POST(
@@ -66,16 +75,23 @@ export async function POST(
   ) {
     return NextResponse.json({ error: "Invalid parcel" }, { status: 400 });
   }
+  const existingParcels = await listParcels(id);
+  const districtCode = project.district.replace(/[^A-Za-z]/g, "").slice(0, 3).toUpperCase() || "LND";
+  const usedNumbers = existingParcels.flatMap((parcel) => {
+    const matches = `${parcel.surveyNumber ?? ""} ${parcel.pattaNumber ?? ""}`.match(/\d+/g) ?? [];
+    return matches.map(Number).filter((number) => Number.isFinite(number));
+  });
+  const nextNumber = Math.max(0, ...usedNumbers) + 1;
   const parcelInput = {
     projectId: id,
-    village: body.village,
+    village: body.village?.trim() || `${project.district} Revenue Village`,
     areaHectares: body.areaHectares,
     status: body.status,
     // A parcel with no survey number is not identifiable in a land record, so
     // these are accepted here and forwarded (createParcel already stored them;
     // this route was silently dropping whatever the editor sent).
-    surveyNumber: body.surveyNumber?.trim() || undefined,
-    pattaNumber: body.pattaNumber?.trim() || undefined,
+    surveyNumber: body.surveyNumber?.trim() || `${districtCode}/ACQ/${String(nextNumber).padStart(3, "0")}`,
+    pattaNumber: body.pattaNumber?.trim() || `${districtCode}-PTA-${String(10000 + nextNumber).padStart(5, "0")}`,
     geometry: {
       type: "Polygon" as const,
       coordinates: body.geometry.coordinates as PolygonGeometry["coordinates"],
@@ -99,4 +115,36 @@ export async function POST(
     },
   });
   return NextResponse.json({ id: parcelId }, { status: 201 });
+}
+
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const session = await getSession();
+  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!can(session.role, "project:geometry:edit")) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+  const { id } = await params;
+  const parcelId = new URL(request.url).searchParams.get("parcelId");
+  if (!parcelId) return NextResponse.json({ error: "parcelId is required" }, { status: 400 });
+  const project = await getProject(id);
+  if (!project || !canViewProject(session, project)) {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
+  const parcel = (await listParcels(id)).find((item) => item.id === parcelId);
+  if (!parcel) return NextResponse.json({ error: "Parcel not found" }, { status: 404 });
+  await deleteParcel(parcelId);
+  await recordAudit({
+    actor: { userId: session.userId, role: session.role },
+    action: "DELETE",
+    entityType: "PARCEL",
+    entityId: parcelId,
+    projectId: id,
+    summary: `Deleted parcel ${parcel.surveyNumber ?? parcelId}`,
+    ip: clientIp(request),
+    before: { village: parcel.village, surveyNumber: parcel.surveyNumber, pattaNumber: parcel.pattaNumber },
+  });
+  return NextResponse.json({ ok: true });
 }

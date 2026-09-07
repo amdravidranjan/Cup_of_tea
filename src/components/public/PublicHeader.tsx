@@ -15,8 +15,8 @@ export function PublicHeader() {
   const navLinks = [
     { label: 'Home', href: '/' },
     { label: 'About Us', items: [
-      { label: 'About TN-GLMS', href: '/about' },
-      { label: 'Commissionerate of Land Administration', href: '/about' },
+      { label: 'About NILAMS', href: '/about' },
+      { label: 'Department of Land Resources', href: '/about' },
       { label: 'RFCTLARR Act 2013', href: '/about#act' },
       { label: 'Organisational Structure', href: '/about' },
       { label: 'Annual Reports', href: '/documents' },
@@ -24,6 +24,7 @@ export function PublicHeader() {
     ]},
     { label: 'Projects', items: [
       { label: 'View All Projects', href: '/projects' },
+      { label: 'Request a Project', href: '/request-project' },
       { label: 'Section 11 Notifications', href: '/documents' },
       { label: 'Section 19 Declarations', href: '/documents' },
       { label: 'Award & Possession Status', href: '/projects' },
@@ -100,15 +101,15 @@ export function PublicHeader() {
             <rect x="10" y="47" width="44" height="1.8" fill="#138808"/>
             <rect x="10" y="49" width="44" height="15" fill="white"/>
             <rect x="10" y="64" width="44" height="1.8" fill="#FF9933"/>
-            <text x="32" y="59" textAnchor="middle" fontSize="6.5" fill="#0b5394" fontFamily="Arial" fontWeight="700">TN-GLMS</text>
+            <text x="32" y="59" textAnchor="middle" fontSize="6.5" fill="#0b5394" fontFamily="Arial" fontWeight="700">NILAMS</text>
           </svg>
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ fontSize: 11, color: '#6c757d', marginBottom: 2 }}>
-              Government of Tamil Nadu &nbsp;|&nbsp; தமிழ்நாடு அரசு
+              Government of India &nbsp;|&nbsp; இந்திய அரசு
             </div>
-            <div className="portal-name-en">Tamil Nadu Government Land Management System</div>
-            <div className="portal-name-ta">தமிழ்நாடு நில மேலாண்மை அமைப்பு (TN-GLMS)</div>
-            <div className="portal-dept">Commissionerate of Land Administration · Revenue & Disaster Management Dept.</div>
+            <div className="portal-name-en">NILAMS - National Integrated Land Acquisition Management System</div>
+            <div className="portal-name-ta">தேசிய ஒருங்கிணைந்த நிலம் கையகப்படுத்தல் மேலாண்மை அமைப்பு (NILAMS)</div>
+            <div className="portal-dept">Department of Land Resources · Ministry of Rural Development</div>
           </div>
           <div style={{ borderLeft: '1px solid #dee2e6', paddingLeft: 16, flexShrink: 0 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>

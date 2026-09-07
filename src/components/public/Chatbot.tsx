@@ -11,7 +11,7 @@ import {
 } from '@/lib/voice-assistant';
 
 const GREETING =
-  'வணக்கம்! I am VANI, the TN-GLMS virtual assistant. Ask me about a project’s status, compensation, R&R entitlements, grievances or documents — by typing, or press the mic and speak.';
+  'வணக்கம்! I am VANI, the NILAMS virtual assistant. Ask me about a project’s status, compensation, R&R entitlements, grievances or documents — by typing, or press the mic and speak.';
 
 /**
  * VANI — the public assistant widget.
@@ -130,7 +130,7 @@ export function Chatbot() {
                   ? 'Listening…'
                   : speaking
                     ? 'Speaking…'
-                    : 'TN-GLMS Help Desk • Online'}
+                    : 'NILAMS Help Desk • Online'}
               </div>
             </div>
             <button

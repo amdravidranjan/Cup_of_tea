@@ -1,4 +1,4 @@
-# National Land Acquisition & Management System
+# NILAMS - National Integrated Land Acquisition Management System
 
 An SIH Problem Statement 26016 prototype for the Ministry of Rural Development's Department of Land Resources. The application manages the land-acquisition lifecycle under the RFCTLARR Act, 2013: proposals, approvals, compensation, rehabilitation and resettlement (R&R), GIS, documents, field verification, and a public transparency portal.
 

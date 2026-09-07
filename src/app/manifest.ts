@@ -2,8 +2,8 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "National Land Acquisition & Management System",
-    short_name: "Land Acquisition",
+    name: "NILAMS - National Integrated Land Acquisition Management System",
+    short_name: "NILAMS",
     description: "Field verification and land acquisition workflow — works offline.",
     start_url: "/app/field",
     display: "standalone",

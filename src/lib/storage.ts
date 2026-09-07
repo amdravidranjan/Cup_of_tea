@@ -17,7 +17,7 @@ export async function saveFile(
   opts: { projectId: string; category: string; fileName: string; root?: string }
 ): Promise<SavedFile> {
   const root = opts.root ?? DEFAULT_ROOT;
-  const dir = path.join(root, opts.projectId, opts.category);
+  const dir = path.join(/*turbopackIgnore: true*/ root, opts.projectId, opts.category);
   await mkdir(dir, { recursive: true });
   const safeName = `${Date.now()}-${sanitizeFileName(opts.fileName)}`;
   await writeFile(path.join(dir, safeName), buffer);
@@ -29,5 +29,5 @@ export async function readStoredFile(
   storagePath: string,
   root: string = DEFAULT_ROOT
 ): Promise<Buffer> {
-  return readFile(path.join(root, storagePath));
+  return readFile(path.join(/*turbopackIgnore: true*/ root, storagePath));
 }

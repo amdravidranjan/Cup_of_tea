@@ -246,9 +246,9 @@ export default async function PublicLandingPage() {
                   { label: 'Bhoomi Rashi Portal — MoRTH', href: 'https://bhoomirashi.gov.in' },
                   { label: 'Dept. of Land Resources (DoLR)', href: 'https://dolr.gov.in' },
                   { label: 'TN Revenue Department', href: 'https://tnrd.gov.in' },
-                  { label: 'e-District Tamil Nadu', href: 'https://edistrict.tn.gov.in' },
+                  { label: 'India.gov.in', href: 'https://www.india.gov.in' },
                   { label: 'Open Government Data (OGD)', href: 'https://data.gov.in' },
-                  { label: 'NIC Tamil Nadu', href: 'https://tn.nic.in' },
+                  { label: 'National Informatics Centre', href: 'https://www.nic.gov.in' },
                 ].map(l => (
                   <li key={l.label}><a href={l.href} target="_blank" rel="noreferrer"><Icon icon="mdi:open-in-new" width={14} color="#0b5394" />{l.label}</a></li>
                 ))}
@@ -259,7 +259,7 @@ export default async function PublicLandingPage() {
               <ul style={{ padding: '14px 0 0' }}>
                 <li style={{ padding: '0 14px 12px', borderBottom: '1px solid #dee2e6' }}>
                   <div style={{ fontSize: 13, color: '#3a4a5c', marginBottom: 10, lineHeight: 1.6 }}>
-                    <strong>TN-GLMS Mobile App</strong><br />
+                    <strong>NILAMS Mobile App</strong><br />
                     <span style={{ fontSize: 12, color: '#6c757d' }}>Access land records, track applications and receive alerts on mobile.</span>
                   </div>
                   <div style={{ display: 'flex', gap: 9 }}>
@@ -274,9 +274,9 @@ export default async function PublicLandingPage() {
                 <li style={{ padding: '12px 14px', borderBottom: 'none' }}>
                   <div style={{ fontSize: 12.5, color: '#3a4a5c', lineHeight: 2 }}>
                     <div style={{ display: 'flex', gap: 7, alignItems: 'center' }}><Icon icon="mdi:phone-outline" width={13} color="#0b5394" /><strong>1800-425-5500</strong> (Toll Free)</div>
-                    <div style={{ display: 'flex', gap: 7, alignItems: 'center' }}><Icon icon="mdi:whatsapp" width={13} color="#25d366" /><strong>94440-00001</strong> (WhatsApp)</div>
-                    <div style={{ display: 'flex', gap: 7, alignItems: 'center' }}><Icon icon="mdi:email-outline" width={13} color="#0b5394" />helpdesk@tnglms.gov.in</div>
-                    <div style={{ display: 'flex', gap: 7, alignItems: 'flex-start' }}><Icon icon="mdi:map-marker-outline" width={13} color="#0b5394" style={{ marginTop: 3 }} />Chepauk, Chennai — 600 005</div>
+                    <div style={{ display: 'flex', gap: 7, alignItems: 'center' }}><Icon icon="mdi:whatsapp" width={13} color="#25d366" /><strong>6380039289</strong> (WhatsApp)</div>
+                    <div style={{ display: 'flex', gap: 7, alignItems: 'center' }}><Icon icon="mdi:email-outline" width={13} color="#0b5394" />helpdesk@nilams.gov.in</div>
+                    <div style={{ display: 'flex', gap: 7, alignItems: 'flex-start' }}><Icon icon="mdi:map-marker-outline" width={13} color="#0b5394" style={{ marginTop: 3 }} />New Delhi — 110 001</div>
                   </div>
                 </li>
               </ul>

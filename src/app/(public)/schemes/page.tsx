@@ -38,7 +38,7 @@ const schemes = [
     img: 'https://images.unsplash.com/photo-1630672140970-290903ff233c?w=600&h=200&fit=crop&auto=format',
     title: 'Gram Sabha Consent Process',
     tamilTitle: 'கிராம சபை ஒப்புதல்',
-    desc: 'Section 41 mandates prior consent of Gram Sabha for PPP projects and private acquisitions. TN-GLMS tracks Gram Sabha resolutions, attendance, and consent certification.',
+    desc: 'Section 41 mandates prior consent of Gram Sabha for PPP projects and private acquisitions. NILAMS tracks Gram Sabha resolutions, attendance, and consent certification.',
     link: '/about#act',
     icon: 'mdi:account-group',
   },
@@ -140,7 +140,7 @@ export default function SchemesPage() {
                   'RFCTLARR Act 2013 — Full Text (PDF)',
                   'Second Schedule — R&R Entitlements',
                   'Third Schedule — Infrastructure Amenities',
-                  'State R&R Policy — Tamil Nadu 2024',
+                  'National R&R Policy — India 2024',
                 ].map(it => (
                   <li key={it}><a href="/documents"><Icon icon="mdi:file-pdf-box" width={14} color="#c0392b" />{it}</a></li>
                 ))}

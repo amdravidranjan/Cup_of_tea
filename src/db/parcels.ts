@@ -32,6 +32,7 @@ export interface Parcel {
   createdAt: Date;
   surveyNumber: string | null;
   pattaNumber: string | null;
+  sitePhotoUrl: string | null;
   boundaryMethod: string | null;
   sourceDocumentId: string | null;
   landClassification: string | null;
@@ -47,6 +48,7 @@ function toParcel(row: {
   createdAt: Date;
   surveyNumber: string | null;
   pattaNumber: string | null;
+  sitePhotoUrl: string | null;
   boundaryMethod: string | null;
   sourceDocumentId: string | null;
   landClassification: string | null;
@@ -61,6 +63,7 @@ function toParcel(row: {
     createdAt: row.createdAt,
     surveyNumber: row.surveyNumber,
     pattaNumber: row.pattaNumber,
+    sitePhotoUrl: row.sitePhotoUrl,
     boundaryMethod: row.boundaryMethod,
     sourceDocumentId: row.sourceDocumentId,
     landClassification: row.landClassification,
@@ -149,13 +152,19 @@ export async function updateParcelWith(
   for (const [key, value] of Object.entries(input)) {
     if (value !== undefined) patch[key] = value;
   }
+
   if (Object.keys(patch).length === 0) return;
   await database.update(parcels).set(patch).where(eq(parcels.id, id));
+}
+
+export async function deleteParcelWith(database: Db, id: string): Promise<void> {
+  await database.delete(parcels).where(eq(parcels.id, id));
 }
 
 export const createParcel = (input: CreateParcelInput) => createParcelWith(defaultDb, input);
 export const updateParcel = (id: string, input: UpdateParcelInput) =>
   updateParcelWith(defaultDb, id, input);
+export const deleteParcel = (id: string) => deleteParcelWith(defaultDb, id);
 export const setParcelPattaNumber = (id: string, pattaNumber: string) =>
   setParcelPattaNumberWith(defaultDb, id, pattaNumber);
 export const listParcels = (projectId: string) => listParcelsWith(defaultDb, projectId);

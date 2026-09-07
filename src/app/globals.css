@@ -56,7 +56,7 @@
 }
 
 :root {
-  /* TN-GLMS government portal palette.
+  /* NILAMS government portal palette.
      These shadcn tokens are deliberately mapped onto the SAME values the
      public/landing pages use through their raw .ux-* classes (see the UX4G
      block further down). That is what makes the signed-in /app side inherit
@@ -1109,4 +1109,3 @@ body.high-contrast {
   font-family: inherit;
 }
 .chat-input-row button:hover { background: var(--ux-primary-dk); }
-

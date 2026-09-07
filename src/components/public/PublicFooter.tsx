@@ -18,17 +18,17 @@ export function PublicFooter() {
               <rect x="10" y="47" width="44" height="1.8" fill="#138808"/>
               <rect x="10" y="49" width="44" height="15" fill="white"/>
               <rect x="10" y="64" width="44" height="1.8" fill="#FF9933"/>
-              <text x="32" y="59" textAnchor="middle" fontSize="6.5" fill="#0b5394" fontFamily="Arial" fontWeight="700">TN-GLMS</text>
+              <text x="32" y="59" textAnchor="middle" fontSize="6.5" fill="#0b5394" fontFamily="Arial" fontWeight="700">NILAMS</text>
             </svg>
             <div>
-              <div style={{ color: '#fff', fontSize: 13, fontWeight: 700 }}>TN-GLMS</div>
-              <div style={{ color: '#7b96b2', fontSize: 11 }}>Govt. of Tamil Nadu</div>
+              <div style={{ color: '#fff', fontSize: 13, fontWeight: 700 }}>NILAMS</div>
+              <div style={{ color: '#7b96b2', fontSize: 11 }}>Government of India</div>
             </div>
           </div>
           <p style={{ fontSize: 12.5, lineHeight: 1.85, color: '#7b96b2', marginBottom: 12 }}>
-            Content owned and maintained by the Commissionerate of Land Administration,
-            Revenue & Disaster Management Dept., Government of Tamil Nadu.
-            Designed, Developed & Hosted by NIC Tamil Nadu State Centre.
+            Content owned and maintained by the Department of Land Resources,
+            Ministry of Rural Development, Government of India.
+            Designed, Developed & Hosted by National Informatics Centre.
           </p>
           <div className="social-row">
             {[
@@ -82,14 +82,14 @@ export function PublicFooter() {
           <div className="footer-head">Related Links · இணைப்புகள்</div>
           <ul>
             {[
-              { label: 'TN Revenue Department', href: 'https://tnrd.gov.in' },
+              { label: 'Ministry of Rural Development', href: 'https://rural.gov.in' },
               { label: 'Bhoomi Rashi Portal', href: 'https://bhoomirashi.gov.in' },
               { label: 'Dept. of Land Resources', href: 'https://dolr.gov.in' },
-              { label: 'e-District Tamil Nadu', href: 'https://edistrict.tn.gov.in' },
+              { label: 'India.gov.in', href: 'https://www.india.gov.in' },
               { label: 'Open Govt. Data (OGD)', href: 'https://data.gov.in' },
-              { label: 'NIC Tamil Nadu', href: 'https://tn.nic.in' },
-              { label: 'TN State Portal', href: 'https://tn.gov.in' },
-              { label: 'CLA — About Us', href: '/about' },
+              { label: 'National Informatics Centre', href: 'https://www.nic.gov.in' },
+              { label: 'Government of India', href: 'https://www.india.gov.in' },
+              { label: 'DoLR — About Us', href: '/about' },
             ].map(l => (
               <li key={l.label}><a href={l.href} {...(l.href.startsWith('http') ? { target: '_blank', rel: 'noreferrer' } : {})}><Icon icon={l.href.startsWith('http') ? 'mdi:open-in-new' : 'mdi:chevron-right'} width={11} color="#e56b00" />{l.label}</a></li>
             ))}
@@ -100,7 +100,7 @@ export function PublicFooter() {
       <div className="footer-bottom">
         <div className="footer-bottom-inner">
           <div className="footer-copy">
-            © 2026 Commissionerate of Land Administration, Govt. of Tamil Nadu. All rights reserved. &nbsp;|&nbsp;
+            © 2026 Department of Land Resources, Government of India. All rights reserved. &nbsp;|&nbsp;
             Last Updated: 04 Sep 2026 &nbsp;|&nbsp;
             <a href="/about">Policies</a> <a href="/about">Disclaimer</a> <a href="/about">Privacy</a>
           </div>

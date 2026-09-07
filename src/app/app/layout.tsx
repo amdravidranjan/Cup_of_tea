@@ -85,14 +85,14 @@ export default async function DashboardLayout({
           <GovEmblem size={56} />
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ fontSize: 11, color: "#6c757d", marginBottom: 2 }}>
-              Government of Tamil Nadu &nbsp;|&nbsp; தமிழ்நாடு அரசு
+              Government of India &nbsp;|&nbsp; இந்திய அரசு
             </div>
             <Link href="/app" className="portal-name-en" style={{ textDecoration: "none" }}>
-              Tamil Nadu Government Land Management System
+              NILAMS - National Integrated Land Acquisition Management System
             </Link>
-            <div className="portal-name-ta">தமிழ்நாடு நில மேலாண்மை அமைப்பு (TN-GLMS)</div>
+            <div className="portal-name-ta">தேசிய ஒருங்கிணைந்த நிலம் கையகப்படுத்தல் மேலாண்மை அமைப்பு (NILAMS)</div>
             <div className="portal-dept">
-              Commissionerate of Land Administration · Revenue &amp; Disaster Management Dept.
+              Department of Land Resources · Ministry of Rural Development
             </div>
           </div>
 

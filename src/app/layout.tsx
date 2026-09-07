@@ -17,7 +17,7 @@ const notoSansTamil = Noto_Sans_Tamil({
 });
 
 export const metadata: Metadata = {
-  title: "National Land Acquisition & Management System",
+  title: "NILAMS - National Integrated Land Acquisition Management System",
   description: "SIH PS 26016 — Dept. of Land Resources demo prototype",
 };
 

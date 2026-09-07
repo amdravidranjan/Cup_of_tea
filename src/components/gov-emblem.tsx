@@ -1,11 +1,11 @@
 /**
- * The TN-GLMS portal emblem.
+ * The NILAMS portal emblem.
  *
  * Extracted from PublicHeader so the signed-in console can carry the exact
  * same mark as the public site. Previously the two halves of the product
  * introduced themselves differently — the public site as "Tamil Nadu
  * Government Land Management System" with this emblem, the console as
- * "National Land Acquisition & Management System" with no mark at all —
+ * "NILAMS - National Integrated Land Acquisition Management System" with no mark at all —
  * which read as two unrelated applications.
  *
  * Deliberately a stylised composition (chakra-like ring, star, tricolour
@@ -20,7 +20,7 @@ export function GovEmblem({ size = 64 }: { size?: number }) {
       viewBox="0 0 64 72"
       fill="none"
       role="img"
-      aria-label="TN-GLMS emblem"
+      aria-label="NILAMS emblem"
       style={{ flexShrink: 0 }}
     >
       <circle cx="32" cy="28" r="26" fill="#0b5394" />
@@ -63,7 +63,7 @@ export function GovEmblem({ size = 64 }: { size?: number }) {
         fontFamily="Arial"
         fontWeight="700"
       >
-        TN-GLMS
+        NILAMS
       </text>
     </svg>
   );

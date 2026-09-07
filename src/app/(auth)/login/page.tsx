@@ -1,15 +1,16 @@
 'use client';
 import { useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Icon } from '@iconify/react';
 import { toast } from 'sonner';
 
 const DEMO_USERS = [
   { id: "u-central-1", label: "Central Authority (DoLR)", icon: "mdi:bank-outline", desc: "National oversight, dashboards, central approvals." },
-  { id: "u-state-1", label: "State Government", icon: "mdi:office-building-outline", desc: "State level approvals, notifications, project screening." },
-  { id: "u-district-1", label: "District Collector", icon: "mdi:badge-account-horizontal-outline", desc: "Primary LAO, compensation assessment, SLA tracking." },
+  { id: "u-state-tn", label: "Tamil Nadu State Government", icon: "mdi:office-building-outline", desc: "State-level approvals, notifications, and project screening." },
+  { id: "u-district-salem", label: "District Collector (Salem)", icon: "mdi:badge-account-horizontal-outline", desc: "Primary LAO, compensation assessment, and SLA tracking." },
   { id: "u-agency-1", label: "Requiring Body (NHAI/Metro)", icon: "mdi:transit-connection-variant", desc: "Project creation, funds deposit, DPR upload." },
-  { id: "u-field-1", label: "Field Surveyor", icon: "mdi:map-marker-path", desc: "On-ground geo-tagging, possession marking." },
+  { id: "u-field-salem", label: "Field Officer (Salem)", icon: "mdi:map-marker-path", desc: "On-ground verification, geo-tagging, and field reporting." },
 ];
 
 export default function LoginPage() {
@@ -46,7 +47,7 @@ export default function LoginPage() {
             <div className="ta text-lg text-gray-500 font-normal mt-1">அரசு அதிகாரி உள்நுழைவு</div>
           </h2>
           <p className="mt-2 text-sm text-gray-600">
-            For demonstration purposes, select a role below to authenticate securely via TN-GLMS SSO.
+            For demonstration purposes, select a role below to authenticate securely via NILAMS SSO.
           </p>
         </div>
 
@@ -77,9 +78,9 @@ export default function LoginPage() {
           
           <div className="mt-8 pt-6 border-t border-gray-200">
             <div className="flex items-center justify-between">
-              <a href="/" className="text-sm font-medium text-[#0b5394] hover:underline flex items-center gap-1">
+              <Link href="/" className="text-sm font-medium text-[#0b5394] hover:underline flex items-center gap-1">
                 <Icon icon="mdi:arrow-left" width={16} /> Back to Public Portal
-              </a>
+              </Link>
               <div className="text-xs text-gray-400 flex items-center gap-1">
                 <Icon icon="mdi:lock-outline" width={12} /> Secured by NIC ePramaan
               </div>

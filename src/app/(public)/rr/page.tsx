@@ -33,7 +33,7 @@ export default function RRPage() {
           </h1>
           <p style={{ fontSize: 13.5, color: 'rgba(255,255,255,0.7)', maxWidth: 820, lineHeight: 1.7 }}>
             Track the 6-step R&amp;R workflow for each land acquisition project, view Second Schedule entitlements,
-            and monitor Third Schedule infrastructure amenities for resettlement colonies across Tamil Nadu.
+            and monitor Third Schedule infrastructure amenities for resettlement colonies across India.
           </p>
         </div>
       </div>
