@@ -198,7 +198,6 @@ export default async function ProjectDetailPage({
   // The affected-family register is compiled during the SIA census (s.4-6)
   // and grows as land records are read in, so it is loaded from day one. Only
   // the R&R workflow below waits for the RR_IN_PROGRESS stage.
-  const families = await listFamiliesForProject(id);
   const canManageFamilies = can(session.role, "family:manage");
   const canGrantEntitlements = can(session.role, "entitlement:grant");
 
