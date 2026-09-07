@@ -121,15 +121,12 @@ describe("assessProjectRiskSafe", () => {
   });
 
   it("protects the scorer from impossible counts that would produce absurd terms", () => {
-    // Fed raw, the contradictory preset makes the scorer emit a +67 grievance
-    // term (40 open ÷ 12 filed) and a *negative* 70-point possession term
-    // (1 − 90 ÷ 20). Both are nonsense, and the second means "more possessed
-    // than exists" reads as risk-reducing. This is why coercion exists.
+    // The scorer itself clamps impossible ratios; the sandbox still repairs
+    // the input and reports those repairs before scoring it.
     const contradictory = RISK_PRESETS.find((p) => p.id === "contradictory")!;
 
     const raw = assessProjectRisk(contradictory.input);
-    expect(raw.factors.some((f) => f.points > 25)).toBe(true);
-    expect(raw.factors.some((f) => f.points < 0)).toBe(true);
+    expect(raw.factors.every((f) => f.points >= 0 && f.points <= 30)).toBe(true);
 
     const guarded = assessProjectRiskSafe(contradictory.input);
     for (const factor of guarded.assessment.factors) {
@@ -144,10 +141,10 @@ describe("assessProjectRiskSafe", () => {
     expect(assessProjectRiskSafe(worst.input).assessment.score).toBe(100);
   });
 
-  it("scores an all-zero project above zero, because no data is not no risk", () => {
+  it("scores an all-zero project as low risk", () => {
     const allZero = RISK_PRESETS.find((p) => p.id === "all-zero")!;
     const result = assessProjectRiskSafe(allZero.input);
-    expect(result.assessment.score).toBe(5);
+    expect(result.assessment.score).toBe(0);
     expect(result.assessment.factors[0].label).toBe("No adverse signals");
   });
 

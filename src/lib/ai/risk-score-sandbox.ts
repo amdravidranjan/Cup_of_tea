@@ -52,9 +52,9 @@ export const RISK_WEIGHTS = {
 /** Score bands, matching `bandFor` in the scorer. Kept for the UI legend. */
 export const RISK_BANDS = [
   { band: "Low", from: 0, to: 19, meaning: "Routine monitoring." },
-  { band: "Moderate", from: 20, to: 44, meaning: "Watch this cycle." },
+  { band: "Moderate", from: 10, to: 44, meaning: "Watch this cycle." },
   { band: "High", from: 45, to: 69, meaning: "Needs a closer look now." },
-  { band: "Critical", from: 70, to: 100, meaning: "Priority review; escalate." },
+  { band: "Critical", from: 80, to: 100, meaning: "Priority review; escalate." },
 ] as const;
 
 /**
