@@ -22,7 +22,7 @@ export async function GET(
   const intY = parseInt(cleanY, 10);
 
   // 1. FAST PATH: Check local offline pre-cached disk first (0ms latency, works offline)
-  const localTilePath = join(process.cwd(), "public", "tiles", z, cleanX, `${cleanY}.jpg`);
+  const localTilePath = join(/*turbopackIgnore: true*/ process.cwd(), "public", "tiles", z, cleanX, `${cleanY}.jpg`);
   if (existsSync(localTilePath)) {
     try {
       const localBuffer = readFileSync(localTilePath);
@@ -48,7 +48,7 @@ export async function GET(
 
     while (currZ >= 8) {
       const parentPath = join(
-        process.cwd(),
+        /*turbopackIgnore: true*/ process.cwd(),
         "public",
         "tiles",
         String(currZ),
