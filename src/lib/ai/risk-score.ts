@@ -1,6 +1,6 @@
 /**
  * Project risk scoring. This is a transparent, deterministic weighted
- * formula xcv over real project signals (open grievances, SLA health, land
+ * formula over real project signals (open grievances, SLA health, land
  * secured, vulnerable-family share, active litigation) — not a trained
  * model. It's presented as "AI Risk Assessment" in the UI because that's
  * the framing the product wants, but the scoring logic here is plain
