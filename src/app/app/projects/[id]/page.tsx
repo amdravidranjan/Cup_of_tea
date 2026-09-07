@@ -199,6 +199,7 @@ export default async function ProjectDetailPage({
   // and grows as land records are read in, so it is loaded from day one. Only
   // the R&R workflow below waits for the RR_IN_PROGRESS stage.
   const canManageFamilies = can(session.role, "family:manage");
+  const canManageFamilies = can(session.role, "family:manage");
   const canGrantEntitlements = can(session.role, "entitlement:grant");
 
   const showInfrastructureChecklist = STAGES.indexOf(currentStage) >= STAGES.indexOf("POSSESSION");
