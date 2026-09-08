@@ -223,6 +223,7 @@ export default async function ProjectDetailPage({
 
   const consultations = await listConsultationsForProject(id);
   const canManageGramSabha = can(session.role, "gram-sabha:manage");
+  const gramSabhaMedia: Record<string, MediaStripItem[]> = {};
 
   const landBankEntries = (await listLandBankForProject(id)).map((e) => ({
     ...e,
@@ -275,6 +276,15 @@ export default async function ProjectDetailPage({
       entityType: asset.entityType,
     })),
   ];
+  for (const item of mediaItems) {
+    const consultationMedia = storedMedia.find(
+      (asset) => asset.id === item.id && asset.entityType === "GRAM_SABHA"
+    );
+    if (!consultationMedia) continue;
+    const existing = gramSabhaMedia[consultationMedia.entityId] ?? [];
+    existing.push(item);
+    gramSabhaMedia[consultationMedia.entityId] = existing;
+  }
 
   const projectGrievances = await listGrievances({ projectId: id });
   const slaMetrics = computeSLAMetrics({
@@ -694,23 +704,26 @@ export default async function ProjectDetailPage({
                 projectId={project.id}
                 consultations={consultations}
                 canManage={canManageGramSabha}
+                mediaByConsultation={gramSabhaMedia}
               />
             </CardContent>
           </Card>
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground"><Bilingual>Notifications to Affected Families</Bilingual></CardTitle>
-            </CardHeader>
-            <CardContent>
-              <NotificationsPanel
-                projectId={project.id}
-                notifications={notificationsWithFamily}
-                families={families.map((f) => ({ id: f.id, headOfHouseholdName: f.headOfHouseholdName }))}
-                canSend={canSendNotifications}
-                currentStage={currentStage}
-              />
-            </CardContent>
-          </Card>
+          {STAGES.indexOf(currentStage) >= STAGES.indexOf("NOTIFIED") && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground"><Bilingual>Notifications to Affected Families</Bilingual></CardTitle>
+              </CardHeader>
+              <CardContent>
+                <NotificationsPanel
+                  projectId={project.id}
+                  notifications={notificationsWithFamily}
+                  families={families.map((f) => ({ id: f.id, headOfHouseholdName: f.headOfHouseholdName }))}
+                  canSend={canSendNotifications}
+                  currentStage={currentStage}
+                />
+              </CardContent>
+            </Card>
+          )}
         </TabsContent>
 
         <TabsContent value="documents" className="space-y-6 pt-4">

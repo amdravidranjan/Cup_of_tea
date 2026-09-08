@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/dialog";
 import { formatDate } from "@/lib/format";
 import type { GramSabhaConsultation } from "@/db/gram-sabha";
+import { MediaStrip, MediaUpload, type MediaStripItem } from "@/components/media-strip";
 
 /* ── Consultation Detail Dialog ───────────────────────────────────── */
 
@@ -88,10 +89,12 @@ export function GramSabhaPanel({
   projectId,
   consultations,
   canManage,
+  mediaByConsultation,
 }: {
   projectId: string;
   consultations: GramSabhaConsultation[];
   canManage: boolean;
+  mediaByConsultation: Record<string, MediaStripItem[]>;
 }) {
   const router = useRouter();
   const [showForm, setShowForm] = useState(false);
@@ -188,6 +191,31 @@ export function GramSabhaPanel({
               </div>
               <p className="mt-1 text-muted-foreground line-clamp-2">{c.minutes}</p>
               <p className="mt-1 text-xs font-medium text-foreground">Resolution: {c.resolution}</p>
+              {mediaByConsultation[c.id]?.length ? (
+                <div className="mt-3 border-t pt-3" onClick={(event) => event.stopPropagation()}>
+                  <MediaStrip
+                    items={mediaByConsultation[c.id] ?? []}
+                    title="Meeting media"
+                  />
+                  {canManage && (
+                    <div className="mt-2">
+                      <MediaUpload
+                        projectId={projectId}
+                        entityId={c.id}
+                        entityType="GRAM_SABHA"
+                      />
+                    </div>
+                  )}
+                </div>
+              ) : canManage ? (
+                <div className="mt-3 border-t pt-3" onClick={(event) => event.stopPropagation()}>
+                  <MediaUpload
+                    projectId={projectId}
+                    entityId={c.id}
+                    entityType="GRAM_SABHA"
+                  />
+                </div>
+              ) : null}
             </li>
           ))}
         </ul>

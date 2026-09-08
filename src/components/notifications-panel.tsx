@@ -57,7 +57,7 @@ export function NotificationsPanel({
   const [search, setSearch] = useState("");
   const [channelFilter, setChannelFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
-  const notificationsAllowed = STAGES.indexOf(currentStage) >= STAGES.indexOf("SIA");
+  const notificationsAllowed = STAGES.indexOf(currentStage) >= STAGES.indexOf("NOTIFIED");
 
   const filtered = useMemo(() => {
     return notifications.filter((n) => {
@@ -247,8 +247,8 @@ export function NotificationsPanel({
           )}
           <p className="mt-1 text-[11px] text-muted-foreground/70">
             {notificationsAllowed
-              ? "Family notifications are available from the SIA stage onward. "
-              : "Family notifications become available once the project reaches the SIA stage. "}
+              ? "Family notifications are available once the project reaches the notified stage. "
+              : "Family notifications become available once the project reaches the notified stage. "}
             Email and WhatsApp send for real, using whatever contact details are on file for the
             family — check Families for a mismatched or missing email/number if one fails. Voice
             call and SMS are simulated for this demo. Postal generates a real tracking entry you

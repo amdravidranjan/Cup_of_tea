@@ -22,9 +22,9 @@ export async function GET(
   if (!project || !canViewProject(session, project)) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
-  if (STAGES.indexOf(project.stage as Stage) < STAGES.indexOf("SIA")) {
+  if (STAGES.indexOf(project.stage as Stage) < STAGES.indexOf("NOTIFIED")) {
     return NextResponse.json(
-      { error: "Family notifications can be sent once the project reaches the SIA stage" },
+      { error: "Family notifications can be sent once the project reaches the notified stage" },
       { status: 400 }
     );
   }
@@ -47,6 +47,12 @@ export async function POST(
   const project = await getProject(id);
   if (!project || !canViewProject(session, project)) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
+  if (STAGES.indexOf(project.stage as Stage) < STAGES.indexOf("NOTIFIED")) {
+    return NextResponse.json(
+      { error: "Family notifications can be sent once the project reaches the notified stage" },
+      { status: 400 }
+    );
   }
   const body = (await request.json()) as {
     familyId?: string;
