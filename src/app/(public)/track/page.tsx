@@ -1,3 +1,4 @@
+import { L2, T2 } from "@/components/l2";
 import { TrackGrievance } from "@/components/track-grievance";
 import { TrackProjectRequest } from "@/components/track-project-request";
 import { Icon } from '@iconify/react';
@@ -9,7 +10,7 @@ export default function TrackPage() {
       <div className="stats-band" style={{ padding: '36px 0 30px' }}>
         <div className="sec-wrap" style={{ color: '#fff' }}>
           <div style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.15em', color: 'rgba(255,255,255,0.5)', marginBottom: 6 }}>
-            Track Status · நிலையை கண்காணிக்கவும்
+            Track Status · <L2 ta="நிலையை கண்காணிக்கவும்" />
           </div>
           <h1 style={{ fontSize: 26, fontWeight: 700, color: '#ffc107', marginBottom: 8 }}>
             Track Your Submissions
@@ -29,7 +30,7 @@ export default function TrackPage() {
                 <h2 className="sec-title">
                   <Icon icon="mdi:magnify" width={21} color="#e56b00" />
                   Track Grievance
-                  <span className="ta">குறையைத் தேடு</span>
+                  <L2 className="ta" ta="குறையைத் தேடு" />
                 </h2>
               </div>
               <div style={{ background: '#fff', border: '1px solid #dee2e6', borderRadius: 5, padding: 20 }}>
@@ -43,7 +44,7 @@ export default function TrackPage() {
                 <h2 className="sec-title">
                   <Icon icon="mdi:office-building-marker" width={21} color="#e56b00" />
                   Track Project Request
-                  <span className="ta">திட்ட கோரிக்கையை தேடு</span>
+                  <L2 className="ta" ta="திட்ட கோரிக்கையை தேடு" />
                 </h2>
               </div>
               <div style={{ background: '#fff', border: '1px solid #dee2e6', borderRadius: 5, padding: 20 }}>

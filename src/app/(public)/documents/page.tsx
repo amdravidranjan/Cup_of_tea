@@ -1,3 +1,4 @@
+import { L2, T2 } from "@/components/l2";
 import { Icon } from '@iconify/react';
 import Link from 'next/link';
 
@@ -8,7 +9,7 @@ export default function DocumentsPage() {
       <div className="stats-band" style={{ padding: '36px 0 30px' }}>
         <div className="sec-wrap" style={{ color: '#fff' }}>
           <div style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.15em', color: 'rgba(255,255,255,0.5)', marginBottom: 6 }}>
-            Document Repository · ஆவண களஞ்சியம்
+            Document Repository · <L2 ta="ஆவண களஞ்சியம்" />
           </div>
           <h1 style={{ fontSize: 26, fontWeight: 700, color: '#ffc107', marginBottom: 8 }}>
             Official Documents &amp; Downloads
@@ -32,7 +33,7 @@ export default function DocumentsPage() {
             <div key={s.l} style={{ textAlign: 'center', padding: '22px 16px', borderRight: '1px solid #dee2e6' }}>
               <Icon icon={s.icon} width={24} color="#0b5394" />
               <div style={{ fontSize: '1.6rem', fontWeight: 700, color: '#0b5394', marginTop: 4 }}>{s.n}</div>
-              <div style={{ fontSize: 11, color: '#6c757d', textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: 3 }}>{s.l}</div>
+              <div style={{ fontSize: 11, color: '#6c757d', textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: 3 }}><T2>{s.l}</T2></div>
             </div>
           ))}
         </div>
@@ -45,7 +46,7 @@ export default function DocumentsPage() {
             <h2 className="sec-title">
               <Icon icon="mdi:folder-multiple-outline" width={21} color="#e56b00" />
               Browse by Category
-              <span className="ta">வகை வாரியாக</span>
+              <L2 className="ta" ta="வகை வாரியாக" />
             </h2>
           </div>
           <div className="svc-grid" style={{ gridTemplateColumns: 'repeat(6, 1fr)' }}>
@@ -77,7 +78,7 @@ export default function DocumentsPage() {
                 <h2 className="sec-title">
                   <Icon icon="mdi:clock-outline" width={21} color="#e56b00" />
                   Recent Uploads
-                  <span className="ta">சமீபத்திய பதிவேற்றங்கள்</span>
+                  <L2 className="ta" ta="சமீபத்திய பதிவேற்றங்கள்" />
                 </h2>
               </div>
               <div className="notice-box">
@@ -116,7 +117,7 @@ export default function DocumentsPage() {
                 <h2 className="sec-title">
                   <Icon icon="mdi:download-outline" width={21} color="#e56b00" />
                   Forms &amp; Templates
-                  <span className="ta">படிவங்கள்</span>
+                  <L2 className="ta" ta="படிவங்கள்" />
                 </h2>
               </div>
               <div className="link-box">

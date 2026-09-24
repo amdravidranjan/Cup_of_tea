@@ -1,3 +1,4 @@
+import { L2, T2 } from "@/components/l2";
 import { Icon } from '@iconify/react';
 
 import { TrackGrievance } from '@/components/track-grievance';
@@ -9,7 +10,7 @@ export default function GrievancesPage() {
       <div className="stats-band" style={{ padding: '36px 0 30px' }}>
         <div className="sec-wrap" style={{ color: '#fff' }}>
           <div style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.15em', color: 'rgba(255,255,255,0.5)', marginBottom: 6 }}>
-            Grievance Redressal · குறைதீர்ப்பு
+            Grievance Redressal · <L2 ta="குறைதீர்ப்பு" />
           </div>
           <h1 style={{ fontSize: 26, fontWeight: 700, color: '#ffc107', marginBottom: 8 }}>
             Public Grievance Portal
@@ -33,7 +34,7 @@ export default function GrievancesPage() {
             <div key={s.l} style={{ textAlign: 'center', padding: '22px 16px', borderRight: '1px solid #dee2e6' }}>
               <Icon icon={s.icon} width={24} color="#0b5394" />
               <div style={{ fontSize: '1.6rem', fontWeight: 700, color: '#0b5394', marginTop: 4 }}>{s.n}</div>
-              <div style={{ fontSize: 11, color: '#6c757d', textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: 3 }}>{s.l}</div>
+              <div style={{ fontSize: 11, color: '#6c757d', textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: 3 }}><T2>{s.l}</T2></div>
             </div>
           ))}
         </div>
@@ -49,7 +50,7 @@ export default function GrievancesPage() {
                 <h2 className="sec-title">
                   <Icon icon="mdi:file-document-edit-outline" width={21} color="#e56b00" />
                   File a Grievance
-                  <span className="ta">குறை தாக்கல் செய்</span>
+                  <L2 className="ta" ta="குறை தாக்கல் செய்" />
                 </h2>
               </div>
               <div style={{ background: '#fff', border: '1px solid #dee2e6', borderRadius: 5, padding: 20 }}>
@@ -71,7 +72,7 @@ export default function GrievancesPage() {
                 <h2 className="sec-title">
                   <Icon icon="mdi:magnify" width={21} color="#e56b00" />
                   Track Your Grievance
-                  <span className="ta">குறையைத் தேடு</span>
+                  <L2 className="ta" ta="குறையைத் தேடு" />
                 </h2>
               </div>
               <div style={{ background: '#fff', border: '1px solid #dee2e6', borderRadius: 5, padding: 20 }}>
@@ -89,7 +90,7 @@ export default function GrievancesPage() {
             <h2 className="sec-title">
               <Icon icon="mdi:timeline-check-outline" width={21} color="#e56b00" />
               Grievance Redressal Process
-              <span className="ta">குறைதீர்ப்பு செயல்முறை</span>
+              <L2 className="ta" ta="குறைதீர்ப்பு செயல்முறை" />
             </h2>
           </div>
           <div className="svc-grid" style={{ gridTemplateColumns: 'repeat(5, 1fr)' }}>
@@ -118,7 +119,7 @@ export default function GrievancesPage() {
             <h2 className="sec-title">
               <Icon icon="mdi:frequently-asked-questions" width={21} color="#e56b00" />
               Frequently Asked Questions
-              <span className="ta">அடிக்கடி கேட்கப்படும் கேள்விகள்</span>
+              <L2 className="ta" ta="அடிக்கடி கேட்கப்படும் கேள்விகள்" />
             </h2>
           </div>
           <div className="notice-box">

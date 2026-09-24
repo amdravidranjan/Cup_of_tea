@@ -1,3 +1,4 @@
+import { L2, T2 } from "@/components/l2";
 import Link from "next/link";
 import { Icon } from '@iconify/react';
 import {
@@ -61,7 +62,7 @@ export default async function PublicLandingPage() {
       <div className="ticker-wrap">
         <div className="ticker-label">
           <Icon icon="mdi:bullhorn-outline" width={13} />
-          அறிவிப்பு | Latest
+          <L2 ta="அறிவிப்பு" /> | Latest
         </div>
         <div className="ticker-track">
           <span className="ticker-inner">
@@ -80,13 +81,13 @@ export default async function PublicLandingPage() {
       <HeroCarousel />
 
       {/* 6 ── SERVICES ──────────────────────────────────── */}
-      <div className="services-band">
+      <div className="services-band" data-tour="citizen-services">
         <div className="sec-wrap">
           <div className="sec-head">
             <h2 className="sec-title">
               <Icon icon="mdi:account-group-outline" width={21} color="#e56b00" />
               Citizen Services
-              <span className="ta">நாகரிக சேவைகள்</span>
+              <L2 className="ta" ta="நாகரிக சேவைகள்" />
             </h2>
             <a href="/schemes" className="view-all-link">
               View All Services <Icon icon="mdi:arrow-right" width={14} />
@@ -133,7 +134,7 @@ export default async function PublicLandingPage() {
                 <h2 className="sec-title">
                   <Icon icon="mdi:newspaper-variant-outline" width={21} color="#e56b00" />
                   Notified Projects
-                  <span className="ta">திட்டங்கள்</span>
+                  <L2 className="ta" ta="திட்டங்கள்" />
                 </h2>
                 <a href="/projects" className="view-all-link">View All <Icon icon="mdi:arrow-right" width={14} /></a>
               </div>
@@ -151,7 +152,7 @@ export default async function PublicLandingPage() {
               <h2 className="sec-title" style={{ marginBottom: 14 }}>
                 <Icon icon="mdi:clipboard-text-outline" width={21} color="#e56b00" />
                 Notice Board
-                <span className="ta">அறிவிப்பு</span>
+                <L2 className="ta" ta="அறிவிப்பு" />
               </h2>
               <div className="notice-box">
                 <div className="notice-head">
@@ -191,7 +192,7 @@ export default async function PublicLandingPage() {
             <h2 className="sec-title">
               <Icon icon="mdi:star-box-multiple-outline" width={21} color="#e56b00" />
               Government Schemes & Initiatives
-              <span className="ta">அரசு திட்டங்கள்</span>
+              <L2 className="ta" ta="அரசு திட்டங்கள்" />
             </h2>
             <a href="/schemes" className="view-all-link">View All <Icon icon="mdi:arrow-right" width={14} /></a>
           </div>
@@ -221,7 +222,7 @@ export default async function PublicLandingPage() {
           <h2 className="sec-title" style={{ marginBottom: 20 }}>
             <Icon icon="mdi:link-variant" width={21} color="#e56b00" />
             Important Links & Downloads
-            <span className="ta">முக்கிய இணைப்புகள்</span>
+            <L2 className="ta" ta="முக்கிய இணைப்புகள்" />
           </h2>
           <div className="links-grid">
             <div className="link-box">

@@ -1,4 +1,5 @@
 'use client';
+import { L2, T2 } from "@/components/l2";
 import { useState } from 'react';
 import { Icon } from '@iconify/react';
 
@@ -17,7 +18,7 @@ export function Gallery() {
         <h2 className="sec-title" style={{ marginBottom: 16 }}>
           <Icon icon="mdi:image-multiple-outline" width={21} color="#e56b00" />
           Media Gallery
-          <span className="ta">ஊடக தொகுப்பு</span>
+          <L2 className="ta" ta="ஊடக தொகுப்பு" />
         </h2>
         <div className="tab-row">
           <button className={`tab-btn ${tab === 'photos' ? 'on' : ''}`} onClick={() => setTab('photos')}>

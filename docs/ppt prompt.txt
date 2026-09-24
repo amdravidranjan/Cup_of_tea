@@ -1,0 +1,25 @@
+I am done with the prototype for now. I need you to do one thing. I need content for my PPT.
+
+The first slide is, problem statement- it should have the current problems, point by point, our solution point by point, key features or unique value propositions point by point. 
+
+the second slide is technical approach - it should have the tech stack images, and it should have the workflow, Methodology and process for implementation (Flow Charts/Images/ working prototype)
+
+
+the third slide is "feasibility and visibility", Analysis of the, feasibility of the idea, Potential challenges and risks, Strategies for overcoming these challenges
+
+
+the next slide is "impact and benefits", Potential impact on the target audience, Benefits of the solution point by point, relation with sustainable development. 
+
+the next slide is research and references
+Details / Links of the reference and research work
+prototype demo link, 
+document link, 
+research docs , features docs, etc.. 
+
+
+
+assume that you are optimizing it for an ATS system, ai system analysing the ppt. also consider from a layman's perspective and slowly explain everything in the ppt. someone who has never seen this project should understand what we have done with just the ppt. 
+
+
+
+prepare such content for the ppt. 

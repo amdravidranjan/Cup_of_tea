@@ -1,4 +1,5 @@
 'use client';
+import { L2, T2 } from "@/components/l2";
 import { Icon } from '@iconify/react';
 
 export default function ContactPage() {
@@ -8,7 +9,7 @@ export default function ContactPage() {
       <div className="stats-band" style={{ padding: '36px 0 30px' }}>
         <div className="sec-wrap" style={{ color: '#fff' }}>
           <div style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.15em', color: 'rgba(255,255,255,0.5)', marginBottom: 6 }}>
-            Contact Us · தொடர்பு கொள்ளவும்
+            Contact Us · <L2 ta="தொடர்பு கொள்ளவும்" />
           </div>
           <h1 style={{ fontSize: 26, fontWeight: 700, color: '#ffc107', marginBottom: 8 }}>
             Get in Touch with CLA
@@ -30,7 +31,7 @@ export default function ContactPage() {
                 <h2 className="sec-title">
                   <Icon icon="mdi:office-building-marker-outline" width={21} color="#e56b00" />
                   Office Details
-                  <span className="ta">அலுவலக விவரங்கள்</span>
+                  <L2 className="ta" ta="அலுவலக விவரங்கள்" />
                 </h2>
               </div>
               <div className="links-grid" style={{ gridTemplateColumns: '1fr 1fr' }}>
@@ -76,7 +77,7 @@ export default function ContactPage() {
                 <h2 className="sec-title">
                   <Icon icon="mdi:message-text-outline" width={21} color="#e56b00" />
                   Send Feedback
-                  <span className="ta">கருத்து தெரிவிக்கவும்</span>
+                  <L2 className="ta" ta="கருத்து தெரிவிக்கவும்" />
                 </h2>
               </div>
               <div style={{ background: '#fff', border: '1px solid #dee2e6', borderRadius: 5, padding: 20 }}>
@@ -88,16 +89,16 @@ export default function ContactPage() {
                     { label: 'Subject · தலைப்பு', type: 'text', placeholder: 'Brief subject of your query' },
                   ].map(f => (
                     <div key={f.label}>
-                      <label style={{ fontSize: 11.5, fontWeight: 600, color: '#3a4a5c', display: 'block', marginBottom: 4 }}>{f.label}</label>
+                      <label style={{ fontSize: 11.5, fontWeight: 600, color: '#3a4a5c', display: 'block', marginBottom: 4 }}><T2>{f.label}</T2></label>
                       <input type={f.type} placeholder={f.placeholder} style={{ width: '100%', border: '1px solid #dee2e6', borderRadius: 4, padding: '8px 12px', fontSize: 13 }} />
                     </div>
                   ))}
                   <div>
-                    <label style={{ fontSize: 11.5, fontWeight: 600, color: '#3a4a5c', display: 'block', marginBottom: 4 }}>Message · செய்தி</label>
+                    <label style={{ fontSize: 11.5, fontWeight: 600, color: '#3a4a5c', display: 'block', marginBottom: 4 }}>Message · <L2 ta="செய்தி" /></label>
                     <textarea rows={4} placeholder="Describe your query or feedback..." style={{ width: '100%', border: '1px solid #dee2e6', borderRadius: 4, padding: '8px 12px', fontSize: 13, resize: 'vertical' }} />
                   </div>
                   <button type="submit" style={{ background: '#0b5394', color: '#fff', border: 'none', borderRadius: 4, padding: '10px 20px', fontSize: 13, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, justifyContent: 'center' }}>
-                    <Icon icon="mdi:send" width={16} /> Submit Feedback · சமர்ப்பி
+                    <Icon icon="mdi:send" width={16} /> Submit Feedback · <L2 ta="சமர்ப்பி" />
                   </button>
                 </form>
               </div>
@@ -113,7 +114,7 @@ export default function ContactPage() {
             <h2 className="sec-title">
               <Icon icon="mdi:account-group-outline" width={21} color="#e56b00" />
               District-Wise LAO Contacts
-              <span className="ta">மாவட்ட வாரியான LAO தொடர்புகள்</span>
+              <L2 className="ta" ta="மாவட்ட வாரியான LAO தொடர்புகள்" />
             </h2>
           </div>
           <div className="links-grid">

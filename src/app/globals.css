@@ -252,6 +252,12 @@ body {
   font-family: var(--font-noto-sans-tamil), 'Noto Sans Tamil', sans-serif;
   font-weight: 400;
 }
+/* The second language can be Hindi. `.ta` stays the styling hook every page
+   already uses; the lang attribute set by <L2> swaps in the Devanagari face.
+   The selectors carry enough weight to beat `.sec-title .ta` and friends. */
+.ta[lang="hi"], .sec-title .ta[lang="hi"], .portal-name-ta[lang="hi"], [lang="hi"] .ta {
+  font-family: var(--font-noto-sans-devanagari), 'Noto Sans Devanagari', sans-serif;
+}
 
 a:not([class]) { color: var(--ux-link); text-decoration: none; }
 a:not([class]):hover { text-decoration: underline; color: var(--ux-orange); }
@@ -1134,4 +1140,85 @@ body.high-contrast {
 @media (max-width: 480px) {
   .chat-fab { bottom: 14px; right: 14px; }
   .chat-window { left: 0; right: 0; width: min(316px, calc(100vw - 28px)); }
+}
+
+/* ── PHONES ─────────────────────────────────────────────────────
+   The public site is laid out like a government portal: a wide
+   header, a single row of nav items, a 420px hero. On a phone all
+   three overflow, and a judge scanning the QR code from the deck
+   arrives on exactly that phone. Nothing here changes the desktop
+   layout; it only lets the wide pieces scroll or stack. */
+@media (max-width: 860px) {
+  /* The nav is one row of items and must stay one row — scroll it
+     sideways rather than let it push the whole page wider. */
+  .nav-inner {
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  .nav-inner::-webkit-scrollbar { display: none; }
+  .nav-item { padding: 0 11px; font-size: 12.5px; }
+  /* Hover dropdowns cannot be opened by touch, and a panel pinned
+     to a scrolling strip lands in the wrong place anyway. */
+  .dropdown-panel { display: none !important; }
+
+  .header-inner { flex-wrap: wrap; gap: 10px; }
+  .portal-name-en { font-size: 15.5px; }
+  .portal-name-ta { font-size: 11.5px; }
+  .portal-dept { font-size: 10.5px; }
+  .hdr-search { width: 100%; }
+  .hdr-search input { width: 100%; }
+
+  .access-bar { font-size: 10.5px; overflow-x: auto; white-space: nowrap; }
+
+  .hero { height: auto; min-height: 340px; }
+  .hero-grad { position: relative; padding: 28px 0; }
+  .hero-body { padding: 0 16px; }
+  .hero-sub { font-size: 12.5px; }
+
+  .sec-wrap { padding-left: 16px; padding-right: 16px; }
+  .ticker-label { display: none; }
+}
+
+@media (max-width: 640px) {
+  .footer-main { grid-template-columns: 1fr; }
+  .gallery-grid { grid-template-columns: repeat(2, 1fr); }
+  .tab-row { overflow-x: auto; white-space: nowrap; scrollbar-width: none; }
+  .tab-row::-webkit-scrollbar { display: none; }
+  /* Room for the guide's floating avatar, which sits above the
+     chat button on the same corner. */
+  .chat-fab { bottom: 12px; right: 12px; }
+}
+
+/* Wide tables inside the officer console scroll in their own box
+   instead of widening the page. */
+@media (max-width: 860px) {
+  [data-slot="table-container"],
+  .table-scroll {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* The signed-in header on a phone.
+   The brand block and the account controls share one flex row. At 390px the
+   controls win and the portal's name is squeezed into a one-word-per-line
+   column, which looks broken in a screenshot and worse in the hand. Below
+   700px the brand takes the full width and the controls sit under it. */
+@media (max-width: 700px) {
+  .site-header .header-inner > div:first-of-type {
+    flex: 1 1 100% !important;
+  }
+  .site-header .header-inner > div:last-of-type {
+    flex: 1 1 100%;
+    justify-content: flex-start;
+  }
+  .site-header .portal-name-en {
+    font-size: 14px;
+    display: block;
+  }
+  .site-header .portal-name-ta,
+  .site-header .portal-dept {
+    display: none;
+  }
 }

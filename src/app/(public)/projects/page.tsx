@@ -1,3 +1,4 @@
+import { L2, T2 } from "@/components/l2";
 import Link from 'next/link';
 import { Icon } from '@iconify/react';
 import { listPublicProjects, getPublicPortfolioStats } from "@/db/public";
@@ -15,7 +16,7 @@ export default async function ProjectsPage() {
       <div className="stats-band" style={{ padding: '36px 0 30px' }}>
         <div className="sec-wrap" style={{ color: '#fff' }}>
           <div style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.15em', color: 'rgba(255,255,255,0.5)', marginBottom: 6 }}>
-            Land Acquisition Projects · நில எடுப்பு திட்டங்கள்
+            Land Acquisition Projects · <L2 ta="நில எடுப்பு திட்டங்கள்" />
           </div>
           <h1 style={{ fontSize: 26, fontWeight: 700, color: '#ffc107', marginBottom: 8 }}>
             Public Projects Directory
@@ -59,7 +60,7 @@ export default async function ProjectsPage() {
             <div key={s.l} style={{ textAlign: 'center', padding: '22px 16px', borderRight: '1px solid #dee2e6' }}>
               <Icon icon={s.icon} width={24} color="#0b5394" />
               <div style={{ fontSize: '1.6rem', fontWeight: 700, color: '#0b5394', marginTop: 4 }}>{s.n}</div>
-              <div style={{ fontSize: 11, color: '#6c757d', textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: 3 }}>{s.l}</div>
+              <div style={{ fontSize: 11, color: '#6c757d', textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: 3 }}><T2>{s.l}</T2></div>
             </div>
           ))}
         </div>
@@ -72,7 +73,7 @@ export default async function ProjectsPage() {
             <h2 className="sec-title">
               <Icon icon="mdi:office-building-marker" width={21} color="#e56b00" />
               Project Search &amp; Discovery
-              <span className="ta">திட்ட தேடல்</span>
+              <L2 className="ta" ta="திட்ட தேடல்" />
             </h2>
           </div>
           <div style={{ background: '#fff', border: '1px solid #dee2e6', borderRadius: 5, padding: 20 }}>
@@ -92,7 +93,7 @@ export default async function ProjectsPage() {
             <h2 className="sec-title">
               <Icon icon="mdi:timeline-check-outline" width={21} color="#e56b00" />
               Land Acquisition Lifecycle
-              <span className="ta">நில எடுப்பு வாழ்க்கை சுழற்சி</span>
+              <L2 className="ta" ta="நில எடுப்பு வாழ்க்கை சுழற்சி" />
             </h2>
           </div>
           <div className="svc-grid" style={{ gridTemplateColumns: 'repeat(6, 1fr)' }}>

@@ -25,14 +25,22 @@
 
 import type {
   AssistantReply,
+  BilingualText,
   CategoryId,
   KnowledgeEntry,
   LanguageCode,
   Suggestion,
 } from "./types";
+import { pickText } from "./types";
 import { QUERY_CATEGORIES, categoryById } from "./categories";
 import { KNOWLEDGE_BASE, entryById, menuForCategory } from "./knowledge";
-import { containsTamilScript, expandTokens, normalise, tokensMatch } from "./synonyms";
+import {
+  containsDevanagari,
+  containsTamilScript,
+  expandTokens,
+  normalise,
+  tokensMatch,
+} from "./synonyms";
 import { looksLikeProbe, toSafeText } from "@/lib/ai/input-guard";
 
 export interface PublicProjectLike {
@@ -54,32 +62,32 @@ export interface AnswerOptions {
 
 /* ── Stage vocabulary (shared with the existing VANI answers) ─────────── */
 
-const STAGE_LABELS: Record<string, { en: string; ta: string }> = {
-  DRAFT: { en: "at the draft stage — nothing has been formally notified yet", ta: "வரைவு நிலையில் — இன்னும் அதிகாரப்பூர்வமாக அறிவிக்கப்படவில்லை" },
-  SCRUTINY: { en: "under scrutiny", ta: "ஆய்வில் உள்ளது" },
-  SIA: { en: "undergoing its Social Impact Assessment", ta: "சமூக தாக்க மதிப்பீடு நடைபெறுகிறது" },
-  NOTIFIED: { en: "notified — the s.11 preliminary notification has been published and land transactions are frozen", ta: "அறிவிக்கப்பட்டது — பிரிவு 11 அறிவிப்பு வெளியிடப்பட்டு, நில பரிவர்த்தனைகள் முடக்கப்பட்டுள்ளன" },
-  STATE_APPROVED: { en: "approved at the state level", ta: "மாநில அளவில் ஒப்புதல் பெற்றது" },
-  CENTRAL_APPROVED: { en: "approved at the central level", ta: "மத்திய அளவில் ஒப்புதல் பெற்றது" },
-  DECLARED: { en: "declared under s.19 — the acquisition is now legally settled", ta: "பிரிவு 19-இன் கீழ் அறிவிக்கப்பட்டது — கையகப்படுத்தல் சட்டப்படி உறுதியாகிவிட்டது" },
-  AWARDED: { en: "awarded — compensation amounts have been determined", ta: "தீர்ப்பு வழங்கப்பட்டது — இழப்பீட்டுத் தொகை நிர்ணயிக்கப்பட்டுவிட்டது" },
-  RR_IN_PROGRESS: { en: "in rehabilitation and resettlement", ta: "மறுவாழ்வு மற்றும் மீள்குடியேற்றக் கட்டத்தில்" },
-  POSSESSION: { en: "at the possession stage — the land is being formally taken over", ta: "கையகப்படுத்தல் கட்டத்தில் — நிலம் முறையாக எடுத்துக்கொள்ளப்படுகிறது" },
-  RR_COMPLETE: { en: "complete — compensation, resettlement and infrastructure are all finished", ta: "முடிந்தது — இழப்பீடு, மீள்குடியேற்றம், உள்கட்டமைப்பு அனைத்தும் நிறைவு" },
+const STAGE_LABELS: Record<string, BilingualText> = {
+  DRAFT: { en: "at the draft stage — nothing has been formally notified yet", ta: "வரைவு நிலையில் — இன்னும் அதிகாரப்பூர்வமாக அறிவிக்கப்படவில்லை", hi: "मसौदा चरण में — अभी औपचारिक अधिसूचना जारी नहीं हुई" },
+  SCRUTINY: { en: "under scrutiny", ta: "ஆய்வில் உள்ளது", hi: "जाँच के अधीन" },
+  SIA: { en: "undergoing its Social Impact Assessment", ta: "சமூக தாக்க மதிப்பீடு நடைபெறுகிறது", hi: "सामाजिक प्रभाव आकलन चल रहा है" },
+  NOTIFIED: { en: "notified — the s.11 preliminary notification has been published and land transactions are frozen", ta: "அறிவிக்கப்பட்டது — பிரிவு 11 அறிவிப்பு வெளியிடப்பட்டு, நில பரிவர்த்தனைகள் முடக்கப்பட்டுள்ளன", hi: "अधिसूचित — धारा 11 की प्रारंभिक अधिसूचना प्रकाशित हो चुकी है और भूमि लेनदेन रुक गए हैं" },
+  STATE_APPROVED: { en: "approved at the state level", ta: "மாநில அளவில் ஒப்புதல் பெற்றது", hi: "राज्य स्तर पर स्वीकृत" },
+  CENTRAL_APPROVED: { en: "approved at the central level", ta: "மத்திய அளவில் ஒப்புதல் பெற்றது", hi: "केंद्र स्तर पर स्वीकृत" },
+  DECLARED: { en: "declared under s.19 — the acquisition is now legally settled", ta: "பிரிவு 19-இன் கீழ் அறிவிக்கப்பட்டது — கையகப்படுத்தல் சட்டப்படி உறுதியாகிவிட்டது", hi: "धारा 19 के तहत घोषित — अर्जन अब कानूनी रूप से तय है" },
+  AWARDED: { en: "awarded — compensation amounts have been determined", ta: "தீர்ப்பு வழங்கப்பட்டது — இழப்பீட்டுத் தொகை நிர்ணயிக்கப்பட்டுவிட்டது", hi: "अवार्ड घोषित — प्रतिकर की राशि तय हो चुकी है" },
+  RR_IN_PROGRESS: { en: "in rehabilitation and resettlement", ta: "மறுவாழ்வு மற்றும் மீள்குடியேற்றக் கட்டத்தில்", hi: "पुनर्वास और पुनर्व्यवस्थापन के चरण में" },
+  POSSESSION: { en: "at the possession stage — the land is being formally taken over", ta: "கையகப்படுத்தல் கட்டத்தில் — நிலம் முறையாக எடுத்துக்கொள்ளப்படுகிறது", hi: "कब्ज़े के चरण में — भूमि औपचारिक रूप से ली जा रही है" },
+  RR_COMPLETE: { en: "complete — compensation, resettlement and infrastructure are all finished", ta: "முடிந்தது — இழப்பீடு, மீள்குடியேற்றம், உள்கட்டமைப்பு அனைத்தும் நிறைவு", hi: "पूर्ण — प्रतिकर, पुनर्व्यवस्थापन और अवसंरचना सब पूरे" },
 };
 
-const NEXT_STEP: Record<string, { en: string; ta: string }> = {
-  DRAFT: { en: "Next: scrutiny, then the Social Impact Assessment.", ta: "அடுத்து: ஆய்வு, பின் சமூக தாக்க மதிப்பீடு." },
-  SCRUTINY: { en: "Next: the Social Impact Assessment, with a public hearing in the affected villages.", ta: "அடுத்து: சமூக தாக்க மதிப்பீடு, பாதிக்கப்பட்ட கிராமங்களில் பொதுக் கூட்டத்துடன்." },
-  SIA: { en: "Next: the assessment has to be appraised and completed before the s.11 notification.", ta: "அடுத்து: பிரிவு 11 அறிவிப்புக்கு முன் மதிப்பீடு முடிக்கப்பட வேண்டும்." },
-  NOTIFIED: { en: "Next: state and central approval, then the s.19 declaration — which must follow within twelve months. Objections under s.15 can be filed within sixty days of the notification.", ta: "அடுத்து: மாநில மற்றும் மத்திய ஒப்புதல், பின் பிரிவு 19 அறிவிப்பு — பன்னிரண்டு மாதங்களுக்குள். அறிவிப்பிலிருந்து அறுபது நாட்களுக்குள் பிரிவு 15 ஆட்சேபணை தாக்கல் செய்யலாம்." },
-  STATE_APPROVED: { en: "Next: central approval where required, then the declaration.", ta: "அடுத்து: தேவைப்பட்டால் மத்திய ஒப்புதல், பின் அறிவிப்பு." },
-  CENTRAL_APPROVED: { en: "Next: the s.19 declaration.", ta: "அடுத்து: பிரிவு 19 அறிவிப்பு." },
-  DECLARED: { en: "Next: the award, which must be passed within twelve months of the declaration.", ta: "அடுத்து: தீர்ப்பு — அறிவிப்பிலிருந்து பன்னிரண்டு மாதங்களுக்குள் வழங்கப்பட வேண்டும்." },
-  AWARDED: { en: "Next: payment, and then rehabilitation and resettlement.", ta: "அடுத்து: பணம் வழங்கல், பின் மறுவாழ்வு மற்றும் மீள்குடியேற்றம்." },
-  RR_IN_PROGRESS: { en: "Next: once R&R is provided and compensation paid, possession can be taken.", ta: "அடுத்து: மறுவாழ்வு நிறைவேற்றப்பட்டு பணம் வழங்கப்பட்ட பின் கையகப்படுத்தல்." },
-  POSSESSION: { en: "Next: resettlement infrastructure has to be completed within eighteen months of the award.", ta: "அடுத்து: தீர்ப்பிலிருந்து பதினெட்டு மாதங்களுக்குள் மீள்குடியேற்ற வசதிகள் முடிக்கப்பட வேண்டும்." },
-  RR_COMPLETE: { en: "This project has completed its full acquisition and resettlement process.", ta: "இந்தத் திட்டம் முழு கையகப்படுத்தல் மற்றும் மீள்குடியேற்ற நடைமுறையை முடித்துவிட்டது." },
+const NEXT_STEP: Record<string, BilingualText> = {
+  DRAFT: { en: "Next: scrutiny, then the Social Impact Assessment.", ta: "அடுத்து: ஆய்வு, பின் சமூக தாக்க மதிப்பீடு.", hi: "आगे: जाँच, फिर सामाजिक प्रभाव आकलन।" },
+  SCRUTINY: { en: "Next: the Social Impact Assessment, with a public hearing in the affected villages.", ta: "அடுத்து: சமூக தாக்க மதிப்பீடு, பாதிக்கப்பட்ட கிராமங்களில் பொதுக் கூட்டத்துடன்.", hi: "आगे: सामाजिक प्रभाव आकलन, प्रभावित गाँवों में जनसुनवाई के साथ।" },
+  SIA: { en: "Next: the assessment has to be appraised and completed before the s.11 notification.", ta: "அடுத்து: பிரிவு 11 அறிவிப்புக்கு முன் மதிப்பீடு முடிக்கப்பட வேண்டும்.", hi: "आगे: धारा 11 की अधिसूचना से पहले आकलन का मूल्यांकन और समापन ज़रूरी है।" },
+  NOTIFIED: { en: "Next: state and central approval, then the s.19 declaration — which must follow within twelve months. Objections under s.15 can be filed within sixty days of the notification.", ta: "அடுத்து: மாநில மற்றும் மத்திய ஒப்புதல், பின் பிரிவு 19 அறிவிப்பு — பன்னிரண்டு மாதங்களுக்குள். அறிவிப்பிலிருந்து அறுபது நாட்களுக்குள் பிரிவு 15 ஆட்சேபணை தாக்கல் செய்யலாம்.", hi: "आगे: राज्य और केंद्र की स्वीकृति, फिर धारा 19 की घोषणा — जो बारह महीनों के भीतर होनी चाहिए। अधिसूचना के साठ दिनों के भीतर धारा 15 के तहत आपत्ति दाखिल की जा सकती है।" },
+  STATE_APPROVED: { en: "Next: central approval where required, then the declaration.", ta: "அடுத்து: தேவைப்பட்டால் மத்திய ஒப்புதல், பின் அறிவிப்பு.", hi: "आगे: जहाँ ज़रूरी हो केंद्र की स्वीकृति, फिर घोषणा।" },
+  CENTRAL_APPROVED: { en: "Next: the s.19 declaration.", ta: "அடுத்து: பிரிவு 19 அறிவிப்பு.", hi: "आगे: धारा 19 की घोषणा।" },
+  DECLARED: { en: "Next: the award, which must be passed within twelve months of the declaration.", ta: "அடுத்து: தீர்ப்பு — அறிவிப்பிலிருந்து பன்னிரண்டு மாதங்களுக்குள் வழங்கப்பட வேண்டும்.", hi: "आगे: अवार्ड, जो घोषणा के बारह महीनों के भीतर पारित होना चाहिए।" },
+  AWARDED: { en: "Next: payment, and then rehabilitation and resettlement.", ta: "அடுத்து: பணம் வழங்கல், பின் மறுவாழ்வு மற்றும் மீள்குடியேற்றம்.", hi: "आगे: भुगतान, फिर पुनर्वास और पुनर्व्यवस्थापन।" },
+  RR_IN_PROGRESS: { en: "Next: once R&R is provided and compensation paid, possession can be taken.", ta: "அடுத்து: மறுவாழ்வு நிறைவேற்றப்பட்டு பணம் வழங்கப்பட்ட பின் கையகப்படுத்தல்.", hi: "आगे: पुनर्वास पूरा होने और प्रतिकर भुगतान के बाद कब्ज़ा लिया जा सकता है।" },
+  POSSESSION: { en: "Next: resettlement infrastructure has to be completed within eighteen months of the award.", ta: "அடுத்து: தீர்ப்பிலிருந்து பதினெட்டு மாதங்களுக்குள் மீள்குடியேற்ற வசதிகள் முடிக்கப்பட வேண்டும்.", hi: "आगे: अवार्ड के अठारह महीनों के भीतर पुनर्व्यवस्थापन की अवसंरचना पूरी होनी चाहिए।" },
+  RR_COMPLETE: { en: "This project has completed its full acquisition and resettlement process.", ta: "இந்தத் திட்டம் முழு கையகப்படுத்தல் மற்றும் மீள்குடியேற்ற நடைமுறையை முடித்துவிட்டது.", hi: "यह परियोजना अपनी पूरी अर्जन और पुनर्व्यवस्थापन प्रक्रिया पूरी कर चुकी है।" },
 };
 
 /* ── Small talk ──────────────────────────────────────────────────────── */
@@ -179,7 +187,7 @@ function scoreEntry(entry: KnowledgeEntry, raw: string, tokens: string[]): Score
     }
   }
 
-  for (const questionText of [entry.question.en, entry.question.ta]) {
+  for (const questionText of [entry.question.en, entry.question.ta, entry.question.hi ?? ""]) {
     const questionTokens = expandTokens(questionText);
     const overlap = questionTokens.filter((qt) => tokens.some((t) => t === qt)).length;
     score += overlap * 0.8;
@@ -323,8 +331,10 @@ export function answerAssistantQuery(rawInput: unknown, options: AnswerOptions =
     safe.value.length > 3000
       ? `${safe.value.slice(0, 1500)} … ${safe.value.slice(-1500)}`
       : safe.value;
-  const language: LanguageCode = options.language ?? (containsTamilScript(raw) ? "ta" : "en");
-  const pick = (text: { en: string; ta: string }) => text[language];
+  const language: LanguageCode =
+    options.language ??
+    (containsTamilScript(raw) ? "ta" : containsDevanagari(raw) ? "hi" : "en");
+  const pick = (text: BilingualText) => pickText(text, language);
 
   // 1. Nothing usable typed.
   if (!raw || normalise(raw).replace(/[\s.]/g, "") === "") {
@@ -335,6 +345,7 @@ export function answerAssistantQuery(rawInput: unknown, options: AnswerOptions =
       text: pick({
         en: "Ask me anything about land acquisition — or tap one of these subjects and pick a question.",
         ta: "நில கையகப்படுத்தல் பற்றி எதையும் கேளுங்கள் — அல்லது கீழே ஒரு தலைப்பைத் தட்டி ஒரு கேள்வியைத் தேர்ந்தெடுங்கள்.",
+        hi: "भूमि अर्जन के बारे में कुछ भी पूछिए — या नीचे किसी विषय पर टैप करके कोई सवाल चुनिए।",
       }),
       suggestions: categoryMenuSuggestions(),
     };
@@ -358,6 +369,7 @@ export function answerAssistantQuery(rawInput: unknown, options: AnswerOptions =
       text: pick({
         en: "வணக்கம். I can look up any project's status, or answer questions on compensation, R&R, your rights, documents and grievances. What would you like to know?",
         ta: "வணக்கம். எந்தத் திட்டத்தின் நிலையையும் பார்க்க முடியும்; இழப்பீடு, மறுவாழ்வு, உங்கள் உரிமைகள், ஆவணங்கள், குறைகள் பற்றியும் பதிலளிக்க முடியும். என்ன தெரிய வேண்டும்?",
+        hi: "नमस्ते। मैं किसी भी परियोजना की स्थिति देख सकती हूँ, और प्रतिकर, पुनर्वास, आपके अधिकारों, दस्तावेज़ों तथा शिकायतों के सवालों के जवाब दे सकती हूँ। क्या जानना चाहेंगे?",
       }),
       suggestions: categoryMenuSuggestions(),
     };
@@ -370,6 +382,7 @@ export function answerAssistantQuery(rawInput: unknown, options: AnswerOptions =
       text: pick({
         en: "Glad it helped. If any of it concerns your own land, filing a grievance puts your question on the record with a date and a response deadline.",
         ta: "உதவியாக இருந்ததில் மகிழ்ச்சி. உங்கள் சொந்த நிலம் தொடர்பானதாக இருந்தால், குறை மனு தாக்கல் செய்வது உங்கள் கேள்வியைத் தேதி மற்றும் பதில் காலக்கெடுவுடன் பதிவில் சேர்க்கும்.",
+        hi: "मदद हुई, यह जानकर अच्छा लगा। यदि बात आपकी अपनी ज़मीन की है, तो शिकायत दर्ज करने से आपका सवाल तारीख और जवाब की समय-सीमा के साथ रिकॉर्ड पर आ जाता है।",
       }),
       suggestions: [
         { ref: "grv-how-to-file", label: { en: "How do I file a complaint?", ta: "குறை மனுவை எவ்வாறு தாக்கல் செய்வது?" } },
@@ -385,6 +398,7 @@ export function answerAssistantQuery(rawInput: unknown, options: AnswerOptions =
       text: pick({
         en: "Take care. Keep your survey number and any tracking number handy — they make every office visit shorter.",
         ta: "நல்லது. உங்கள் நில அளவை எண் மற்றும் கண்காணிப்பு எண்ணை கையில் வைத்திருங்கள் — ஒவ்வொரு அலுவலக வருகையையும் அவை குறைக்கும்.",
+        hi: "ठीक है। अपना खसरा नंबर और कोई भी ट्रैकिंग नंबर पास रखिए — हर दफ़्तर का चक्कर इनसे छोटा हो जाता है।",
       }),
       suggestions: [],
     };
@@ -401,6 +415,7 @@ export function answerAssistantQuery(rawInput: unknown, options: AnswerOptions =
       text: pick({
         en: "That was read as plain text, not as a command — nothing here interprets what you type as code. If it was a real question, try it in words, or pick a subject below.",
         ta: "அது கட்டளையாக அல்ல, எளிய உரையாகவே படிக்கப்பட்டது — நீங்கள் தட்டச்சு செய்வது எதுவும் நிரலாகச் செயல்படுத்தப்படுவதில்லை. உண்மையான கேள்வியாக இருந்தால், வார்த்தைகளில் கேளுங்கள்.",
+        hi: "उसे आदेश नहीं, सादा पाठ मानकर पढ़ा गया — आप जो लिखते हैं उसे यहाँ कोड की तरह नहीं चलाया जाता। यदि वह सचमुच सवाल था, तो उसे शब्दों में पूछिए, या नीचे कोई विषय चुनिए।",
       }),
       suggestions:
         ranked.length > 0
@@ -439,6 +454,7 @@ export function answerAssistantQuery(rawInput: unknown, options: AnswerOptions =
         text: pick({
           en: `I only handle land acquisition, compensation and resettlement — I cannot help with ${outOfScope.topic}. For other government services, an e-Sevai centre is the right place.`,
           ta: `நான் நில கையகப்படுத்தல், இழப்பீடு, மீள்குடியேற்றம் பற்றி மட்டுமே கையாள்கிறேன். மற்ற அரசு சேவைகளுக்கு இ-சேவை மையம் சரியான இடம்.`,
+          hi: `मैं केवल भूमि अर्जन, प्रतिकर और पुनर्व्यवस्थापन देखती हूँ — ${outOfScope.topic} में मदद नहीं कर सकती। अन्य सरकारी सेवाओं के लिए सामान्य सेवा केंद्र सही जगह है।`,
         }),
         suggestions: categoryMenuSuggestions(),
       };
@@ -450,6 +466,7 @@ export function answerAssistantQuery(rawInput: unknown, options: AnswerOptions =
       text: pick({
         en: "I could not match that to anything I know. Try naming a project, a district, or a survey number — or tap a subject below and pick a question that is already written out.",
         ta: "அதை எனக்குத் தெரிந்த எதனுடனும் பொருத்த முடியவில்லை. ஒரு திட்டம், மாவட்டம் அல்லது நில அளவை எண்ணைக் குறிப்பிடுங்கள் — அல்லது கீழே ஒரு தலைப்பைத் தட்டி, ஏற்கனவே எழுதப்பட்ட கேள்வியைத் தேர்ந்தெடுங்கள்.",
+        hi: "इसे मैं अपनी जानी हुई किसी बात से नहीं मिला पाई। कोई परियोजना, ज़िला या खसरा नंबर बताइए — या नीचे कोई विषय चुनकर पहले से लिखा हुआ सवाल उठाइए।",
       }),
       suggestions: categoryMenuSuggestions(),
     };
@@ -466,6 +483,7 @@ export function answerAssistantQuery(rawInput: unknown, options: AnswerOptions =
       text: pick({
         en: "That could mean a couple of things. Which did you mean?",
         ta: "அது இரண்டு பொருள்களில் இருக்கலாம். எதைக் கருதினீர்கள்?",
+        hi: "इसके दो मतलब हो सकते हैं। आपका मतलब कौन सा था?",
       }),
       suggestions: topicRanked.slice(0, 3).map((s) => ({ ref: s.entry.id, label: s.entry.question })),
       matchedOn: top.matchedOn.join(", "),
@@ -488,11 +506,11 @@ function entryReply(
     kind: "answer",
     language,
     confidence,
-    text: entry.answer[language],
+    text: pickText(entry.answer, language),
     entry,
     category: entry.category,
     basis: entry.basis,
-    links: entry.links?.map((l) => ({ label: l.label[language], href: l.href })),
+    links: entry.links?.map((l) => ({ label: pickText(l.label, language), href: l.href })),
     suggestions: suggestionsFor(entry),
     matchedOn,
   };
@@ -505,10 +523,14 @@ function categoryReply(categoryId: string, language: LanguageCode): AssistantRep
       kind: "fallback",
       language,
       confidence: 0,
-      text:
-        language === "ta"
-          ? "அந்தத் தலைப்பு கிடைக்கவில்லை. கீழே உள்ளவற்றில் ஒன்றைத் தேர்ந்தெடுங்கள்."
-          : "That subject is not one I have. Pick one of these instead.",
+      text: pickText(
+        {
+          en: "That subject is not one I have. Pick one of these instead.",
+          ta: "அந்தத் தலைப்பு கிடைக்கவில்லை. கீழே உள்ளவற்றில் ஒன்றைத் தேர்ந்தெடுங்கள்.",
+          hi: "वह विषय मेरे पास नहीं है। नीचे दिए गए में से कोई एक चुनिए।",
+        },
+        language
+      ),
       suggestions: categoryMenuSuggestions(),
     };
   }
@@ -517,7 +539,7 @@ function categoryReply(categoryId: string, language: LanguageCode): AssistantRep
     language,
     confidence: 1,
     category: category.id,
-    text: `${category.label[language]} — ${category.blurb[language]}`,
+    text: `${pickText(category.label, language)} — ${pickText(category.blurb, language)}`,
     suggestions: menuForCategory(category.id)
       .slice(0, 8)
       .map((e) => ({ ref: e.id, label: e.question })),
@@ -526,21 +548,31 @@ function categoryReply(categoryId: string, language: LanguageCode): AssistantRep
 
 function projectReply(matches: ScoredProject[], language: LanguageCode): AssistantReply {
   const { project } = matches[0];
-  const stage = STAGE_LABELS[project.stage] ?? { en: project.stage, ta: project.stage };
-  const next = NEXT_STEP[project.stage] ?? { en: "", ta: "" };
+  const stage = STAGE_LABELS[project.stage] ?? { en: project.stage, ta: project.stage, hi: project.stage };
+  const next = NEXT_STEP[project.stage] ?? { en: "", ta: "", hi: "" };
   const others = matches.length - 1;
 
   const alsoFound =
     others > 0
-      ? language === "ta"
-        ? ` அதே தேடலுக்கு வேறு ${others} திட்டமும் பொருந்தியது.`
-        : ` I also found ${others} other project${others > 1 ? "s" : ""} matching that.`
+      ? pickText(
+          {
+            en: ` I also found ${others} other project${others > 1 ? "s" : ""} matching that.`,
+            ta: ` அதே தேடலுக்கு வேறு ${others} திட்டமும் பொருந்தியது.`,
+            hi: ` इसी खोज से ${others} और परियोजनाएँ भी मिलीं।`,
+          },
+          language
+        )
       : "";
 
-  const text =
-    language === "ta"
-      ? `${project.name} (${project.district}, ${project.state}) தற்போது ${stage.ta}. ${next.ta}${alsoFound}`
-      : `${project.name} (${project.district}, ${project.state}) is currently ${stage.en}. ${next.en}${alsoFound}`;
+  const where = `${project.name} (${project.district}, ${project.state})`;
+  const text = pickText(
+    {
+      en: `${where} is currently ${stage.en}. ${next.en}${alsoFound}`,
+      ta: `${where} தற்போது ${stage.ta}. ${next.ta}${alsoFound}`,
+      hi: `${where} इस समय ${stage.hi ?? stage.en} है। ${next.hi ?? next.en}${alsoFound}`,
+    },
+    language
+  );
 
   return {
     kind: "project",

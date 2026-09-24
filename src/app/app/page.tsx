@@ -1,3 +1,4 @@
+import { L2, T2 } from "@/components/l2";
 import Link from "next/link";
 import { getSession } from "@/lib/auth";
 import { getProjectsWithSLA, getPortfolioStats, getStateBreakdown } from "@/db/dashboard";
@@ -15,6 +16,7 @@ import { stageTone, toneBadgeClass, slaStatusTone } from "@/lib/status-colors";
 import { DashboardStats } from "@/components/dashboard-stats";
 import { NewProjectForm } from "@/components/new-project-form";
 import { can } from "@/lib/rbac";
+import { DEMO_SANDBOX_PREFIX } from "@/db/projects";
 import type { SLAMetric } from "@/lib/sla";
 import { projectScopeFor } from "@/lib/project-scope";
 
@@ -47,7 +49,7 @@ export default async function DashboardPage() {
         <div>
           <h1 className="text-2xl font-bold text-[#1c2b3a] flex items-center gap-2">
             Welcome, {session.name}
-            <span className="ta text-sm font-normal text-gray-500 bg-gray-100 px-2 py-0.5 rounded ml-2">வரவேற்பு</span>
+            <L2 className="ta text-sm font-normal text-gray-500 bg-gray-100 px-2 py-0.5 rounded ml-2" ta="வரவேற்பு" />
           </h1>
           <p className="text-sm text-gray-600 mt-1 flex items-center gap-2">
             <Icon icon="mdi:shield-account-outline" width={16} className="text-[#0b5394]" /> 
@@ -78,7 +80,7 @@ export default async function DashboardPage() {
             <h2 className="text-white font-semibold flex items-center gap-2">
               <Icon icon="mdi:chart-box-outline" width={20} />
               Portfolio Overview
-              <span className="ta text-xs text-white/70">கண்ணோட்டம்</span>
+              <L2 className="ta text-xs text-white/70" ta="கண்ணோட்டம்" />
             </h2>
             <button className="text-xs text-white/90 hover:text-white flex items-center gap-1 bg-white/10 px-2 py-1 rounded">
               <Icon icon="mdi:download" width={14} /> Export PDF
@@ -96,7 +98,7 @@ export default async function DashboardPage() {
           <div className="px-4 py-3 border-b border-gray-100 bg-[#f8fafc] flex justify-between items-center">
             <h3 className="font-semibold text-[#1c2b3a] flex items-center gap-2">
               <Icon icon="mdi:flash-outline" width={18} className="text-[#e56b00]" /> Quick Actions
-              <span className="ta text-xs text-gray-500">விரைவான செயல்கள்</span>
+              <L2 className="ta text-xs text-gray-500" ta="விரைவான செயல்கள்" />
             </h3>
           </div>
           <div className="p-4 grid grid-cols-2 gap-3 flex-1 content-start">
@@ -144,11 +146,11 @@ export default async function DashboardPage() {
         </div>
 
         {/* SLA Alerts */}
-        <div className="lg:col-span-2 bg-white rounded-lg border border-gray-200 shadow-sm flex flex-col">
+        <div data-tour="sla-alerts" className="lg:col-span-2 bg-white rounded-lg border border-gray-200 shadow-sm flex flex-col">
           <div className="px-4 py-3 border-b border-gray-100 bg-[#f8fafc] flex justify-between items-center">
             <h3 className="font-semibold text-[#1c2b3a] flex items-center gap-2">
               <Icon icon="mdi:bell-alert-outline" width={18} className="text-[#c0392b]" /> Critical SLA Alerts
-              <span className="ta text-xs text-gray-500">விழிப்பூட்டல்கள்</span>
+              <L2 className="ta text-xs text-gray-500" ta="விழிப்பூட்டல்கள்" />
             </h3>
             <div className="flex gap-2 text-xs font-semibold">
               <span className="bg-red-50 text-red-700 px-2 py-1 rounded-md border border-red-100">{breachedCount} Breached</span>
@@ -196,7 +198,7 @@ export default async function DashboardPage() {
           <h2 className="text-lg font-semibold text-[#1c2b3a] flex items-center gap-2">
             <Icon icon="mdi:format-list-bulleted" width={20} className="text-[#0b5394]" />
             Active Projects List ({activeCount})
-            <span className="ta text-sm text-gray-500 font-normal">செயல்படும் திட்டங்கள்</span>
+            <L2 className="ta text-sm text-gray-500 font-normal" ta="செயல்படும் திட்டங்கள்" />
           </h2>
           <div className="flex items-center gap-3">
             <div className="relative">
@@ -219,10 +221,10 @@ export default async function DashboardPage() {
             <Table>
               <TableHeader className="bg-gray-50/50">
                 <TableRow>
-                  <TableHead className="font-semibold text-gray-700 whitespace-nowrap">Project ID / Name <span className="ta text-xs font-normal text-gray-400 block">திட்டத்தின் பெயர்</span></TableHead>
-                  <TableHead className="font-semibold text-gray-700 whitespace-nowrap">Location <span className="ta text-xs font-normal text-gray-400 block">இடம்</span></TableHead>
-                  <TableHead className="font-semibold text-gray-700 whitespace-nowrap">Current Stage <span className="ta text-xs font-normal text-gray-400 block">தற்போதைய நிலை</span></TableHead>
-                  <TableHead className="font-semibold text-gray-700 whitespace-nowrap">SLA Timelines <span className="ta text-xs font-normal text-gray-400 block">காலக்கெடு</span></TableHead>
+                  <TableHead className="font-semibold text-gray-700 whitespace-nowrap">Project ID / Name <L2 className="ta text-xs font-normal text-gray-400 block" ta="திட்டத்தின் பெயர்" /></TableHead>
+                  <TableHead className="font-semibold text-gray-700 whitespace-nowrap">Location <L2 className="ta text-xs font-normal text-gray-400 block" ta="இடம்" /></TableHead>
+                  <TableHead className="font-semibold text-gray-700 whitespace-nowrap">Current Stage <L2 className="ta text-xs font-normal text-gray-400 block" ta="தற்போதைய நிலை" /></TableHead>
+                  <TableHead className="font-semibold text-gray-700 whitespace-nowrap">SLA Timelines <L2 className="ta text-xs font-normal text-gray-400 block" ta="காலக்கெடு" /></TableHead>
                   <TableHead className="text-right font-semibold text-gray-700 whitespace-nowrap">Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -265,7 +267,7 @@ export default async function DashboardPage() {
                       </div>
                     </TableCell>
                     <TableCell className="text-right">
-                      <Link href={`/app/projects/${project.id}`} className="inline-flex items-center justify-center h-8 w-8 rounded-md text-gray-500 hover:text-[#0b5394] hover:bg-blue-50 transition-colors">
+                      <Link href={`/app/projects/${project.id}`} data-tour={project.id.startsWith(DEMO_SANDBOX_PREFIX) ? "demo-project" : undefined} className="inline-flex items-center justify-center h-8 w-8 rounded-md text-gray-500 hover:text-[#0b5394] hover:bg-blue-50 transition-colors">
                         <Icon icon="mdi:chevron-right" width={20} />
                       </Link>
                     </TableCell>

@@ -164,6 +164,11 @@ export function containsTamilScript(text: string): boolean {
   return /[\u0B80-\u0BFF]/.test(text);
 }
 
+/** True when the text carries Devanagari, which here means Hindi. */
+export function containsDevanagari(text: string): boolean {
+  return /[\u0900-\u097F]/.test(text);
+}
+
 /**
  * Tokens for scoring: normalised, stop-words removed, transliterations folded,
  * synonyms expanded. Deduplicated, because a word repeated three times in a

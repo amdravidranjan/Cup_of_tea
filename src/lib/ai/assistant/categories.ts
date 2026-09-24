@@ -24,10 +24,11 @@ import type { QueryCategory } from "./types";
 export const QUERY_CATEGORIES: QueryCategory[] = [
   {
     id: "compensation",
-    label: { en: "Compensation & my money", ta: "இழப்பீடு மற்றும் பணம்" },
+    label: { en: "Compensation & my money", ta: "இழப்பீடு மற்றும் பணம்", hi: "प्रतिकर और मेरा पैसा" },
     blurb: {
       en: "How much you are owed, how it was calculated, and when it is paid.",
       ta: "உங்களுக்கு எவ்வளவு வரும், எப்படி கணக்கிடப்பட்டது, எப்போது வழங்கப்படும்.",
+      hi: "आपको कितना मिलना है, वह कैसे जोड़ा गया, और कब मिलेगा।",
     },
     icon: "mdi:cash-multiple",
     featured: [
@@ -43,10 +44,11 @@ export const QUERY_CATEGORIES: QueryCategory[] = [
   },
   {
     id: "rr",
-    label: { en: "Rehabilitation & resettlement", ta: "மறுவாழ்வு மற்றும் மீள்குடியேற்றம்" },
+    label: { en: "Rehabilitation & resettlement", ta: "மறுவாழ்வு மற்றும் மீள்குடியேற்றம்", hi: "पुनर्वास और पुनर्व्यवस्थापन" },
     blurb: {
       en: "Housing, grants, jobs and the help you get beyond the money.",
       ta: "வீடு, மாதாந்திர உதவி, வேலை — பணத்திற்கு அப்பால் கிடைக்கும் உதவிகள்.",
+      hi: "मकान, भत्ते, नौकरी — पैसे से आगे मिलने वाली मदद।",
     },
     icon: "mdi:home-heart",
     featured: [
@@ -62,10 +64,11 @@ export const QUERY_CATEGORIES: QueryCategory[] = [
   },
   {
     id: "status",
-    label: { en: "Project status & stages", ta: "திட்ட நிலை மற்றும் கட்டங்கள்" },
+    label: { en: "Project status & stages", ta: "திட்ட நிலை மற்றும் கட்டங்கள்", hi: "परियोजना की स्थिति और चरण" },
     blurb: {
       en: "Which stage a project has reached, what happens next, and how long it takes.",
       ta: "திட்டம் எந்த கட்டத்தில் உள்ளது, அடுத்து என்ன, எவ்வளவு காலம் ஆகும்.",
+      hi: "परियोजना किस चरण में है, आगे क्या होगा, और कितना समय लगेगा।",
     },
     icon: "mdi:progress-clock",
     featured: [
@@ -81,10 +84,11 @@ export const QUERY_CATEGORIES: QueryCategory[] = [
   },
   {
     id: "grievance",
-    label: { en: "Complaints & objections", ta: "குறைகள் மற்றும் ஆட்சேபணைகள்" },
+    label: { en: "Complaints & objections", ta: "குறைகள் மற்றும் ஆட்சேபணைகள்", hi: "शिकायतें और आपत्तियाँ" },
     blurb: {
       en: "How to object, how to complain, and what happens after you do.",
       ta: "ஆட்சேபிக்க, குறை தெரிவிக்க, அதன் பிறகு என்ன நடக்கும்.",
+      hi: "आपत्ति कैसे करें, शिकायत कैसे दर्ज करें, और उसके बाद क्या होता है।",
     },
     icon: "mdi:gavel",
     featured: [
@@ -100,10 +104,11 @@ export const QUERY_CATEGORIES: QueryCategory[] = [
   },
   {
     id: "documents",
-    label: { en: "Documents & certificates", ta: "ஆவணங்கள் மற்றும் சான்றிதழ்கள்" },
+    label: { en: "Documents & certificates", ta: "ஆவணங்கள் மற்றும் சான்றிதழ்கள்", hi: "दस्तावेज़ और प्रमाणपत्र" },
     blurb: {
       en: "What papers you need, where to get them, and what the portal publishes.",
       ta: "என்ன ஆவணங்கள் தேவை, எங்கு பெறுவது, வலைதளத்தில் என்ன வெளியிடப்படுகிறது.",
+      hi: "कौन से कागज़ चाहिए, कहाँ से मिलेंगे, और पोर्टल क्या प्रकाशित करता है।",
     },
     icon: "mdi:file-document-multiple",
     featured: [
@@ -119,10 +124,11 @@ export const QUERY_CATEGORIES: QueryCategory[] = [
   },
   {
     id: "land-records",
-    label: { en: "Finding my land", ta: "எனது நிலத்தைக் கண்டறிதல்" },
+    label: { en: "Finding my land", ta: "எனது நிலத்தைக் கண்டறிதல்", hi: "अपनी ज़मीन खोजना" },
     blurb: {
       en: "Look up a parcel by survey or patta number and read what the record says.",
       ta: "நில அளவை எண் அல்லது பட்டா எண் மூலம் உங்கள் நிலத்தைத் தேடுங்கள்.",
+      hi: "खसरा या पट्टा नंबर से भूखंड खोजिए और अभिलेख में क्या दर्ज है, पढ़िए।",
     },
     icon: "mdi:map-search",
     featured: [
@@ -138,10 +144,11 @@ export const QUERY_CATEGORIES: QueryCategory[] = [
   },
   {
     id: "rights",
-    label: { en: "My rights under the law", ta: "சட்டப்படி எனது உரிமைகள்" },
+    label: { en: "My rights under the law", ta: "சட்டப்படி எனது உரிமைகள்", hi: "कानून के तहत मेरे अधिकार" },
     blurb: {
       en: "What the 2013 Act guarantees you, and what the government must do first.",
       ta: "2013 சட்டம் உங்களுக்கு உறுதியளிப்பது என்ன, அரசு முதலில் என்ன செய்ய வேண்டும்.",
+      hi: "2013 का अधिनियम आपको क्या गारंटी देता है, और सरकार को पहले क्या करना होगा।",
     },
     icon: "mdi:scale-balance",
     featured: [
@@ -157,10 +164,11 @@ export const QUERY_CATEGORIES: QueryCategory[] = [
   },
   {
     id: "possession",
-    label: { en: "Possession & land use", ta: "கையகப்படுத்தல் மற்றும் நில பயன்பாடு" },
+    label: { en: "Possession & land use", ta: "கையகப்படுத்தல் மற்றும் நில பயன்பாடு", hi: "कब्ज़ा और भूमि का उपयोग" },
     blurb: {
       en: "When the government can take the land, and what happens to it afterwards.",
       ta: "அரசு எப்போது நிலத்தை எடுக்கலாம், அதன் பிறகு என்ன ஆகும்.",
+      hi: "सरकार ज़मीन कब ले सकती है, और उसके बाद उसका क्या होता है।",
     },
     icon: "mdi:fence",
     featured: [
@@ -176,10 +184,11 @@ export const QUERY_CATEGORIES: QueryCategory[] = [
   },
   {
     id: "system",
-    label: { en: "Using this portal", ta: "இந்த வலைதளத்தைப் பயன்படுத்துதல்" },
+    label: { en: "Using this portal", ta: "இந்த வலைதளத்தைப் பயன்படுத்துதல்", hi: "इस पोर्टल का उपयोग" },
     blurb: {
       en: "What TN-GLMS is, who can see your data, and how the analytics work.",
       ta: "TN-GLMS என்றால் என்ன, உங்கள் தகவலை யார் பார்க்க முடியும், பகுப்பாய்வு எவ்வாறு செயல்படுகிறது.",
+      hi: "यह प्रणाली क्या है, आपका डेटा कौन देख सकता है, और विश्लेषण कैसे काम करता है।",
     },
     icon: "mdi:information-outline",
     featured: [
@@ -195,10 +204,11 @@ export const QUERY_CATEGORIES: QueryCategory[] = [
   },
   {
     id: "help",
-    label: { en: "Help & contact", ta: "உதவி மற்றும் தொடர்பு" },
+    label: { en: "Help & contact", ta: "உதவி மற்றும் தொடர்பு", hi: "सहायता और संपर्क" },
     blurb: {
       en: "Talk to a person, find your office, or get help using this page.",
       ta: "ஒரு அதிகாரியுடன் பேசுங்கள், உங்கள் அலுவலகத்தைக் கண்டறியுங்கள்.",
+      hi: "किसी व्यक्ति से बात कीजिए, अपना कार्यालय ढूँढिए, या इस पृष्ठ के उपयोग में मदद लीजिए।",
     },
     icon: "mdi:lifebuoy",
     featured: [

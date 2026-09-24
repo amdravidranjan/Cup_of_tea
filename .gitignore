@@ -64,3 +64,4 @@ local.db-*
 
 # OSM overpass cache (seed-time only)
 /scripts/.osm-cache
+.env*

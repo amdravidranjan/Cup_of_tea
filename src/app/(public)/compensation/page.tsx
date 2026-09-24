@@ -1,4 +1,5 @@
 'use client';
+import { L2, T2 } from "@/components/l2";
 import { useState } from 'react';
 import { Icon } from '@iconify/react';
 import Link from 'next/link';
@@ -26,7 +27,7 @@ export default function CompensationPage() {
       <div className="stats-band" style={{ padding: '36px 0 30px' }}>
         <div className="sec-wrap" style={{ color: '#fff' }}>
           <div style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.15em', color: 'rgba(255,255,255,0.5)', marginBottom: 6 }}>
-            Sections 26–30, RFCTLARR Act 2013 · பிரிவுகள் 26–30
+            Sections 26–30, RFCTLARR Act 2013 · <L2 ta="பிரிவுகள்" /> 26–30
           </div>
           <h1 style={{ fontSize: 26, fontWeight: 700, color: '#ffc107', marginBottom: 8 }}>
             Compensation Calculator &amp; Disbursement Status
@@ -45,7 +46,7 @@ export default function CompensationPage() {
             <h2 className="sec-title">
               <Icon icon="mdi:calculator-variant-outline" width={21} color="#e56b00" />
               Interactive Compensation Calculator
-              <span className="ta">இழப்பீடு கணிப்பான்</span>
+              <L2 className="ta" ta="இழப்பீடு கணிப்பான்" />
             </h2>
           </div>
           <div className="two-col">
@@ -59,7 +60,7 @@ export default function CompensationPage() {
                   { label: 'Months Since Notification · மாதங்கள்', value: months, set: setMonths, step: 1, min: 0 },
                 ].map((f, i) => (
                   <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
-                    <label style={{ fontSize: 11.5, fontWeight: 600, color: '#3a4a5c' }}>{f.label}</label>
+                    <label style={{ fontSize: 11.5, fontWeight: 600, color: '#3a4a5c' }}><T2>{f.label}</T2></label>
                     <input
                       type="number" value={f.value} step={f.step} min={f.min}
                       onChange={e => f.set(Number(e.target.value))}
@@ -73,7 +74,7 @@ export default function CompensationPage() {
               <div className="notice-box">
                 <div className="notice-head">
                   <Icon icon="mdi:receipt-text-outline" width={15} />
-                  Compensation Breakdown · இழப்பீடு விவரம்
+                  Compensation Breakdown · <L2 ta="இழப்பீடு விவரம்" />
                 </div>
                 <div style={{ padding: 0 }}>
                   {[
@@ -89,7 +90,7 @@ export default function CompensationPage() {
                     </div>
                   ))}
                   <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 14px', background: '#0b5394', color: '#ffc107', fontWeight: 700, fontSize: 15 }}>
-                    <span>Total Compensation · மொத்த இழப்பீடு</span>
+                    <span>Total Compensation · <L2 ta="மொத்த இழப்பீடு" /></span>
                     <span>₹{r.total.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</span>
                   </div>
                 </div>
@@ -106,7 +107,7 @@ export default function CompensationPage() {
             <h2 className="sec-title">
               <Icon icon="mdi:information-outline" width={21} color="#e56b00" />
               How Compensation is Determined
-              <span className="ta">இழப்பீடு எவ்வாறு நிர்ணயிக்கப்படுகிறது</span>
+              <L2 className="ta" ta="இழப்பீடு எவ்வாறு நிர்ணயிக்கப்படுகிறது" />
             </h2>
           </div>
           <div className="schemes-grid">
@@ -136,7 +137,7 @@ export default function CompensationPage() {
             <h2 className="sec-title">
               <Icon icon="mdi:cash-check" width={21} color="#e56b00" />
               Disbursement Status
-              <span className="ta">விநியோக நிலை</span>
+              <L2 className="ta" ta="விநியோக நிலை" />
             </h2>
           </div>
           <div className="svc-grid" style={{ gridTemplateColumns: 'repeat(4, 1fr)' }}>

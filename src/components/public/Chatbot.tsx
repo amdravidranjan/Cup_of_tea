@@ -5,8 +5,10 @@ import { Icon } from '@iconify/react';
 import {
   answerAssistantQuery,
   answerSuggestion,
+  pickText,
   QUERY_CATEGORIES,
   type AssistantReply,
+  type BilingualText,
   type LanguageCode,
   type PublicProjectLike,
 } from '@/lib/ai/assistant';
@@ -26,15 +28,27 @@ type ChatMessage = {
 const GREETING: Record<LanguageCode, string> = {
   en: 'Hello. I am VANI, the NILAMS virtual assistant. Ask about project status, compensation, R&R, rights, grievances or documents.',
   ta: 'வணக்கம். நான் NILAMS மெய்நிகர் உதவியாளர் VANI. திட்ட நிலை, இழப்பீடு, மறுவாழ்வு, உரிமைகள், குறைகள் அல்லது ஆவணங்கள் பற்றி கேளுங்கள்.',
+  hi: 'नमस्ते। मैं वाणी हूँ, NILAMS की सहायक। परियोजना की स्थिति, प्रतिकर, पुनर्वास, अधिकार, शिकायत या दस्तावेज़ों के बारे में पूछिए।',
 };
 
-const CATEGORY_LABELS: Record<string, { en: string; ta: string }> = {
-  compensation: { en: 'Compensation', ta: 'இழப்பீடு' },
-  rr: { en: 'R&R', ta: 'மறுவாழ்வு' },
-  status: { en: 'Project status', ta: 'திட்ட நிலை' },
-  grievance: { en: 'Grievances', ta: 'குறைகள்' },
-  documents: { en: 'Documents', ta: 'ஆவணங்கள்' },
-  rights: { en: 'Rights', ta: 'உரிமைகள்' },
+/** The three portal languages, in the order the header button cycles them. */
+const LANGUAGE_CYCLE: { code: LanguageCode; short: string; speech: string }[] = [
+  { code: 'en', short: 'EN', speech: 'en-IN' },
+  { code: 'hi', short: 'हिं', speech: 'hi-IN' },
+  { code: 'ta', short: 'தமிழ்', speech: 'ta-IN' },
+];
+
+function speechLang(language: LanguageCode): string {
+  return LANGUAGE_CYCLE.find((l) => l.code === language)?.speech ?? 'en-IN';
+}
+
+const CATEGORY_LABELS: Record<string, BilingualText> = {
+  compensation: { en: 'Compensation', ta: 'இழப்பீடு', hi: 'प्रतिकर' },
+  rr: { en: 'R&R', ta: 'மறுவாழ்வு', hi: 'पुनर्वास' },
+  status: { en: 'Project status', ta: 'திட்ட நிலை', hi: 'परियोजना की स्थिति' },
+  grievance: { en: 'Grievances', ta: 'குறைகள்', hi: 'शिकायतें' },
+  documents: { en: 'Documents', ta: 'ஆவணங்கள்', hi: 'दस्तावेज़' },
+  rights: { en: 'Rights', ta: 'உரிமைகள்', hi: 'अधिकार' },
 };
 
 export function Chatbot() {
@@ -50,6 +64,10 @@ export function Chatbot() {
   const [projects, setProjects] = useState<PublicProjectLike[]>([]);
   const [voiceSupported, setVoiceSupported] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  // Three languages in one small header: the button shows the next one.
+  const nextLanguage =
+    LANGUAGE_CYCLE[(LANGUAGE_CYCLE.findIndex((l) => l.code === language) + 1) % LANGUAGE_CYCLE.length];
+  const t = (text: BilingualText) => pickText(text, language);
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
   const projectsPromiseRef = useRef<Promise<PublicProjectLike[]> | null>(null);
 
@@ -117,7 +135,7 @@ export function Chatbot() {
 
     if (spoken) {
       setSpeaking(true);
-      speak(reply.text, language === 'ta' ? 'ta-IN' : 'en-IN');
+      speak(reply.text, speechLang(language));
       window.setTimeout(() => setSpeaking(false), Math.min(reply.text.length * 65, 15000));
     }
   }
@@ -125,7 +143,7 @@ export function Chatbot() {
   function sendSuggestion(refId: string, spoken = false) {
     const reply = answerSuggestion(refId, { projects, language });
     setMsgs((current) => [...current, { from: 'bot', text: reply.text, reply }]);
-    if (spoken) speak(reply.text, language === 'ta' ? 'ta-IN' : 'en-IN');
+    if (spoken) speak(reply.text, speechLang(language));
   }
 
   function toggleListening() {
@@ -138,7 +156,7 @@ export function Chatbot() {
     if (!Recognition) return;
 
     const recognition = new Recognition();
-    recognition.lang = language === 'ta' ? 'ta-IN' : 'en-IN';
+    recognition.lang = speechLang(language);
     recognition.interimResults = false;
     recognition.maxAlternatives = 1;
     recognition.onresult = (event) => {
@@ -170,19 +188,19 @@ export function Chatbot() {
               <div className="chat-title">VANI | Virtual Assistant</div>
               <div className="chat-online">
                 {listening
-                  ? language === 'ta' ? 'கேட்கிறது...' : 'Listening...'
+                  ? t({ en: 'Listening...', ta: 'கேட்கிறது...', hi: 'सुन रही हूँ…' })
                   : speaking
-                    ? language === 'ta' ? 'பேசுகிறது...' : 'Speaking...'
-                    : language === 'ta' ? 'NILAMS உதவி மையம்' : 'NILAMS Help Desk'}
+                    ? t({ en: 'Speaking...', ta: 'பேசுகிறது...', hi: 'बोल रही हूँ…' })
+                    : t({ en: 'NILAMS Help Desk', ta: 'NILAMS உதவி மையம்', hi: 'NILAMS सहायता केंद्र' })}
               </div>
             </div>
             <div className="chat-head-actions">
               <button
                 className="chat-language"
-                onClick={() => changeLanguage(language === 'en' ? 'ta' : 'en')}
-                aria-label={language === 'en' ? 'Switch to Tamil' : 'Switch to English'}
+                onClick={() => changeLanguage(nextLanguage.code)}
+                aria-label={`Switch to ${nextLanguage.code === 'en' ? 'English' : nextLanguage.code === 'hi' ? 'Hindi' : 'Tamil'}`}
               >
-                {language === 'en' ? 'தமிழ்' : 'EN'}
+                {nextLanguage.short}
               </button>
               <button onClick={clearConversation} className="chat-close" aria-label="Clear conversation">
                 <Icon icon="mdi:broom" width={18} />
@@ -197,9 +215,21 @@ export function Chatbot() {
             {msgs.map((message, index) => (
               <div key={`${message.from}-${index}`} className={`chat-bubble ${message.from}`}>
                 <div>{message.text}</div>
+                {/* The answer bank is being translated; an entry with no text
+                    in the chosen language answers in English rather than not
+                    at all, and says which it did. */}
+                {message.reply?.entry && !message.reply.entry.answer[language] && (
+                  <div className="chat-basis">
+                    {t({
+                      en: '',
+                      ta: 'இந்தப் பதில் தற்போது ஆங்கிலத்தில் மட்டும்.',
+                      hi: 'यह उत्तर फ़िलहाल केवल अंग्रेज़ी में उपलब्ध है।',
+                    })}
+                  </div>
+                )}
                 {message.reply?.basis && (
                   <div className="chat-basis">
-                    {language === 'ta' ? 'சட்ட அடிப்படை: ' : 'Legal basis: '}
+                    {t({ en: 'Legal basis: ', ta: 'சட்ட அடிப்படை: ', hi: 'कानूनी आधार: ' })}
                     {message.reply.basis}
                   </div>
                 )}
@@ -223,7 +253,7 @@ export function Chatbot() {
             ))}
             {sending && (
               <div className="chat-bubble bot" aria-label="Preparing answer">
-                {language === 'ta' ? 'பதிலைத் தயாரிக்கிறது...' : 'Preparing an answer...'}
+                {t({ en: 'Preparing an answer...', ta: 'பதிலைத் தயாரிக்கிறது...', hi: 'उत्तर तैयार कर रही हूँ…' })}
               </div>
             )}
           </div>
@@ -235,7 +265,7 @@ export function Chatbot() {
                 className="chip"
                 onClick={() => sendSuggestion(`category:${category.id}`)}
               >
-                {CATEGORY_LABELS[category.id]?.[language] ?? category.label[language]}
+                {pickText(CATEGORY_LABELS[category.id] ?? category.label, language)}
               </button>
             ))}
           </div>
@@ -248,9 +278,9 @@ export function Chatbot() {
                 if (event.key === 'Enter') void send();
               }}
               placeholder={listening
-                ? language === 'ta' ? 'கேள்வியைச் சொல்லுங்கள்...' : 'Listening...'
-                : language === 'ta' ? 'உங்கள் கேள்வியை எழுதுங்கள்...' : 'Type your question...'}
-              aria-label={language === 'ta' ? 'VANI-யிடம் கேளுங்கள்' : 'Ask VANI a question'}
+                ? t({ en: 'Listening...', ta: 'கேள்வியைச் சொல்லுங்கள்...', hi: 'सुन रही हूँ…' })
+                : t({ en: 'Type your question...', ta: 'உங்கள் கேள்வியை எழுதுங்கள்...', hi: 'अपना सवाल लिखिए…' })}
+              aria-label={t({ en: 'Ask VANI a question', ta: 'VANI-யிடம் கேளுங்கள்', hi: 'वाणी से सवाल पूछें' })}
               disabled={sending}
             />
             {voiceSupported && (
@@ -268,7 +298,7 @@ export function Chatbot() {
               </button>
             )}
             <button onClick={() => void send()} disabled={sending}>
-              {language === 'ta' ? 'அனுப்பு' : 'Send'}
+              {t({ en: 'Send', ta: 'அனுப்பு', hi: 'भेजें' })}
             </button>
           </div>
         </div>
@@ -276,9 +306,10 @@ export function Chatbot() {
 
       <button
         className="chat-toggle"
+        data-tour="chatbot-launch"
         onClick={() => setOpen((current) => !current)}
-        title={language === 'ta' ? 'VANI உதவியாளருடன் பேசுங்கள்' : 'Chat with VANI'}
-        aria-label={language === 'ta' ? 'VANI உதவியாளரைத் திறக்கவும்' : 'Open VANI assistant'}
+        title={t({ en: 'Chat with VANI', ta: 'VANI உதவியாளருடன் பேசுங்கள்', hi: 'वाणी से बात करें' })}
+        aria-label={t({ en: 'Open VANI assistant', ta: 'VANI உதவியாளரைத் திறக்கவும்', hi: 'वाणी सहायक खोलें' })}
       >
         <Icon icon={open ? 'mdi:close' : 'mdi:chat-processing-outline'} width={26} color="#fff" />
       </button>

@@ -250,7 +250,7 @@ export function LegalDisputesPanel({
   return (
     <div className="space-y-4">
       {activeStay && (
-        <div className="rounded-lg border border-red-300 bg-red-50 p-3 text-sm text-red-900">
+        <div data-tour="stay-banner" className="rounded-lg border border-red-300 bg-red-50 p-3 text-sm text-red-900">
           <p className="font-semibold">
             Active court stay order — {activeStay.caseNumber}
           </p>
@@ -388,11 +388,11 @@ export function LegalDisputesPanel({
       {canManage && (
         <div>
           {!showForm ? (
-            <Button type="button" variant="outline" size="sm" onClick={() => setShowForm(true)}>
+            <Button type="button" variant="outline" size="sm" data-tour="add-dispute" onClick={() => setShowForm(true)}>
               Record a case
             </Button>
           ) : (
-            <form onSubmit={submit} className="space-y-3 rounded-lg border p-4">
+            <form onSubmit={submit} data-tour="dispute-form" className="space-y-3 rounded-lg border p-4">
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
                   <Label htmlFor="ld-case">Case number</Label>

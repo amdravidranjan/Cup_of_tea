@@ -1,6 +1,17 @@
 # Try It Yourself — the printed card for the table
 
-Print this. Put it face-up in front of the judges and say "type any of these in."
+**Live: https://nilams.vercel.app** — no install, no account, works on a phone.
+
+Open it and a guide called Nila asks which language you want, in all twenty-two
+official languages. Pick one and she runs the whole acquisition for you: she
+makes you your own copy of a case *in that language's region* (Kannada gives
+you a Kaveri crossing in Mandya, Marathi the Godavari at Paithan), signs you in
+as that district's Collector, and does each step herself if you press Next —
+or you press the glowing thing yourself, which moves the tour along with you.
+Five minutes end to end. Nothing you do touches another judge's copy.
+
+Everything below still works without the guide. Print this, put it face-up in
+front of the judges and say "type any of these in."
 
 Everything on this card resolves. That is the point of it: an invitation to test
 the system is only worth making if nothing on the list can dead-end, so every

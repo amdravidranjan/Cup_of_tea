@@ -8,7 +8,9 @@ import {
   categoryById,
   knowledgeStats,
   menuForCategory,
+  pickText,
   type AssistantReply,
+  type BilingualText,
   type CategoryId,
   type LanguageCode,
   type PublicProjectLike,
@@ -30,17 +32,17 @@ import {
  * they know — only in how they look.
  */
 
-const LABELS = {
-  heading: { en: "Ask about land acquisition", ta: "நில கையகப்படுத்தல் பற்றி கேளுங்கள்" },
-  pickSubject: { en: "Pick a subject", ta: "ஒரு தலைப்பைத் தேர்ந்தெடுங்கள்" },
-  orType: { en: "…or type a question in your own words", ta: "…அல்லது உங்கள் சொந்த வார்த்தைகளில் கேளுங்கள்" },
-  placeholder: { en: "e.g. how much will I get for my land", ta: "எ.கா. எனது நிலத்திற்கு எவ்வளவு கிடைக்கும்" },
-  send: { en: "Ask", ta: "கேள்" },
-  back: { en: "All subjects", ta: "அனைத்து தலைப்புகள்" },
-  basis: { en: "Legal basis", ta: "சட்ட அடிப்படை" },
-  alsoAsk: { en: "You might also ask", ta: "இதையும் கேட்கலாம்" },
-  reset: { en: "Start again", ta: "மீண்டும் தொடங்கு" },
-} as const;
+const LABELS: Record<string, BilingualText> = {
+  heading: { en: "Ask about land acquisition", ta: "நில கையகப்படுத்தல் பற்றி கேளுங்கள்", hi: "भूमि अर्जन के बारे में पूछिए" },
+  pickSubject: { en: "Pick a subject", ta: "ஒரு தலைப்பைத் தேர்ந்தெடுங்கள்", hi: "एक विषय चुनिए" },
+  orType: { en: "…or type a question in your own words", ta: "…அல்லது உங்கள் சொந்த வார்த்தைகளில் கேளுங்கள்", hi: "…या अपने शब्दों में सवाल लिखिए" },
+  placeholder: { en: "e.g. how much will I get for my land", ta: "எ.கா. எனது நிலத்திற்கு எவ்வளவு கிடைக்கும்", hi: "जैसे, मेरी ज़मीन के लिए कितना मिलेगा" },
+  send: { en: "Ask", ta: "கேள்", hi: "पूछें" },
+  back: { en: "All subjects", ta: "அனைத்து தலைப்புகள்", hi: "सभी विषय" },
+  basis: { en: "Legal basis", ta: "சட்ட அடிப்படை", hi: "कानूनी आधार" },
+  alsoAsk: { en: "You might also ask", ta: "இதையும் கேட்கலாம்", hi: "यह भी पूछ सकते हैं" },
+  reset: { en: "Start again", ta: "மீண்டும் தொடங்கு", hi: "फिर से शुरू करें" },
+};
 
 export function AssistantQueryBrowser({
   projects = [],
@@ -57,7 +59,7 @@ export function AssistantQueryBrowser({
   const answerRef = useRef<HTMLDivElement>(null);
 
   const stats = useMemo(() => knowledgeStats(), []);
-  const t = (key: keyof typeof LABELS) => LABELS[key][language];
+  const t = (key: keyof typeof LABELS) => pickText(LABELS[key], language);
 
   useEffect(() => {
     if (reply && answerRef.current) {
@@ -87,7 +89,7 @@ export function AssistantQueryBrowser({
           </p>
         </div>
         <div className="flex overflow-hidden rounded-md border text-xs">
-          {(["en", "ta"] as LanguageCode[]).map((code) => (
+          {(["en", "hi", "ta"] as LanguageCode[]).map((code) => (
             <button
               key={code}
               type="button"
@@ -205,8 +207,9 @@ export function AssistantQueryBrowser({
         <div ref={answerRef} className="space-y-3 rounded-md border bg-muted/20 p-3">
           <p
             className={`whitespace-pre-line text-sm leading-relaxed text-foreground ${
-              reply.language === "ta" ? "ta" : ""
+              reply.language === "en" ? "" : "ta"
             }`}
+            lang={reply.language}
           >
             {reply.text}
           </p>

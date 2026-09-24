@@ -1,0 +1,190 @@
+- generic [active] [ref=f12e1]:
+  - generic [ref=f12e2]:
+    - banner [ref=f12e3]:
+      - generic [ref=f12e4]:
+        - img "NILAMS emblem" [ref=f12e5]:
+          - generic [ref=f12e11]: सत्यमेव जयते
+          - generic [ref=f12e15]: NILAMS
+        - generic [ref=f12e16]:
+          - generic [ref=f12e17]:
+            - text: Government of India | இந்திய அரசு
+            - generic "Second language" [ref=f12e19]:
+              - generic [ref=f12e20]: English +
+              - button "हिन्दी" [ref=f12e21] [cursor=pointer]
+              - button "தமிழ்" [pressed] [ref=f12e22] [cursor=pointer]
+          - link "NILAMS - National Integrated Land Acquisition Management System" [ref=f12e23] [cursor=pointer]:
+            - /url: /app
+          - generic [ref=f12e24]: தேசிய ஒருங்கிணைந்த நிலம் கையகப்படுத்தல் மேலாண்மை அமைப்பு (NILAMS)
+          - generic [ref=f12e25]: Department of Land Resources · Ministry of Rural Development
+        - generic [ref=f12e27]:
+          - generic [ref=f12e28]: FV
+          - button [ref=f12e30]
+          - button "Sign out" [ref=f12e31]
+    - navigation "Console navigation" [ref=f12e32]:
+      - generic [ref=f12e33]:
+        - link "Dashboard" [ref=f12e34] [cursor=pointer]:
+          - /url: /app
+        - link "Field Verification" [ref=f12e35] [cursor=pointer]:
+          - /url: /app/field
+        - generic [ref=f12e36] [cursor=pointer]: More
+        - link "Public Portal" [ref=f12e37] [cursor=pointer]:
+          - /url: /
+    - main [ref=f12e38]:
+      - generic [ref=f12e40]:
+        - generic [ref=f12e44]:
+          - generic [ref=f12e45]:
+            - generic [ref=f12e47]: Draft
+            - generic [ref=f12e48]: Jun 2025
+          - generic [ref=f12e49]:
+            - generic [ref=f12e51]: Scrutiny
+            - generic [ref=f12e52]: Jun 2025
+          - generic [ref=f12e53]:
+            - generic [ref=f12e55]: SIA
+            - generic [ref=f12e56]: Jun 2025
+          - generic [ref=f12e57]:
+            - generic [ref=f12e59]: Notified
+            - generic [ref=f12e60]: Jun 2025
+          - generic [ref=f12e61]:
+            - generic [ref=f12e63]: State Approved
+            - generic [ref=f12e64]: —
+          - generic [ref=f12e65]:
+            - generic [ref=f12e67]: Central Approved
+            - generic [ref=f12e68]: —
+          - generic [ref=f12e69]:
+            - generic [ref=f12e71]: Declared
+            - generic [ref=f12e72]: —
+          - generic [ref=f12e73]:
+            - generic [ref=f12e75]: Awarded
+            - generic [ref=f12e76]: —
+          - generic [ref=f12e77]:
+            - generic [ref=f12e79]: RR In Progress
+            - generic [ref=f12e80]: —
+          - generic [ref=f12e81]:
+            - generic [ref=f12e83]: Possession
+            - generic [ref=f12e84]: —
+          - generic [ref=f12e85]:
+            - generic [ref=f12e87]: RR Complete
+            - generic [ref=f12e88]: —
+        - generic [ref=f12e89]:
+          - paragraph [ref=f12e90]: Krishnagiri, Tamil Nadu
+          - heading "Chennai–Salem Green Corridor Expressway" [level=2] [ref=f12e91]
+          - paragraph [ref=f12e92]: Access-controlled greenfield expressway corridor, Krishnagiri stretch
+          - paragraph [ref=f12e94]: No actions available for your role at this stage.
+        - generic [ref=f12e96]:
+          - tablist [ref=f12e97]:
+            - tab "Overview" [selected] [ref=f12e98]
+            - tab "Compensation" [ref=f12e99]
+            - tab "R&R & Families" [ref=f12e100]
+            - tab "Infrastructure" [ref=f12e101]
+            - tab "Legal" [ref=f12e102]
+            - tab "Tenders" [ref=f12e103]
+            - tab "Community" [ref=f12e104]
+            - tab "Documents" [ref=f12e105]
+            - tab "Media" [ref=f12e106]
+          - tabpanel "Overview" [ref=f12e107]:
+            - generic [ref=f12e109]:
+              - generic [ref=f12e110]:
+                - generic [ref=f12e111]: AI Risk Assessment
+                - generic [ref=f12e112]: High risk
+              - generic [ref=f12e113]:
+                - generic [ref=f12e114]:
+                  - generic [ref=f12e115]: 65/ 100
+                  - paragraph [ref=f12e123]: Several risk signals present — worth a closer look this cycle.
+                - generic [ref=f12e124]:
+                  - generic [ref=f12e125]:
+                    - generic [ref=f12e126]:
+                      - paragraph [ref=f12e127]: Land not yet possessed
+                      - paragraph [ref=f12e128]: 676 of 676 parcels not yet in POSSESSED status
+                    - generic [ref=f12e129]: "+20"
+                  - generic [ref=f12e130]:
+                    - generic [ref=f12e131]:
+                      - paragraph [ref=f12e132]: Open grievances
+                      - paragraph [ref=f12e133]: 4 of 5 filed grievances still open
+                    - generic [ref=f12e134]: "+16"
+                  - generic [ref=f12e135]:
+                    - generic [ref=f12e136]:
+                      - paragraph [ref=f12e137]: Active litigation
+                      - paragraph [ref=f12e138]: 1 legal dispute(s) not yet disposed
+                    - generic [ref=f12e139]: "+15"
+                  - generic [ref=f12e140]:
+                    - generic [ref=f12e141]:
+                      - paragraph [ref=f12e142]: SLA breaches
+                      - paragraph [ref=f12e143]: 1 statutory-timeline metric(s) already breached
+                    - generic [ref=f12e144]: "+12"
+                  - generic [ref=f12e145]:
+                    - generic [ref=f12e146]:
+                      - paragraph [ref=f12e147]: Vulnerable-household share
+                      - paragraph [ref=f12e148]: 2 of 14 registered families flagged vulnerable
+                    - generic [ref=f12e149]: "+2"
+                - paragraph [ref=f12e150]: Computed from this project's current grievances, SLA status, land possession and litigation data.
+            - generic [ref=f12e151]:
+              - generic [ref=f12e154]:
+                - text: Map
+                - generic [ref=f12e155]: வரைபடம்
+              - generic [ref=f12e156]:
+                - generic [ref=f12e159]:
+                  - paragraph [ref=f12e160]: Layers
+                  - generic [ref=f12e161]:
+                    - checkbox "Satellite imagery" [ref=f12e162]
+                    - generic [ref=f12e163]: Satellite imagery
+                  - generic [ref=f12e164]:
+                    - checkbox "Alignment / canal" [checked] [ref=f12e165]
+                    - generic [ref=f12e169]: Alignment / canal
+                  - generic [ref=f12e170]:
+                    - checkbox "Parcels" [checked] [ref=f12e171]
+                    - generic [ref=f12e172]: Parcels
+                  - generic [ref=f12e173]:
+                    - checkbox "Impact buffer (500m)" [checked] [ref=f12e174]
+                    - generic [ref=f12e176]: Impact buffer (500m)
+                  - generic [ref=f12e177]:
+                    - paragraph [ref=f12e178]: Parcel status
+                    - generic [ref=f12e179]: NOTIFIED
+                    - generic [ref=f12e182]: ACQUIRED
+                    - generic [ref=f12e185]: POSSESSED
+                - paragraph [ref=f12e188]: 676 of 676 parcels within the 500m impact buffer of the project alignment.
+            - generic [ref=f12e189]:
+              - generic [ref=f12e192]:
+                - text: Before / after compare
+                - generic [ref=f12e193]: முன் / பின் ஒப்பீடு
+              - generic [ref=f12e195]:
+                - generic [ref=f12e196]:
+                  - generic:
+                    - paragraph: Loading satellite imagery…
+                  - generic: Satellite imagery today
+                  - generic: Planned alignment overlay
+                  - slider "Compare slider" [ref=f12e200]: "50"
+                - paragraph [ref=f12e201]: "Imagery: Esri World Imagery (Esri, Maxar, Earthstar Geographics). Drag the slider to compare present-day satellite imagery against the notified alignment and parcels."
+            - generic [ref=f12e202]:
+              - generic [ref=f12e205]:
+                - text: 3D terrain view
+                - generic [ref=f12e206]: முப்பரிமாண நிலத்தோற்றம்
+              - generic [ref=f12e207]:
+                - paragraph [ref=f12e208]: Real elevation terrain draped with satellite imagery, alignment and parcels shown in 3D.
+                - link "Open 3D view →" [ref=f12e209] [cursor=pointer]:
+                  - /url: /app/projects/p-tn-chennai-salem/3d
+            - generic [ref=f12e210]:
+              - generic [ref=f12e213]:
+                - text: Elevation profile
+                - generic [ref=f12e214]: உயர விவரக்குறிப்பு
+              - generic [ref=f12e216]:
+                - generic [ref=f12e217]:
+                  - generic [ref=f12e218]:
+                    - generic [ref=f12e219]: 371–482 m
+                    - text: elevation range
+                  - generic [ref=f12e220]:
+                    - generic [ref=f12e221]: +34 m
+                    - text: climb
+                  - generic [ref=f12e222]:
+                    - generic [ref=f12e223]: −145 m
+                    - text: descent
+                - paragraph [ref=f12e226]: "Source: Open-Elevation (SRTM-derived), sampled at 20 points along the alignment."
+            - generic [ref=f12e227]:
+              - generic [ref=f12e230]:
+                - text: History
+                - generic [ref=f12e231]: வரலாறு
+              - list [ref=f12e233]:
+                - listitem [ref=f12e234]: — → DRAFT (CREATE) by agency on 15 Jun 2025, 01:06 am
+                - listitem [ref=f12e235]: DRAFT → SCRUTINY (SUBMIT) by agency on 15 Jun 2025, 01:06 am
+                - listitem [ref=f12e236]: SCRUTINY → SIA (APPROVE) by district on 24 Jun 2025, 01:06 am
+                - listitem [ref=f12e237]: SIA → NOTIFIED (COMPLETE) by district on 30 Jun 2025, 01:06 am
+  - region "Notifications alt+T"

@@ -1,3 +1,4 @@
+import { L2, T2 } from "@/components/l2";
 import { Icon } from '@iconify/react';
 import Link from 'next/link';
 
@@ -26,7 +27,7 @@ export default function RRPage() {
       <div className="stats-band" style={{ padding: '36px 0 30px' }}>
         <div className="sec-wrap" style={{ color: '#fff' }}>
           <div style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.15em', color: 'rgba(255,255,255,0.5)', marginBottom: 6 }}>
-            Rehabilitation &amp; Resettlement · மறுவாழ்வு &amp; மீள்குடியேற்றம்
+            Rehabilitation &amp; Resettlement · <L2 ta="மறுவாழ்வு & மீள்குடியேற்றம்" />
           </div>
           <h1 style={{ fontSize: 26, fontWeight: 700, color: '#ffc107', marginBottom: 8 }}>
             R&amp;R Scheme Status &amp; Entitlement Tracker
@@ -45,7 +46,7 @@ export default function RRPage() {
             <h2 className="sec-title">
               <Icon icon="mdi:timeline-check-outline" width={21} color="#e56b00" />
               R&amp;R 6-Step Workflow
-              <span className="ta">6 படி செயல்முறை</span>
+              <L2 className="ta" ta="6 படி செயல்முறை" />
             </h2>
           </div>
           <div className="svc-grid" style={{ gridTemplateColumns: 'repeat(6, 1fr)' }}>
@@ -80,7 +81,7 @@ export default function RRPage() {
             <h2 className="sec-title">
               <Icon icon="mdi:format-list-checks" width={21} color="#e56b00" />
               Second Schedule — R&amp;R Entitlements
-              <span className="ta">இரண்டாம் அட்டவணை — உரிமைகள்</span>
+              <L2 className="ta" ta="இரண்டாம் அட்டவணை — உரிமைகள்" />
             </h2>
           </div>
           <div className="schemes-grid" style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}>
@@ -106,7 +107,7 @@ export default function RRPage() {
             <h2 className="sec-title">
               <Icon icon="mdi:domain" width={21} color="#e56b00" />
               Third Schedule — Infrastructure Amenities
-              <span className="ta">மூன்றாவது அட்டவணை — உள்கட்டமைப்பு</span>
+              <L2 className="ta" ta="மூன்றாவது அட்டவணை — உள்கட்டமைப்பு" />
             </h2>
           </div>
           <div className="links-grid">

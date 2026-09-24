@@ -119,7 +119,119 @@ export const TA: Record<string, string> = {
   Details: "விவரங்கள்",
 };
 
+/**
+ * Hindi vocabulary, keyed exactly like `TA`. Terms follow the Department of
+ * Land Resources' Hindi usage — भूमि अर्जन for land acquisition, प्रतिकर for
+ * compensation, सर्वेक्षण संख्या for survey number.
+ */
+export const HI: Record<string, string> = {
+  // ─── Navigation / shell ───────────────────────────────────────────────
+  Dashboard: "डैशबोर्ड",
+  Projects: "परियोजनाएँ",
+  Grievances: "शिकायतें",
+  "Field Verification": "क्षेत्र सत्यापन",
+  "Public Portal": "सार्वजनिक पोर्टल",
+  More: "और",
+  Reports: "रिपोर्ट",
+  "MIS Reports": "एमआईएस रिपोर्ट",
+  Contractors: "ठेकेदार",
+  "Project Requests": "परियोजना अनुरोध",
+  "District Workload": "ज़िला कार्यभार",
+  "Title-Chain Conflicts": "स्वामित्व विवाद",
+  "Encroachment Monitoring": "अतिक्रमण निगरानी",
+  "Land Bank": "भूमि बैंक",
+  Interoperability: "अंतर-संचालन",
+  "Sign out": "साइन आउट",
+
+  // ─── Workspace tabs ───────────────────────────────────────────────────
+  Overview: "सारांश",
+  Compensation: "प्रतिकर",
+  "R&R & Families": "पुनर्वास एवं परिवार",
+  Infrastructure: "आधारभूत संरचना",
+  Legal: "विधिक",
+  Tenders: "निविदाएँ",
+  Community: "समुदाय",
+  Documents: "दस्तावेज़",
+
+  // ─── Land record ──────────────────────────────────────────────────────
+  "Survey No.": "सर्वेक्षण संख्या",
+  "Survey number": "सर्वेक्षण संख्या",
+  "Patta No.": "पट्टा संख्या",
+  "Patta number": "पट्टा संख्या",
+  Village: "गाँव",
+  District: "ज़िला",
+  State: "राज्य",
+  "Area (ha)": "क्षेत्रफल (हे.)",
+  Extent: "क्षेत्रफल",
+  Parcel: "भूखंड",
+  Parcels: "भूखंड",
+  Location: "स्थान",
+  Map: "मानचित्र",
+
+  // ─── Compensation ─────────────────────────────────────────────────────
+  "Total award": "कुल अवार्ड",
+  "Market value of land": "भूमि का बाज़ार मूल्य",
+  Solatium: "सांत्वना राशि",
+  Interest: "ब्याज",
+  Status: "स्थिति",
+  Action: "कार्रवाई",
+  Actions: "कार्रवाइयाँ",
+  Paid: "भुगतान किया गया",
+  Assessed: "आकलित",
+  Unassessed: "अनाकलित",
+
+  // ─── R&R ──────────────────────────────────────────────────────────────
+  Families: "परिवार",
+  "Affected families": "प्रभावित परिवार",
+  Entitlements: "हकदारियाँ",
+  Rehabilitation: "पुनर्वास",
+  Succession: "उत्तराधिकार",
+
+  // ─── Workflow / status ────────────────────────────────────────────────
+  "Current Stage": "वर्तमान चरण",
+  Stage: "चरण",
+  History: "इतिहास",
+  "SLA Timelines": "समय-सीमा",
+  Pending: "लंबित",
+  Approved: "स्वीकृत",
+  Rejected: "अस्वीकृत",
+  Completed: "पूर्ण",
+
+  // ─── Workspace section titles ─────────────────────────────────────────
+  "Edit alignment & parcels": "संरेखण एवं भूखंड संपादित करें",
+  "Before / after compare": "पहले / बाद की तुलना",
+  "3D terrain view": "त्रि-आयामी भू-दृश्य",
+  "Elevation profile": "ऊँचाई प्रोफ़ाइल",
+  "Affected Families": "प्रभावित परिवार",
+  "Rehabilitation Facilitation": "पुनर्वास सहायता",
+  "Legal Disputes": "विधिक विवाद",
+  "Tenders & Contractors": "निविदाएँ एवं ठेकेदार",
+  "Gram Sabha Consultations": "ग्राम सभा परामर्श",
+  "Notifications to Affected Families": "प्रभावित परिवारों को सूचनाएँ",
+  "AI Risk Assessment": "जोखिम आकलन",
+  "AI Land Rate Prediction": "भूमि दर पूर्वानुमान",
+  "Land Bank Register": "भूमि बैंक रजिस्टर",
+  "Infrastructure Checklist": "आधारभूत संरचना जाँच-सूची",
+
+  // ─── Common actions ───────────────────────────────────────────────────
+  Search: "खोजें",
+  Filter: "छाँटें",
+  Download: "डाउनलोड",
+  Upload: "अपलोड",
+  Save: "सहेजें",
+  Cancel: "रद्द करें",
+  Submit: "जमा करें",
+  Close: "बंद करें",
+  View: "देखें",
+  Details: "विवरण",
+};
+
 /** The Tamil rendering of `term`, or null when the vocabulary has no entry. */
 export function ta(term: string): string | null {
   return TA[term] ?? null;
+}
+
+/** The Hindi rendering of `term`, or null when the vocabulary has no entry. */
+export function hi(term: string): string | null {
+  return HI[term] ?? null;
 }

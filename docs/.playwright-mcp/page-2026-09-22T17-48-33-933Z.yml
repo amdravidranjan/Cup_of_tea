@@ -1,0 +1,605 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - generic [ref=e4]:
+      - generic [ref=e5]:
+        - link "Skip to Main Content" [ref=e6] [cursor=pointer]:
+          - /url: "#main"
+        - generic [ref=e7]: "|"
+        - link "Screen Reader" [ref=e8] [cursor=pointer]:
+          - /url: /about
+        - generic [ref=e9]: "|"
+        - link "Sitemap" [ref=e10] [cursor=pointer]:
+          - /url: /about
+        - generic [ref=e11]: "|"
+        - link "RTI" [ref=e12] [cursor=pointer]:
+          - /url: /about
+      - generic [ref=e13]:
+        - generic [ref=e14]: "Text Size:"
+        - button "A-" [ref=e15] [cursor=pointer]
+        - button "A" [ref=e16] [cursor=pointer]
+        - button "A+" [ref=e17] [cursor=pointer]
+        - generic [ref=e18]: "|"
+        - button "High Contrast" [ref=e19] [cursor=pointer]
+        - generic [ref=e20]: "|"
+        - generic [ref=e21]: தமிழ் | English
+    - banner [ref=e22]:
+      - generic [ref=e23]:
+        - img [ref=e24]:
+          - generic [ref=e30]: सत्यमेव जयते
+          - generic [ref=e34]: NILAMS
+        - generic [ref=e35]:
+          - generic [ref=e36]: Government of India | இந்திய அரசு
+          - generic [ref=e37]: NILAMS - National Integrated Land Acquisition Management System
+          - generic [ref=e38]: தேசிய ஒருங்கிணைந்த நிலம் கையகப்படுத்தல் மேலாண்மை அமைப்பு (NILAMS)
+          - generic [ref=e39]: Department of Land Resources · Ministry of Rural Development
+        - generic [ref=e44]:
+          - generic [ref=e45]: 1800-425-5500
+          - generic [ref=e46]: Toll Free · Mon–Sat 9AM–6PM
+        - generic [ref=e48]:
+          - searchbox "Search" [ref=e49]
+          - button "Search" [ref=e50] [cursor=pointer]
+    - navigation "Main navigation" [ref=e53]:
+      - generic [ref=e54]:
+        - link "Home" [ref=e56] [cursor=pointer]:
+          - /url: /
+        - generic [ref=e59] [cursor=pointer]: About Us
+        - generic [ref=e62] [cursor=pointer]: Projects
+        - generic [ref=e65] [cursor=pointer]: Compensation
+        - generic [ref=e68] [cursor=pointer]: R&R
+        - link "Grievances" [ref=e72] [cursor=pointer]:
+          - /url: /grievances
+        - generic [ref=e73] [cursor=pointer]: Documents
+        - generic [ref=e76] [cursor=pointer]: Resources
+        - link "Contact Us" [ref=e80] [cursor=pointer]:
+          - /url: /contact
+        - link "Login / Register" [ref=e81] [cursor=pointer]:
+          - /url: /login
+    - main [ref=e84]:
+      - generic [ref=e85]:
+        - generic [ref=e86]:
+          - generic [ref=e87]: அறிவிப்பு | Latest
+          - generic [ref=e91]:
+            - generic [ref=e92]:
+              - text: ◆
+              - link "Section 11 Preliminary Notification for Chennai Metro Phase 2 published — Objection window open until 20 Oct 2026" [ref=e93] [cursor=pointer]:
+                - /url: /documents
+            - generic [ref=e94]:
+              - text: ◆
+              - 'link "Compensation disbursement deadline alert: Krishnagiri Expressway award passed — 3-month payment window in effect" [ref=e95] [cursor=pointer]':
+                - /url: /compensation
+            - generic [ref=e96]:
+              - text: ◆
+              - link "RFCTLARR Act 2013 — Section 19 Final Declaration must follow Section 11 within 12 months or the notification lapses" [ref=e97] [cursor=pointer]:
+                - /url: /about#act
+        - generic [ref=e98]:
+          - generic [ref=e99]:
+            - img "Track Land Acquisition Projects in Real Time" [ref=e100]
+            - generic [ref=e102]:
+              - generic [ref=e103]: Transparency Portal
+              - heading "Track Land Acquisition Projects in Real Time" [level=1] [ref=e106]
+              - paragraph [ref=e107]: Citizens can view project status, compensation awards, R&R entitlements and Section 11/19 notifications without logging in.
+              - link "View Projects" [ref=e108] [cursor=pointer]:
+                - /url: /projects
+              - link "Know More" [ref=e109] [cursor=pointer]:
+                - /url: /about
+          - generic [ref=e110]:
+            - img "Compensation Calculated as per Sections 26–30" [ref=e111]
+            - generic [ref=e113]:
+              - generic [ref=e114]: RFCTLARR Act 2013
+              - heading "Compensation Calculated as per Sections 26–30" [level=1] [ref=e117]
+              - paragraph [ref=e118]: Market value × rural multiplier (up to 4×) + Solatium (100%) + 12% p.a. interest. Every rupee disbursed is tracked against the 3-month statutory deadline.
+              - link "Check Status" [ref=e119] [cursor=pointer]:
+                - /url: /projects
+              - link "Calculate Now" [ref=e120] [cursor=pointer]:
+                - /url: /compensation
+          - generic [ref=e121]:
+            - img "R&R Entitlements for Every Affected Family" [ref=e122]
+            - generic [ref=e124]:
+              - generic [ref=e125]: Rehabilitation & Resettlement
+              - heading "R&R Entitlements for Every Affected Family" [level=1] [ref=e128]
+              - paragraph [ref=e129]: Housing, subsistence grant, transport allowance, employment support and full Second Schedule entitlements tracked per household.
+              - link "R&R Status" [ref=e130] [cursor=pointer]:
+                - /url: /rr
+              - link "View Schemes" [ref=e131] [cursor=pointer]:
+                - /url: /schemes
+          - button [ref=e132] [cursor=pointer]
+          - button [ref=e135] [cursor=pointer]
+          - generic [ref=e138]:
+            - button [ref=e139] [cursor=pointer]
+            - button [ref=e140] [cursor=pointer]
+            - button [ref=e141] [cursor=pointer]
+        - generic [ref=e143]:
+          - generic [ref=e144]:
+            - heading "Citizen Services நாகரிக சேவைகள்" [level=2] [ref=e145]:
+              - text: Citizen Services
+              - generic [ref=e148]: நாகரிக சேவைகள்
+            - link "View All Services" [ref=e149] [cursor=pointer]:
+              - /url: /schemes
+          - generic [ref=e152]:
+            - link "Project Discovery" [ref=e153] [cursor=pointer]:
+              - /url: /projects
+            - link "Compensation Calculator" [ref=e158] [cursor=pointer]:
+              - /url: /compensation
+            - link "R&R Entitlement Status" [ref=e163] [cursor=pointer]:
+              - /url: /rr
+            - link "Grievance Submission" [ref=e168] [cursor=pointer]:
+              - /url: /grievances
+            - link "Document Repository" [ref=e173] [cursor=pointer]:
+              - /url: /documents
+            - link "GIS Parcel Map" [ref=e178] [cursor=pointer]:
+              - /url: /projects
+            - link "Field Verification" [ref=e183] [cursor=pointer]:
+              - /url: /track
+            - link "SLA / Stage Tracker" [ref=e188] [cursor=pointer]:
+              - /url: /projects
+        - generic [ref=e194]:
+          - generic [ref=e195]:
+            - generic [ref=e198]: "12"
+            - generic [ref=e199]: Active Projects
+          - generic [ref=e200]:
+            - generic [ref=e203]: "3381.8"
+            - generic [ref=e204]: Total Area (Ha)
+          - generic [ref=e205]:
+            - generic [ref=e208]: ₹1090.08Cr
+            - generic [ref=e209]: Compensation Approved
+          - generic [ref=e210]:
+            - generic [ref=e213]: 98%
+            - generic [ref=e214]: SLA Compliance Rate
+        - generic [ref=e217]:
+          - generic [ref=e218]:
+            - generic [ref=e219]:
+              - heading "Notified Projects திட்டங்கள்" [level=2] [ref=e220]:
+                - text: Notified Projects
+                - generic [ref=e223]: திட்டங்கள்
+              - link "View All" [ref=e224] [cursor=pointer]:
+                - /url: /projects
+            - generic [ref=e228]:
+              - textbox "Search by project name, state, or district…" [ref=e229]
+              - table [ref=e232]:
+                - rowgroup [ref=e233]:
+                  - row [ref=e234]:
+                    - columnheader "Project" [ref=e235]
+                    - columnheader "District, State" [ref=e236]
+                    - columnheader "Stage" [ref=e237]
+                    - columnheader "SLA" [ref=e238]
+                - rowgroup [ref=e239]:
+                  - row [ref=e240]:
+                    - cell [ref=e241]:
+                      - link "Chennai–Salem Green Corridor Expressway" [ref=e243] [cursor=pointer]:
+                        - /url: /projects/p-tn-chennai-salem
+                    - cell "Krishnagiri, Tamil Nadu" [ref=e244]
+                    - cell "NOTIFIED" [ref=e245]
+                    - cell "Section 11 → Section 19 Declaration" [ref=e247]
+                  - row [ref=e250]:
+                    - cell [ref=e251]:
+                      - link "Chennai Metro Phase 2 – Poonamallee Extension" [ref=e253] [cursor=pointer]:
+                        - /url: /projects/p-tn-chennai-metro
+                    - cell "Chennai, Tamil Nadu" [ref=e254]
+                    - cell "AWARDED" [ref=e255]
+                    - cell "Section 11 → Section 19 Declaration Compensation Disbursement R&R Award Infrastructural R&R Entitlements (Third Schedule)" [ref=e257]:
+                      - generic [ref=e258]:
+                        - generic [ref=e259]: Section 11 → Section 19 Declaration
+                        - generic [ref=e260]: Compensation Disbursement
+                        - generic [ref=e261]: R&R Award
+                        - generic [ref=e262]: Infrastructural R&R Entitlements (Third Schedule)
+                  - row [ref=e263]:
+                    - cell [ref=e264]:
+                      - link "Cauvery–Vaigai–Gundar Link Canal (Sivaganga Reach)" [ref=e266] [cursor=pointer]:
+                        - /url: /projects/p-tn-cvg-canal
+                    - cell "Sivaganga, Tamil Nadu" [ref=e267]
+                    - cell "RR_IN_PROGRESS" [ref=e268]
+                    - cell "Section 11 → Section 19 Declaration Compensation Disbursement R&R Award Infrastructural R&R Entitlements (Third Schedule)" [ref=e270]:
+                      - generic [ref=e271]:
+                        - generic [ref=e272]: Section 11 → Section 19 Declaration
+                        - generic [ref=e273]: Compensation Disbursement
+                        - generic [ref=e274]: R&R Award
+                        - generic [ref=e275]: Infrastructural R&R Entitlements (Third Schedule)
+                  - row [ref=e276]:
+                    - cell [ref=e277]:
+                      - link "Ennore–Kattupalli Port Connectivity Corridor" [ref=e279] [cursor=pointer]:
+                        - /url: /projects/p-tn-ennore-kattupalli
+                    - cell "Thiruvallur, Tamil Nadu" [ref=e280]
+                    - cell "RR_COMPLETE" [ref=e281]
+                    - cell "Section 11 → Section 19 Declaration Compensation Disbursement R&R Award Infrastructural R&R Entitlements (Third Schedule)" [ref=e283]:
+                      - generic [ref=e284]:
+                        - generic [ref=e285]: Section 11 → Section 19 Declaration
+                        - generic [ref=e286]: Compensation Disbursement
+                        - generic [ref=e287]: R&R Award
+                        - generic [ref=e288]: Infrastructural R&R Entitlements (Third Schedule)
+                  - row [ref=e289]:
+                    - cell [ref=e290]:
+                      - link "SIPCOT Industrial Corridor Expansion – Perambalur" [ref=e292] [cursor=pointer]:
+                        - /url: /projects/p-tn-sipcot-perambalur
+                    - cell "Perambalur, Tamil Nadu" [ref=e293]
+                    - cell "AWARDED" [ref=e294]
+                    - cell "Section 11 → Section 19 Declaration Compensation Disbursement R&R Award Infrastructural R&R Entitlements (Third Schedule)" [ref=e296]:
+                      - generic [ref=e297]:
+                        - generic [ref=e298]: Section 11 → Section 19 Declaration
+                        - generic [ref=e299]: Compensation Disbursement
+                        - generic [ref=e300]: R&R Award
+                        - generic [ref=e301]: Infrastructural R&R Entitlements (Third Schedule)
+                  - row [ref=e302]:
+                    - cell [ref=e303]:
+                      - link "Bengaluru Peripheral Ring Road Corridor" [ref=e305] [cursor=pointer]:
+                        - /url: /projects/p-ka-bengaluru-prr
+                    - cell "Bengaluru Urban, Karnataka" [ref=e306]
+                    - cell "NOTIFIED" [ref=e307]
+                    - cell "Section 11 → Section 19 Declaration" [ref=e309]
+                  - row [ref=e312]:
+                    - cell [ref=e313]:
+                      - link "Madurai Metro Phase 1" [ref=e315] [cursor=pointer]:
+                        - /url: /projects/p-tn-madurai-metro
+                    - cell "Madurai, Tamil Nadu" [ref=e316]
+                    - cell "NOTIFIED" [ref=e317]
+                    - cell "Section 11 → Section 19 Declaration" [ref=e319]
+                  - row [ref=e322]:
+                    - cell [ref=e323]:
+                      - link "Trichy International Airport Runway Expansion" [ref=e325] [cursor=pointer]:
+                        - /url: /projects/p-tn-trichy-airport
+                    - cell "Tiruchirappalli, Tamil Nadu" [ref=e326]
+                    - cell "AWARDED" [ref=e327]
+                    - cell "Section 11 → Section 19 Declaration Compensation Disbursement R&R Award Infrastructural R&R Entitlements (Third Schedule)" [ref=e329]:
+                      - generic [ref=e330]:
+                        - generic [ref=e331]: Section 11 → Section 19 Declaration
+                        - generic [ref=e332]: Compensation Disbursement
+                        - generic [ref=e333]: R&R Award
+                        - generic [ref=e334]: Infrastructural R&R Entitlements (Third Schedule)
+                  - row [ref=e335]:
+                    - cell [ref=e336]:
+                      - link "Tuticorin Port Dedicated Freight Rail Link" [ref=e338] [cursor=pointer]:
+                        - /url: /projects/p-tn-tuticorin-rail
+                    - cell "Thoothukudi, Tamil Nadu" [ref=e339]
+                    - cell "RR_COMPLETE" [ref=e340]
+                    - cell "Section 11 → Section 19 Declaration Compensation Disbursement R&R Award Infrastructural R&R Entitlements (Third Schedule)" [ref=e342]:
+                      - generic [ref=e343]:
+                        - generic [ref=e344]: Section 11 → Section 19 Declaration
+                        - generic [ref=e345]: Compensation Disbursement
+                        - generic [ref=e346]: R&R Award
+                        - generic [ref=e347]: Infrastructural R&R Entitlements (Third Schedule)
+                  - row [ref=e348]:
+                    - cell [ref=e349]:
+                      - link "Vellore Smart City Pipeline Corridor" [ref=e351] [cursor=pointer]:
+                        - /url: /projects/p-tn-vellore-water
+                    - cell "Vellore, Tamil Nadu" [ref=e352]
+                    - cell "NOTIFIED" [ref=e353]
+                    - cell "Section 11 → Section 19 Declaration" [ref=e355]
+                  - row [ref=e358]:
+                    - cell [ref=e359]:
+                      - link "Thanjavur Solar Energy Park" [ref=e361] [cursor=pointer]:
+                        - /url: /projects/p-tn-thanjavur-solar
+                    - cell "Thanjavur, Tamil Nadu" [ref=e362]
+                    - cell "AWARDED" [ref=e363]
+                    - cell "Section 11 → Section 19 Declaration Compensation Disbursement R&R Award Infrastructural R&R Entitlements (Third Schedule)" [ref=e365]:
+                      - generic [ref=e366]:
+                        - generic [ref=e367]: Section 11 → Section 19 Declaration
+                        - generic [ref=e368]: Compensation Disbursement
+                        - generic [ref=e369]: R&R Award
+                        - generic [ref=e370]: Infrastructural R&R Entitlements (Third Schedule)
+                  - row [ref=e371]:
+                    - cell [ref=e372]:
+                      - link "Kanchipuram IT Corridor Extension" [ref=e374] [cursor=pointer]:
+                        - /url: /projects/p-tn-kanchipuram-it
+                    - cell "Kanchipuram, Tamil Nadu" [ref=e375]
+                    - cell "STATE_APPROVED" [ref=e376]
+                    - cell "Section 11 → Section 19 Declaration" [ref=e378]
+          - generic [ref=e381]:
+            - heading "Notice Board அறிவிப்பு" [level=2] [ref=e382]:
+              - text: Notice Board
+              - generic [ref=e385]: அறிவிப்பு
+            - generic [ref=e386]:
+              - generic [ref=e387]: What's New
+              - generic [ref=e390]:
+                - generic [ref=e394]:
+                  - link "Ennore–Kattupalli Port Connectivity Corridor — R&R entitlements and infrastructure completed" [ref=e395] [cursor=pointer]:
+                    - /url: /projects/p-tn-ennore-kattupalli
+                  - generic [ref=e396]: 9 Aug 2026
+                - generic [ref=e400]:
+                  - link "Chennai Metro Phase 2 – Poonamallee Extension — Compensation award passed" [ref=e401] [cursor=pointer]:
+                    - /url: /projects/p-tn-chennai-metro
+                  - generic [ref=e402]: 25 Jun 2026
+                - generic [ref=e406]:
+                  - link "Bengaluru Peripheral Ring Road Corridor — Section 11 Preliminary Notification issued" [ref=e407] [cursor=pointer]:
+                    - /url: /projects/p-ka-bengaluru-prr
+                  - generic [ref=e408]: 10 Jun 2026
+                - generic [ref=e412]:
+                  - link "Madurai Metro Phase 1 — Section 11 Preliminary Notification issued" [ref=e413] [cursor=pointer]:
+                    - /url: /projects/p-tn-madurai-metro
+                  - generic [ref=e414]: 26 May 2026
+                - generic [ref=e418]:
+                  - link "Ennore–Kattupalli Port Connectivity Corridor — Possession taken" [ref=e419] [cursor=pointer]:
+                    - /url: /projects/p-tn-ennore-kattupalli
+                  - generic [ref=e420]: 26 May 2026
+                - generic [ref=e424]:
+                  - link "SIPCOT Industrial Corridor Expansion – Perambalur — Compensation award passed" [ref=e425] [cursor=pointer]:
+                    - /url: /projects/p-tn-sipcot-perambalur
+                  - generic [ref=e426]: 11 May 2026
+                - generic [ref=e430]:
+                  - link "Kanchipuram IT Corridor Extension — Section 11 Preliminary Notification issued" [ref=e431] [cursor=pointer]:
+                    - /url: /projects/p-tn-kanchipuram-it
+                  - generic [ref=e432]: 26 Apr 2026
+                - generic [ref=e436]:
+                  - link "Thanjavur Solar Energy Park — Compensation award passed" [ref=e437] [cursor=pointer]:
+                    - /url: /projects/p-tn-thanjavur-solar
+                  - generic [ref=e438]: 26 Apr 2026
+                - generic [ref=e442]:
+                  - link "Cauvery–Vaigai–Gundar Link Canal (Sivaganga Reach) — R&R Scheme process started" [ref=e443] [cursor=pointer]:
+                    - /url: /projects/p-tn-cvg-canal
+                  - generic [ref=e444]: 14 Apr 2026
+                - generic [ref=e448]:
+                  - link "Cauvery–Vaigai–Gundar Link Canal (Sivaganga Reach) — Compensation award passed" [ref=e449] [cursor=pointer]:
+                    - /url: /projects/p-tn-cvg-canal
+                  - generic [ref=e450]: 11 Apr 2026
+                - generic [ref=e454]:
+                  - link "Chennai Metro Phase 2 – Poonamallee Extension — Section 19 Final Declaration published" [ref=e455] [cursor=pointer]:
+                    - /url: /projects/p-tn-chennai-metro
+                  - generic [ref=e456]: 11 Apr 2026
+                - generic [ref=e460]:
+                  - link "Thanjavur Solar Energy Park — Section 19 Final Declaration published" [ref=e461] [cursor=pointer]:
+                    - /url: /projects/p-tn-thanjavur-solar
+                  - generic [ref=e462]: 27 Mar 2026
+                - generic [ref=e466]:
+                  - link "Vellore Smart City Pipeline Corridor — Section 11 Preliminary Notification issued" [ref=e467] [cursor=pointer]:
+                    - /url: /projects/p-tn-vellore-water
+                  - generic [ref=e468]: 27 Mar 2026
+                - generic [ref=e472]:
+                  - link "SIPCOT Industrial Corridor Expansion – Perambalur — Section 19 Final Declaration published" [ref=e473] [cursor=pointer]:
+                    - /url: /projects/p-tn-sipcot-perambalur
+                  - generic [ref=e474]: 27 Mar 2026
+                - generic [ref=e478]:
+                  - link "Chennai Metro Phase 2 – Poonamallee Extension — Section 11 Preliminary Notification issued" [ref=e479] [cursor=pointer]:
+                    - /url: /projects/p-tn-chennai-metro
+                  - generic [ref=e480]: 24 Mar 2026
+                - generic [ref=e484]:
+                  - link "SIPCOT Industrial Corridor Expansion – Perambalur — Section 11 Preliminary Notification issued" [ref=e485] [cursor=pointer]:
+                    - /url: /projects/p-tn-sipcot-perambalur
+                  - generic [ref=e486]: 9 Mar 2026
+                - generic [ref=e490]:
+                  - link "Ennore–Kattupalli Port Connectivity Corridor — R&R Scheme process started" [ref=e491] [cursor=pointer]:
+                    - /url: /projects/p-tn-ennore-kattupalli
+                  - generic [ref=e492]: 28 Feb 2026
+                - generic [ref=e496]:
+                  - link "Thanjavur Solar Energy Park — Section 11 Preliminary Notification issued" [ref=e497] [cursor=pointer]:
+                    - /url: /projects/p-tn-thanjavur-solar
+                  - generic [ref=e498]: 25 Feb 2026
+                - generic [ref=e502]:
+                  - link "Ennore–Kattupalli Port Connectivity Corridor — Compensation award passed" [ref=e503] [cursor=pointer]:
+                    - /url: /projects/p-tn-ennore-kattupalli
+                  - generic [ref=e504]: 25 Feb 2026
+                - generic [ref=e508]:
+                  - link "Ennore–Kattupalli Port Connectivity Corridor — Section 19 Final Declaration published" [ref=e509] [cursor=pointer]:
+                    - /url: /projects/p-tn-ennore-kattupalli
+                  - generic [ref=e510]: 4 Feb 2026
+              - link "View All Notices" [ref=e512] [cursor=pointer]:
+                - /url: /documents
+        - generic [ref=e516]:
+          - generic [ref=e517]:
+            - heading "Government Schemes & Initiatives அரசு திட்டங்கள்" [level=2] [ref=e518]:
+              - text: Government Schemes & Initiatives
+              - generic [ref=e521]: அரசு திட்டங்கள்
+            - link "View All" [ref=e522] [cursor=pointer]:
+              - /url: /schemes
+          - generic [ref=e525]:
+            - generic [ref=e526]:
+              - generic [ref=e527]:
+                - img "Compensation Management" [ref=e528]
+                - generic [ref=e529]: Compensation Management
+              - generic [ref=e530]:
+                - paragraph [ref=e531]: "Implements Sections 26–30 of RFCTLARR Act 2013: market value × rural multiplier (up to 4×) + 100% solatium + 12% p.a. interest, tracked against the 3-month disbursement deadline."
+                - link "Know More" [ref=e532] [cursor=pointer]:
+                  - /url: /compensation
+            - generic [ref=e535]:
+              - generic [ref=e536]:
+                - img "R&R Scheme (6-Step Workflow)" [ref=e537]
+                - generic [ref=e538]: R&R Scheme (6-Step Workflow)
+              - generic [ref=e539]:
+                - paragraph [ref=e540]: End-to-end Rehabilitation & Resettlement — from Sub-Collector survey to Commissioner approval. Second Schedule entitlements (housing, grants, employment) tracked per affected household.
+                - link "Know More" [ref=e541] [cursor=pointer]:
+                  - /url: /rr
+            - generic [ref=e544]:
+              - generic [ref=e545]:
+                - img "Public Transparency Portal" [ref=e546]
+                - generic [ref=e547]: Public Transparency Portal
+              - generic [ref=e548]:
+                - paragraph [ref=e549]: No-login access to project status, Section 11/19 notifications, compensation awards, R&R progress and grievance tracking. Designed for affected citizens and civil society.
+                - link "Know More" [ref=e550] [cursor=pointer]:
+                  - /url: /about
+        - generic [ref=e554]:
+          - heading "Media Gallery ஊடக தொகுப்பு" [level=2] [ref=e555]:
+            - text: Media Gallery
+            - generic [ref=e558]: ஊடக தொகுப்பு
+          - generic [ref=e559]:
+            - button "Photos" [ref=e560] [cursor=pointer]
+            - button "Videos" [ref=e563] [cursor=pointer]
+          - generic [ref=e566]:
+            - img "Gallery 1" [ref=e568] [cursor=pointer]
+            - img "Gallery 2" [ref=e570] [cursor=pointer]
+            - img "Gallery 3" [ref=e572] [cursor=pointer]
+            - img "Gallery 4" [ref=e574] [cursor=pointer]
+        - generic [ref=e576]:
+          - heading "Important Links & Downloads முக்கிய இணைப்புகள்" [level=2] [ref=e577]:
+            - text: Important Links & Downloads
+            - generic [ref=e580]: முக்கிய இணைப்புகள்
+          - generic [ref=e581]:
+            - generic [ref=e582]:
+              - generic [ref=e583]: Downloads / Official Documents
+              - list [ref=e586]:
+                - listitem [ref=e587]:
+                  - link "RFCTLARR Act 2013 — Full Text (PDF)" [ref=e588] [cursor=pointer]:
+                    - /url: /documents
+                - listitem [ref=e591]:
+                  - link "Grievance Submission Form" [ref=e592] [cursor=pointer]:
+                    - /url: /documents
+                - listitem [ref=e595]:
+                  - link "R&R Entitlement Claim Form" [ref=e596] [cursor=pointer]:
+                    - /url: /documents
+                - listitem [ref=e599]:
+                  - link "Objection Form — Section 15/21" [ref=e600] [cursor=pointer]:
+                    - /url: /documents
+                - listitem [ref=e603]:
+                  - link "Landowner Portal User Manual" [ref=e604] [cursor=pointer]:
+                    - /url: /documents
+                - listitem [ref=e607]:
+                  - link "CLA Annual Report 2025-26" [ref=e608] [cursor=pointer]:
+                    - /url: /documents
+            - generic [ref=e611]:
+              - generic [ref=e612]: Related Portals
+              - list [ref=e615]:
+                - listitem [ref=e616]:
+                  - link "Bhoomi Rashi Portal — MoRTH" [ref=e617] [cursor=pointer]:
+                    - /url: https://bhoomirashi.gov.in
+                - listitem [ref=e620]:
+                  - link "Dept. of Land Resources (DoLR)" [ref=e621] [cursor=pointer]:
+                    - /url: https://dolr.gov.in
+                - listitem [ref=e624]:
+                  - link "TN Revenue Department" [ref=e625] [cursor=pointer]:
+                    - /url: https://tnrd.gov.in
+                - listitem [ref=e628]:
+                  - link "India.gov.in" [ref=e629] [cursor=pointer]:
+                    - /url: https://www.india.gov.in
+                - listitem [ref=e632]:
+                  - link "Open Government Data (OGD)" [ref=e633] [cursor=pointer]:
+                    - /url: https://data.gov.in
+                - listitem [ref=e636]:
+                  - link "National Informatics Centre" [ref=e637] [cursor=pointer]:
+                    - /url: https://www.nic.gov.in
+            - generic [ref=e640]:
+              - generic [ref=e641]: Mobile App & Contact
+              - list [ref=e644]:
+                - listitem [ref=e645]:
+                  - generic [ref=e646]:
+                    - strong [ref=e647]: NILAMS Mobile App
+                    - text: Access land records, track applications and receive alerts on mobile.
+                  - generic [ref=e648]:
+                    - link "Play Store" [ref=e649] [cursor=pointer]:
+                      - /url: /contact
+                    - link "App Store" [ref=e652] [cursor=pointer]:
+                      - /url: /contact
+                - listitem [ref=e655]:
+                  - generic [ref=e656]:
+                    - generic [ref=e657]:
+                      - strong [ref=e660]: 1800-425-5500
+                      - text: (Toll Free)
+                    - generic [ref=e661]:
+                      - strong [ref=e664]: "6380039289"
+                      - text: (WhatsApp)
+                    - generic [ref=e665]: helpdesk@nilams.gov.in
+                    - generic [ref=e668]: New Delhi — 110 001
+    - contentinfo [ref=e671]:
+      - generic [ref=e672]:
+        - generic [ref=e673]:
+          - generic [ref=e674]:
+            - img [ref=e675]:
+              - generic [ref=e681]: सत्यमेव जयते
+              - generic [ref=e685]: NILAMS
+            - generic [ref=e686]:
+              - generic [ref=e687]: NILAMS
+              - generic [ref=e688]: Government of India
+          - paragraph [ref=e689]: Content owned and maintained by the Department of Land Resources, Ministry of Rural Development, Government of India. Designed, Developed & Hosted by National Informatics Centre.
+          - generic [ref=e690]:
+            - link "Facebook" [ref=e691] [cursor=pointer]:
+              - /url: /contact
+            - link "Twitter" [ref=e694] [cursor=pointer]:
+              - /url: /contact
+            - link "YouTube" [ref=e697] [cursor=pointer]:
+              - /url: /contact
+            - link "Instagram" [ref=e700] [cursor=pointer]:
+              - /url: /contact
+        - generic [ref=e703]:
+          - generic [ref=e704]: Quick Services · சேவைகள்
+          - list [ref=e705]:
+            - listitem [ref=e706]:
+              - link "Project Discovery" [ref=e707] [cursor=pointer]:
+                - /url: /projects
+            - listitem [ref=e710]:
+              - link "Compensation Calculator" [ref=e711] [cursor=pointer]:
+                - /url: /compensation
+            - listitem [ref=e714]:
+              - link "R&R Entitlement Status" [ref=e715] [cursor=pointer]:
+                - /url: /rr
+            - listitem [ref=e718]:
+              - link "Grievance Submission" [ref=e719] [cursor=pointer]:
+                - /url: /grievances
+            - listitem [ref=e722]:
+              - link "Document Repository" [ref=e723] [cursor=pointer]:
+                - /url: /documents
+            - listitem [ref=e726]:
+              - link "GIS Parcel Map" [ref=e727] [cursor=pointer]:
+                - /url: /projects
+        - generic [ref=e730]:
+          - generic [ref=e731]: Help & Support · உதவி
+          - list [ref=e732]:
+            - listitem [ref=e733]:
+              - link "About the Portal" [ref=e734] [cursor=pointer]:
+                - /url: /about
+            - listitem [ref=e737]:
+              - link "RFCTLARR Act 2013 Guide" [ref=e738] [cursor=pointer]:
+                - /url: /about#act
+            - listitem [ref=e741]:
+              - link "FAQ" [ref=e742] [cursor=pointer]:
+                - /url: /grievances
+            - listitem [ref=e745]:
+              - link "Contact Us" [ref=e746] [cursor=pointer]:
+                - /url: /contact
+            - listitem [ref=e749]:
+              - link "Grievance Portal" [ref=e750] [cursor=pointer]:
+                - /url: /grievances
+            - listitem [ref=e753]:
+              - link "Government Schemes" [ref=e754] [cursor=pointer]:
+                - /url: /schemes
+            - listitem [ref=e757]:
+              - link "Landowner User Guide" [ref=e758] [cursor=pointer]:
+                - /url: /documents
+            - listitem [ref=e761]:
+              - link "Accessibility" [ref=e762] [cursor=pointer]:
+                - /url: /about
+        - generic [ref=e765]:
+          - generic [ref=e766]: Related Links · இணைப்புகள்
+          - list [ref=e767]:
+            - listitem [ref=e768]:
+              - link "Ministry of Rural Development" [ref=e769] [cursor=pointer]:
+                - /url: https://rural.gov.in
+            - listitem [ref=e772]:
+              - link "Bhoomi Rashi Portal" [ref=e773] [cursor=pointer]:
+                - /url: https://bhoomirashi.gov.in
+            - listitem [ref=e776]:
+              - link "Dept. of Land Resources" [ref=e777] [cursor=pointer]:
+                - /url: https://dolr.gov.in
+            - listitem [ref=e780]:
+              - link "India.gov.in" [ref=e781] [cursor=pointer]:
+                - /url: https://www.india.gov.in
+            - listitem [ref=e784]:
+              - link "Open Govt. Data (OGD)" [ref=e785] [cursor=pointer]:
+                - /url: https://data.gov.in
+            - listitem [ref=e788]:
+              - link "National Informatics Centre" [ref=e789] [cursor=pointer]:
+                - /url: https://www.nic.gov.in
+            - listitem [ref=e792]:
+              - link "Government of India" [ref=e793] [cursor=pointer]:
+                - /url: https://www.india.gov.in
+            - listitem [ref=e796]:
+              - link "DoLR — About Us" [ref=e797] [cursor=pointer]:
+                - /url: /about
+      - generic [ref=e801]:
+        - generic [ref=e802]:
+          - text: "© 2026 Department of Land Resources, Government of India. All rights reserved. | Last Updated: 04 Sep 2026 |"
+          - link "Policies" [ref=e803] [cursor=pointer]:
+            - /url: /about
+          - link "Disclaimer" [ref=e804] [cursor=pointer]:
+            - /url: /about
+          - link "Privacy" [ref=e805] [cursor=pointer]:
+            - /url: /about
+        - generic [ref=e806]:
+          - generic [ref=e807]:
+            - generic [ref=e808]:
+              - text: "Today:"
+              - strong [ref=e809]: 1,247
+            - generic [ref=e810]:
+              - text: "Total:"
+              - strong [ref=e811]: 48,32,119
+          - generic [ref=e812]: GIGW 3.0
+          - generic [ref=e813]: W3C HTML
+          - generic [ref=e814]: NIC
+          - generic [ref=e815]: UX4G
+    - button "Open VANI assistant" [ref=e817] [cursor=pointer]
+  - region "Notifications alt+T"
+  - alert [ref=e820]

@@ -24,8 +24,29 @@ import { RIGHTS_ENTRIES } from "./rights";
 import { POSSESSION_ENTRIES } from "./possession";
 import { SYSTEM_ENTRIES } from "./system";
 import { HELP_ENTRIES } from "./help";
+import { HINDI_TEXT } from "./hindi";
 
-export const KNOWLEDGE_BASE: KnowledgeEntry[] = [
+/**
+ * Folds the Hindi layer into the entries as they are assembled.
+ *
+ * The Hindi lives in its own file (see `hindi.ts`) so a translator reads the
+ * bank in order rather than hunting through eleven category files. Merging
+ * here means the rest of the code never has to know that, and an entry with
+ * no Hindi yet simply keeps falling back to English.
+ */
+function withHindi(entries: KnowledgeEntry[]): KnowledgeEntry[] {
+  return entries.map((entry) => {
+    const hindi = HINDI_TEXT[entry.id];
+    if (!hindi) return entry;
+    return {
+      ...entry,
+      question: { ...entry.question, hi: hindi.question },
+      answer: { ...entry.answer, hi: hindi.answer },
+    };
+  });
+}
+
+export const KNOWLEDGE_BASE: KnowledgeEntry[] = withHindi([
   ...COMPENSATION_ENTRIES,
   ...RR_ENTRIES,
   ...STATUS_ENTRIES,
@@ -36,7 +57,7 @@ export const KNOWLEDGE_BASE: KnowledgeEntry[] = [
   ...POSSESSION_ENTRIES,
   ...SYSTEM_ENTRIES,
   ...HELP_ENTRIES,
-];
+]);
 
 const BY_ID = new Map(KNOWLEDGE_BASE.map((e) => [e.id, e]));
 
@@ -139,6 +160,7 @@ export function knowledgeStats(): {
   byCategory: { category: CategoryId; count: number }[];
   keywordCount: number;
   withBasis: number;
+  withHindi: number;
 } {
   return {
     total: KNOWLEDGE_BASE.length,
@@ -148,5 +170,8 @@ export function knowledgeStats(): {
     })),
     keywordCount: KNOWLEDGE_BASE.reduce((sum, e) => sum + e.keywords.length, 0),
     withBasis: KNOWLEDGE_BASE.filter((e) => e.basis).length,
+    // Hindi is being added category by category; the sandbox shows how far it
+    // has got rather than letting the gap go unnoticed.
+    withHindi: KNOWLEDGE_BASE.filter((e) => e.answer.hi).length,
   };
 }

@@ -180,7 +180,7 @@ export function AuditLogView({
               </p>
             </div>
           </div>
-          <Button variant="outline" size="sm" onClick={verify} disabled={verifying}>
+          <Button data-tour="audit-verify" variant="outline" size="sm" onClick={verify} disabled={verifying}>
             {verifying ? "Verifying…" : "Verify the chain"}
           </Button>
         </div>

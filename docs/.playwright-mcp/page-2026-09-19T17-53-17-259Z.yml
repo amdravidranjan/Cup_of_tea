@@ -1,0 +1,126 @@
+- generic [active] [ref=f1e1]:
+  - generic [ref=f1e91]:
+    - banner [ref=f1e92]:
+      - generic [ref=f1e93]:
+        - img "NILAMS emblem" [ref=f1e94]:
+          - generic [ref=f1e100]: सत्यमेव जयते
+          - generic [ref=f1e104]: NILAMS
+        - generic [ref=f1e105]:
+          - generic [ref=f1e106]: Government of India | இந்திய அரசு
+          - link "NILAMS - National Integrated Land Acquisition Management System" [ref=f1e107] [cursor=pointer]:
+            - /url: /app
+          - generic [ref=f1e108]: தேசிய ஒருங்கிணைந்த நிலம் கையகப்படுத்தல் மேலாண்மை அமைப்பு (NILAMS)
+          - generic [ref=f1e109]: Department of Land Resources · Ministry of Rural Development
+        - generic [ref=f1e110]:
+          - textbox "Search projects, parcels, families…" [ref=f1e112]
+          - generic [ref=f1e113]:
+            - generic [ref=f1e114]: SK
+            - generic [ref=f1e116]:
+              - generic [ref=f1e117]: Sub-Collector, Krishnagiri
+              - generic [ref=f1e118]: district · Krishnagiri
+            - button "4" [ref=f1e119]
+            - button "Sign out" [ref=f1e121]
+    - navigation "Console navigation" [ref=f1e122]:
+      - generic [ref=f1e123]:
+        - link "Dashboard" [ref=f1e124] [cursor=pointer]:
+          - /url: /app
+        - link "Grievances" [ref=f1e127] [cursor=pointer]:
+          - /url: /app/grievances
+        - generic [ref=f1e130] [cursor=pointer]: More
+        - link "Public Portal" [ref=f1e135] [cursor=pointer]:
+          - /url: /
+    - main [ref=f1e138]:
+      - generic [ref=f1e140]:
+        - generic [ref=f1e141]:
+          - generic [ref=f1e142]:
+            - heading "Welcome, Sub-Collector, Krishnagiri வரவேற்பு" [level=1] [ref=f1e143]:
+              - text: Welcome, Sub-Collector, Krishnagiri
+              - generic [ref=f1e144]: வரவேற்பு
+            - paragraph [ref=f1e145]: DISTRICT • Krishnagiri District • Tamil Nadu
+          - generic [ref=f1e148]:
+            - generic [ref=f1e149]: System Online
+            - generic [ref=f1e155]:
+              - text: "Last Sync:"
+              - strong [ref=f1e156]: Just now
+        - generic [ref=f1e157]:
+          - generic [ref=f1e158]:
+            - heading "Quick Actions விரைவான செயல்கள்" [level=3] [ref=f1e160]:
+              - text: Quick Actions
+              - generic [ref=f1e163]: விரைவான செயல்கள்
+            - generic [ref=f1e164]:
+              - button "New Project" [ref=f1e166]
+              - link "Review Grievances" [ref=f1e167] [cursor=pointer]:
+                - /url: /app/grievances
+              - link "Project Requests" [ref=f1e171] [cursor=pointer]:
+                - /url: /app/project-requests
+              - link "Title Conflicts" [ref=f1e175] [cursor=pointer]:
+                - /url: /app/conflicts
+              - link "Land Bank" [ref=f1e179] [cursor=pointer]:
+                - /url: /app/land-bank
+          - generic [ref=f1e183]:
+            - generic [ref=f1e184]:
+              - heading "Critical SLA Alerts விழிப்பூட்டல்கள்" [level=3] [ref=f1e185]:
+                - text: Critical SLA Alerts
+                - generic [ref=f1e188]: விழிப்பூட்டல்கள்
+              - generic [ref=f1e189]:
+                - generic [ref=f1e190]: 1 Breached
+                - generic [ref=f1e191]: 0 At Risk
+            - generic [ref=f1e193]:
+              - generic [ref=f1e196]:
+                - link "Chennai–Salem Green Corridor Expressway" [ref=f1e198] [cursor=pointer]:
+                  - /url: /app/projects/p-tn-chennai-salem
+                - generic [ref=f1e199]: Section 19 Declaration deadline missed.
+              - generic [ref=f1e200]: breached
+        - generic [ref=f1e201]:
+          - generic [ref=f1e202]:
+            - heading "Active Projects List (1) செயல்படும் திட்டங்கள்" [level=2] [ref=f1e203]:
+              - text: Active Projects List (1)
+              - generic [ref=f1e206]: செயல்படும் திட்டங்கள்
+            - generic [ref=f1e207]:
+              - textbox "Search projects..." [ref=f1e211]
+              - button "Filter" [ref=f1e212]
+          - table [ref=f1e217]:
+            - rowgroup [ref=f1e218]:
+              - row [ref=f1e219]:
+                - columnheader "Project ID / Name திட்டத்தின் பெயர்" [ref=f1e220]:
+                  - text: Project ID / Name
+                  - generic [ref=f1e221]: திட்டத்தின் பெயர்
+                - columnheader "Location இடம்" [ref=f1e222]:
+                  - text: Location
+                  - generic [ref=f1e223]: இடம்
+                - columnheader "Current Stage தற்போதைய நிலை" [ref=f1e224]:
+                  - text: Current Stage
+                  - generic [ref=f1e225]: தற்போதைய நிலை
+                - columnheader "SLA Timelines காலக்கெடு" [ref=f1e226]:
+                  - text: SLA Timelines
+                  - generic [ref=f1e227]: காலக்கெடு
+                - columnheader "Actions" [ref=f1e228]
+            - rowgroup [ref=f1e229]:
+              - row [ref=f1e230]:
+                - cell "P-TN-CHENNAI-SALEM Chennai–Salem Green Corridor Expressway" [ref=f1e231]:
+                  - generic [ref=f1e232]: P-TN-CHENNAI-SALEM
+                  - link "Chennai–Salem Green Corridor Expressway" [ref=f1e233] [cursor=pointer]:
+                    - /url: /app/projects/p-tn-chennai-salem
+                - cell "Krishnagiri Tamil Nadu" [ref=f1e236]:
+                  - generic [ref=f1e237]: Krishnagiri
+                  - generic [ref=f1e240]: Tamil Nadu
+                - cell "NOTIFIED" [ref=f1e241]
+                - cell "Section" [ref=f1e243]:
+                  - generic "Section 19 Declaration" [ref=f1e245]: Section
+                - cell [ref=f1e246]:
+                  - link [ref=f1e247] [cursor=pointer]:
+                    - /url: /app/projects/p-tn-chennai-salem
+          - generic [ref=f1e250]:
+            - generic [ref=f1e251]: Showing 1 entries
+            - generic [ref=f1e252]:
+              - button "Prev" [ref=f1e253]
+              - button "Next" [ref=f1e254]
+  - region "Notifications alt+T"
+  - button "Open Next.js Dev Tools" [ref=f1e255] [cursor=pointer]:
+    - generic [ref=f1e258]:
+      - text: Compiling
+      - generic [ref=f1e259]:
+        - generic [ref=f1e260]: .
+        - generic [ref=f1e261]: .
+        - generic [ref=f1e262]: .
+  - alert [ref=f1e49]: NILAMS - National Integrated Land Acquisition Management System

@@ -18,6 +18,7 @@ export type {
   Suggestion,
 } from "./types";
 
+export { pickText } from "./types";
 export { QUERY_CATEGORIES, categoryById } from "./categories";
 
 export {

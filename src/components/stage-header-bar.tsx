@@ -36,8 +36,10 @@ export function StageHeaderBar({
   const targetPercent = steps.length > 1 ? (currentIndex / (steps.length - 1)) * 100 : 0;
 
   return (
-    <div className="w-full bg-[#0e1a30] px-6 pb-5 pt-4 text-white">
-      <div className="relative">
+    <div className="w-full overflow-x-auto bg-[#0e1a30] px-4 pb-5 pt-4 text-white sm:px-6">
+      {/* Eleven stages do not fit a phone; the bar scrolls sideways inside
+          its own box so the page itself stays the width of the screen. */}
+      <div className="relative min-w-[560px]">
         <div className="absolute left-0 right-0 top-[7px] h-[2px] bg-white/15" />
         <div
           className="absolute left-0 top-[7px] h-[2px] bg-[#d99a3f] transition-[width] duration-[1200ms] ease-out"

@@ -1,0 +1,10 @@
+# Earlier bridge model revisions: 21 MB that nothing references. The current
+# model (public/models/bridge-bhavani.glb) still ships.
+public/models/bridge-bhavani-prev.glb
+public/models/bridge-bhavani-prev-2.glb
+
+# Local artefacts and deliverables — not part of the running site.
+docs/
+uploads/
+shots/
+.playwright-mcp/

@@ -1,0 +1,71 @@
+1
+00:00:00,500 --> 00:00:19,720
+Hi! I'm Nila, your demo walkthrough guide. In five minutes I'll show you how NILAMS runs a land acquisition from start to finish, using a case in . Press Next and I'll do each step for you, or tap the glowing spot yourself.
+
+2
+00:00:21,120 --> 00:00:31,130
+This is the public portal. Citizens need no login to follow a project, work out their compensation or file a grievance.
+
+3
+00:00:32,530 --> 00:00:46,640
+Now the officer's side. I'll sign you in as the Sub-Collector of . It is your own login, with your own copy of the case, so nothing you do here disturbs anyone else.
+
+4
+00:00:48,040 --> 00:00:56,920
+This is the Collector's dashboard. Deadlines set by the Act that are about to be missed show up here in red.
+
+5
+00:00:58,320 --> 00:01:08,880
+Here is your project: a new bridge across the at . It has no land records yet. Let's add them.
+
+6
+00:01:10,280 --> 00:01:19,300
+First, download the field measurement sheet for village. It describes plots.
+
+7
+00:01:20,700 --> 00:01:31,690
+Now drop the file you downloaded into the glowing box, or tap the box and choose it. I have already set the record type to FMB sketch.
+
+8
+00:01:33,090 --> 00:01:45,810
+NILAMS has read every row and shows exactly what it will do. Press Commit: plots registered in one step, instead of entries typed by hand.
+
+9
+00:01:47,210 --> 00:01:57,630
+Drop the patta file in. Its extents are written in three different units, the way a real extract is, and NILAMS converts them all.
+
+10
+00:01:59,030 --> 00:02:04,120
+Press Commit, and landowners are attached to their plots.
+
+11
+00:02:05,520 --> 00:02:13,510
+Every plot is now on the map of , along the bridge alignment and its 500 metre impact zone.
+
+12
+00:02:14,910 --> 00:02:27,290
+This is real terrain with satellite imagery. Press Fly along alignment for a guided fly-through: a decision maker can inspect the crossing without a site visit.
+
+13
+00:02:28,690 --> 00:02:38,870
+A writ petition against this acquisition has been filed in the . I'll record the court's stay order on the project.
+
+14
+00:02:40,270 --> 00:02:53,280
+Open compensation. While the stay stands, every payment on this project is blocked. The law is enforced by the software, not by anyone's memory.
+
+15
+00:02:54,680 --> 00:03:09,010
+A land record names only owners. Tenants and labourers who own no land are affected families too, and only a census can find them. I'll run the social impact survey now.
+
+16
+00:03:10,410 --> 00:03:17,900
+There they are, counted beside the owners, each with the resettlement entitlement the Act gives them.
+
+17
+00:03:19,300 --> 00:03:30,840
+Every action here is chained to the one before it. Press Verify the chain. Any backdated edit would break the chain and show up instantly.
+
+18
+00:03:32,240 --> 00:03:43,180
+That's the tour! Explore freely, or switch roles below with one tap. Tap me any time to restart or change language.

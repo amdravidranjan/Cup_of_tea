@@ -1,4 +1,6 @@
 'use client';
+import { L2 } from "@/components/l2";
+import { SecondLangSwitch } from "@/components/second-lang-switch";
 import { useState, useEffect } from 'react';
 import { Icon } from '@iconify/react';
 import Link from 'next/link';
@@ -83,7 +85,7 @@ export function PublicHeader() {
             <span className="sep">|</span>
             <button className={`a-contrast-btn ${hc ? 'on' : ''}`} onClick={() => setHc(c => !c)}>High Contrast</button>
             <span className="sep">|</span>
-            <span style={{ color: '#607d8b', fontSize: 11 }}>தமிழ் | English</span>
+            <SecondLangSwitch />
           </div>
         </div>
       </div>
@@ -105,10 +107,10 @@ export function PublicHeader() {
           </svg>
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ fontSize: 11, color: '#6c757d', marginBottom: 2 }}>
-              Government of India &nbsp;|&nbsp; இந்திய அரசு
+              Government of India &nbsp;|&nbsp; <L2 ta="இந்திய அரசு" />
             </div>
             <div className="portal-name-en">NILAMS - National Integrated Land Acquisition Management System</div>
-            <div className="portal-name-ta">தேசிய ஒருங்கிணைந்த நிலம் கையகப்படுத்தல் மேலாண்மை அமைப்பு (NILAMS)</div>
+            <L2 className="portal-name-ta block" ta="தேசிய ஒருங்கிணைந்த நிலம் கையகப்படுத்தல் மேலாண்மை அமைப்பு (NILAMS)" />
             <div className="portal-dept">Department of Land Resources · Ministry of Rural Development</div>
           </div>
           <div style={{ borderLeft: '1px solid #dee2e6', paddingLeft: 16, flexShrink: 0 }}>

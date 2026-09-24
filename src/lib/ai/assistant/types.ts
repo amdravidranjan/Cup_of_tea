@@ -21,12 +21,26 @@
  *    project.
  */
 
-export type LanguageCode = "en" | "ta";
+export type LanguageCode = "en" | "ta" | "hi";
 
-/** A string in both portal languages. Both halves are required. */
+/**
+ * A string in the portal's languages.
+ *
+ * English and Tamil are both required, for the reason in the header: an entry
+ * must not be mergeable English-only. Hindi is optional while the bank is
+ * being translated — a missing Hindi answer falls back to English through
+ * `pickText` rather than showing an empty bubble, and the widget says so.
+ * Once the bank is fully translated `hi` becomes required like the others.
+ */
 export interface BilingualText {
   en: string;
   ta: string;
+  hi?: string;
+}
+
+/** The text in the asked-for language, falling back to English. */
+export function pickText(text: BilingualText, language: LanguageCode): string {
+  return text[language] ?? text.en;
 }
 
 export type CategoryId =

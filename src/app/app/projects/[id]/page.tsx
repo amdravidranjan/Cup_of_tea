@@ -334,14 +334,14 @@ export default async function ProjectDetailPage({
   const currentStageIndex = STAGES.indexOf(currentStage);
 
   return (
-    <div className="-m-6">
+    <div className="-mx-4 -my-4 sm:-m-6">
       <StageHeaderBar steps={stageSteps} currentIndex={currentStageIndex} />
 
-      <div className="border-b bg-white px-6 py-5">
+      <div className="border-b bg-white px-4 py-4 sm:px-6 sm:py-5">
         <p className="font-mono text-[11px] font-semibold tracking-[0.18em] text-brand uppercase">
           {project.district}, {project.state}
         </p>
-        <h2 className="font-heading text-3xl leading-tight font-semibold text-foreground">
+        <h2 className="font-heading text-2xl leading-tight font-semibold text-foreground sm:text-3xl">
           {project.name.split("(")[0].trim()}
         </h2>
         {project.name.includes("(") && (
@@ -355,50 +355,50 @@ export default async function ProjectDetailPage({
         </div>
       </div>
 
-      <div className="space-y-6 bg-[#edeef2] px-6 py-6">
+      <div className="space-y-6 bg-[#edeef2] px-4 py-4 sm:px-6 sm:py-6">
         <Tabs defaultValue="overview">
-        <TabsList>
-          <TabsTrigger value="overview">
+        <TabsList className="max-w-full justify-start overflow-x-auto">
+          <TabsTrigger value="overview" data-tour="tab-overview">
             <LayoutGrid className="size-3.5" />
             Overview
           </TabsTrigger>
-          <TabsTrigger value="compensation">
+          <TabsTrigger value="compensation" data-tour="tab-compensation">
             <IndianRupee className="size-3.5" />
             Compensation
           </TabsTrigger>
-          <TabsTrigger value="rr">
+          <TabsTrigger value="rr" data-tour="tab-rr">
             <HeartHandshake className="size-3.5" />
             R&amp;R &amp; Families
           </TabsTrigger>
-          <TabsTrigger value="infrastructure">
+          <TabsTrigger value="infrastructure" data-tour="tab-infrastructure">
             <HardHat className="size-3.5" />
             Infrastructure
           </TabsTrigger>
-          <TabsTrigger value="legal">
+          <TabsTrigger value="legal" data-tour="tab-legal">
             <Scale className="size-3.5" />
             Legal
           </TabsTrigger>
-          <TabsTrigger value="tenders">
+          <TabsTrigger value="tenders" data-tour="tab-tenders">
             <FileSignature className="size-3.5" />
             Tenders
           </TabsTrigger>
-          <TabsTrigger value="community">
+          <TabsTrigger value="community" data-tour="tab-community">
             <Users2 className="size-3.5" />
             Community
           </TabsTrigger>
-          <TabsTrigger value="documents">
+          <TabsTrigger value="documents" data-tour="tab-documents">
             <FileStack className="size-3.5" />
             Documents
           </TabsTrigger>
-          <TabsTrigger value="media">
+          <TabsTrigger value="media" data-tour="tab-media">
             <Icon icon="mdi:image-multiple-outline" width={15} />
             Media
           </TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6 pt-4">
-          <RiskAssessmentCard assessment={riskAssessment} />
-          <Card>
+          <div data-tour="risk-card"><RiskAssessmentCard assessment={riskAssessment} /></div>
+          <Card data-tour="project-map">
             <CardHeader>
               <CardTitle className="text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground"><Bilingual>Map</Bilingual></CardTitle>
             </CardHeader>
@@ -453,7 +453,7 @@ export default async function ProjectDetailPage({
                   shown in 3D.
                 </p>
                 <Button asChild className="mt-3">
-                  <Link href={`/app/projects/${project.id}/3d`}>Open 3D view →</Link>
+                  <Link data-tour="open-3d" href={`/app/projects/${project.id}/3d`}>Open 3D view →</Link>
                 </Button>
               </CardContent>
             </Card>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef, useState, type DragEvent } from "react";
+import { useCallback, useEffect, useRef, useState, type DragEvent } from "react";
 import { useRouter } from "next/navigation";
 import { Icon } from "@iconify/react";
 import { toast } from "sonner";
@@ -103,14 +103,14 @@ export function BulkIntakePanel({
   }, []);
 
   const preview = useCallback(
-    async (chosen: File) => {
+    async (chosen: File, asCategory: string = category) => {
       setBusy(true);
       reset();
       setFile(chosen);
 
       const body = new FormData();
       body.set("file", chosen);
-      body.set("category", category);
+      body.set("category", asCategory);
 
       const res = await fetch(`/api/projects/${projectId}/intake`, { method: "POST", body });
       const payload = await res.json();
@@ -133,9 +133,38 @@ export function BulkIntakePanel({
       setSelected(
         new Set(next.rows.filter((r) => r.outcome === "CREATE" || r.outcome === "UPDATE").map((r) => r.rowNumber))
       );
+      window.dispatchEvent(new CustomEvent("nilams-tour:previewed", { detail: { fileName: chosen.name } }));
     },
     [category, projectId, reset]
   );
+
+  // The demo walkthrough drives this panel through a window event: it can
+  // pick the record type for the judge, and on "do it for me" it hands over
+  // the demo file it would otherwise ask them to download and drop here.
+  useEffect(() => {
+    async function onTourIntake(event: Event) {
+      const detail = (event as CustomEvent<{ category?: string; url?: string; name?: string }>).detail ?? {};
+      const target = detail.category && readableCategories.includes(detail.category as DocumentCategory)
+        ? detail.category
+        : category;
+      if (target !== category) {
+        setCategory(target);
+        reset();
+      }
+      if (detail.url) {
+        const res = await fetch(detail.url);
+        const blob = await res.blob();
+        // The name matters: the reader picks a parser by extension and
+        // refuses a file that has none. Use the name the server put in
+        // Content-Disposition — the one the judge would have downloaded.
+        const header = res.headers.get("content-disposition") ?? "";
+        const name = detail.name ?? /filename="?([^";]+)"?/.exec(header)?.[1] ?? "record.csv";
+        await preview(new File([blob], name, { type: blob.type }), target);
+      }
+    }
+    window.addEventListener("nilams-tour:intake", onTourIntake);
+    return () => window.removeEventListener("nilams-tour:intake", onTourIntake);
+  }, [category, preview, readableCategories, reset]);
 
   function onDrop(event: DragEvent<HTMLDivElement>) {
     event.preventDefault();
@@ -168,6 +197,7 @@ export function BulkIntakePanel({
     setFile(null);
     reset();
     if (inputRef.current) inputRef.current.value = "";
+    window.dispatchEvent(new CustomEvent("nilams-tour:committed", { detail: { created: payload.created } }));
     router.refresh();
   }
 
@@ -235,6 +265,7 @@ export function BulkIntakePanel({
       )}
 
       <div
+        data-tour="intake-drop"
         onDragOver={(e) => {
           e.preventDefault();
           setDragging(true);
@@ -418,7 +449,7 @@ export function BulkIntakePanel({
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
-            <Button onClick={commit} disabled={busy || blocked || selected.size === 0}>
+            <Button data-tour="intake-commit" onClick={commit} disabled={busy || blocked || selected.size === 0}>
               {busy
                 ? "Committing…"
                 : `Commit ${selected.size} ${plan.rowNoun}${selected.size === 1 ? "" : "s"}`}

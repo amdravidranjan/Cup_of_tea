@@ -1,3 +1,4 @@
+import { L2, T2 } from "@/components/l2";
 import { Icon } from '@iconify/react';
 
 export function PublicFooter() {
@@ -45,7 +46,7 @@ export function PublicFooter() {
         </div>
         {/* Services */}
         <div className="footer-col">
-          <div className="footer-head">Quick Services · சேவைகள்</div>
+          <div className="footer-head">Quick Services · <L2 ta="சேவைகள்" /></div>
           <ul>
             {[
               { label: 'Project Discovery', href: '/projects' },
@@ -61,7 +62,7 @@ export function PublicFooter() {
         </div>
         {/* Help */}
         <div className="footer-col">
-          <div className="footer-head">Help & Support · உதவி</div>
+          <div className="footer-head">Help & Support · <L2 ta="உதவி" /></div>
           <ul>
             {[
               { label: 'About the Portal', href: '/about' },
@@ -79,7 +80,7 @@ export function PublicFooter() {
         </div>
         {/* Links */}
         <div className="footer-col">
-          <div className="footer-head">Related Links · இணைப்புகள்</div>
+          <div className="footer-head">Related Links · <L2 ta="இணைப்புகள்" /></div>
           <ul>
             {[
               { label: 'Ministry of Rural Development', href: 'https://rural.gov.in' },

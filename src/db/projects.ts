@@ -47,13 +47,66 @@ export async function createProjectWith(
   return id;
 }
 
+/** Prefix of the per-visitor sandbox copies the demo walkthrough creates. */
+export const DEMO_SANDBOX_PREFIX = "p-demo-";
+export const DEMO_SANDBOX_COOKIE = "nilams_demo_project";
+
+/**
+ * The sandbox belonging to this visitor, if any. Read from the request cookie;
+ * outside a request (tests, seed scripts) there is no visitor, so none.
+ */
+async function currentSandboxId(): Promise<string | null> {
+  try {
+    const { cookies } = await import("next/headers");
+    return (await cookies()).get(DEMO_SANDBOX_COOKIE)?.value ?? null;
+  } catch {
+    return null;
+  }
+}
+
 export async function listProjectsWith(database: Db) {
-  return database.select().from(projects);
+  const all = await database.select().from(projects);
+  // Every judge who starts the walkthrough gets a private copy of the flagship
+  // project. Show a visitor their own copy and nobody else's, or the dashboard
+  // fills up with other people's rehearsals.
+  if (!all.some((p) => p.id.startsWith(DEMO_SANDBOX_PREFIX))) return all;
+  const mine = await currentSandboxId();
+  return all.filter((p) => !p.id.startsWith(DEMO_SANDBOX_PREFIX) || p.id === mine);
 }
 
 export async function getProjectWith(database: Db, id: string) {
   const rows = await database.select().from(projects).where(eq(projects.id, id));
-  return rows[0] ?? null;
+  if (rows[0]) return rows[0];
+  if (id.startsWith(DEMO_SANDBOX_PREFIX)) return reseedSandbox(database, id);
+  return null;
+}
+
+/**
+ * Re-creates a walkthrough sandbox that this instance has never seen.
+ *
+ * The hosted demo keeps its database in the instance's temp directory, so a
+ * request served by a second instance finds no trace of a sandbox the first
+ * one created. Rather than show a judge a 404 halfway through the tour, the
+ * sandbox is seeded again under the same id and in the same region — the tour
+ * carries on, though anything already uploaded on the other instance is gone.
+ * Pointing `DATABASE_URL` at a hosted database removes the whole situation.
+ */
+async function reseedSandbox(database: Db, id: string) {
+  try {
+    const [{ seedFlagship }, { regionById, DEMO_REGION_COOKIE }, { cookies }] = await Promise.all([
+      import("./seed-flagship"),
+      import("@/lib/demo/regions"),
+      import("next/headers"),
+    ]);
+    const regionId = (await cookies()).get(DEMO_REGION_COOKIE)?.value;
+    await seedFlagship({ id, quiet: true, region: regionById(regionId) });
+    const rows = await database.select().from(projects).where(eq(projects.id, id));
+    return rows[0] ?? null;
+  } catch {
+    // Outside a request (tests, scripts) there is no cookie and no sandbox to
+    // rebuild; the caller gets the same "not found" it would have got.
+    return null;
+  }
 }
 
 export async function getStageHistoryWith(database: Db, projectId: string) {

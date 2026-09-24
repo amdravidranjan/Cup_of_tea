@@ -1,7 +1,18 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 
-const DEFAULT_ROOT = path.join(process.cwd(), "uploads");
+/**
+ * Where uploaded documents are written.
+ *
+ * Locally that is `uploads/` beside the project. On a serverless host the
+ * bundle directory is read-only and only the system temp directory can be
+ * written, so `NILAMS_UPLOAD_DIR` overrides it — uploads there survive the
+ * life of the instance, which is all a demo deployment needs. A durable
+ * deployment points this at a mounted volume or object store instead.
+ */
+const DEFAULT_ROOT =
+  process.env.NILAMS_UPLOAD_DIR ??
+  (process.env.VERCEL ? path.join("/tmp", "nilams-uploads") : path.join(process.cwd(), "uploads"));
 
 function sanitizeFileName(name: string): string {
   return name.replace(/[^a-zA-Z0-9_.-]/g, "_").replace(/\.\.+/g, "_");

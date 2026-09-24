@@ -685,6 +685,8 @@ export function FamiliesPanel({
           {filtered.map((family) => (
             <Card
               key={family.id}
+              data-tour="family-card"
+              data-category={family.category}
               className="cursor-pointer hover:bg-muted/30 transition-colors"
               onClick={() => setSelectedFamily(family)}
             >

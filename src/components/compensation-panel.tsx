@@ -548,7 +548,7 @@ export function CompensationPanel({
   return (
     <div className="space-y-4">
       {hasActiveStay && (
-        <div className="flex items-start gap-3 rounded-lg border border-destructive/40 bg-destructive/10 p-3.5 text-sm text-destructive">
+        <div data-tour="stay-payment-block" className="flex items-start gap-3 rounded-lg border border-destructive/40 bg-destructive/10 p-3.5 text-sm text-destructive">
           <span className="text-base" role="img" aria-label="warning">⚠️</span>
           <div>
             <p className="font-semibold">Court Stay Order Active</p>

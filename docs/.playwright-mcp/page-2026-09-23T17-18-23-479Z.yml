@@ -1,0 +1,402 @@
+- generic [active] [ref=f7e1]:
+  - generic [ref=f7e2]:
+    - banner [ref=f7e3]:
+      - generic [ref=f7e4]:
+        - img "NILAMS emblem" [ref=f7e5]:
+          - generic [ref=f7e11]: सत्यमेव जयते
+          - generic [ref=f7e15]: NILAMS
+        - generic [ref=f7e16]:
+          - generic [ref=f7e17]:
+            - text: Government of India | இந்திய அரசு
+            - generic "Second language" [ref=f7e19]:
+              - generic [ref=f7e20]: English +
+              - button "हिन्दी" [ref=f7e21] [cursor=pointer]
+              - button "தமிழ்" [pressed] [ref=f7e22] [cursor=pointer]
+          - link "NILAMS - National Integrated Land Acquisition Management System" [ref=f7e23] [cursor=pointer]:
+            - /url: /app
+          - generic [ref=f7e24]: தேசிய ஒருங்கிணைந்த நிலம் கையகப்படுத்தல் மேலாண்மை அமைப்பு (NILAMS)
+          - generic [ref=f7e25]: Department of Land Resources · Ministry of Rural Development
+        - generic [ref=f7e26]:
+          - textbox "Search projects, parcels, families…" [ref=f7e28]
+          - generic [ref=f7e29]:
+            - generic [ref=f7e30]: PS
+            - generic [ref=f7e32]:
+              - generic [ref=f7e33]: Priya Sharma (DoLR, Central)
+              - generic [ref=f7e34]: central
+            - button [ref=f7e35]
+            - button "Sign out" [ref=f7e36]
+    - navigation "Console navigation" [ref=f7e37]:
+      - generic [ref=f7e38]:
+        - link "Dashboard" [ref=f7e39] [cursor=pointer]:
+          - /url: /app
+        - generic [ref=f7e40] [cursor=pointer]: More
+        - link "Public Portal" [ref=f7e41] [cursor=pointer]:
+          - /url: /
+    - main [ref=f7e42]:
+      - generic [ref=f7e44]:
+        - generic [ref=f7e45]:
+          - generic [ref=f7e46]:
+            - heading "Welcome, Priya Sharma (DoLR, Central) வரவேற்பு" [level=1] [ref=f7e47]:
+              - text: Welcome, Priya Sharma (DoLR, Central)
+              - generic [ref=f7e48]: வரவேற்பு
+            - paragraph [ref=f7e49]: CENTRAL
+          - generic [ref=f7e50]:
+            - generic [ref=f7e51]: System Online
+            - generic [ref=f7e57]:
+              - text: "Last Sync:"
+              - strong [ref=f7e58]: Just now
+        - generic [ref=f7e59]:
+          - generic [ref=f7e60]:
+            - heading "Portfolio Overview கண்ணோட்டம்" [level=2] [ref=f7e61]:
+              - text: Portfolio Overview
+              - generic [ref=f7e62]: கண்ணோட்டம்
+            - button "Export PDF" [ref=f7e63]
+          - generic [ref=f7e64]:
+            - generic [ref=f7e65]:
+              - generic [ref=f7e66]:
+                - generic [ref=f7e67]: Projects
+                - generic [ref=f7e71]: "15"
+              - generic [ref=f7e72]:
+                - generic [ref=f7e73]: Area under acquisition
+                - generic [ref=f7e79]: 3770.7 ha
+              - generic [ref=f7e80]:
+                - generic [ref=f7e81]: Compensation paid
+                - generic [ref=f7e86]: ₹37103.2L / ₹109008.2L
+              - generic [ref=f7e87]:
+                - generic [ref=f7e88]: SLA breaches
+                - generic [ref=f7e92]: "6"
+            - generic [ref=f7e93]:
+              - generic [ref=f7e94]: Projects by stage
+              - generic [ref=f7e99]: SLA health
+            - generic [ref=f7e104]:
+              - generic [ref=f7e105]: State-wise breakdown
+              - table [ref=f7e109]:
+                - rowgroup [ref=f7e110]:
+                  - row [ref=f7e111]:
+                    - columnheader "State" [ref=f7e112]
+                    - columnheader "Projects" [ref=f7e113]
+                    - columnheader "Area (ha)" [ref=f7e114]
+                    - columnheader "Compensation paid" [ref=f7e115]
+                    - columnheader "SLA breaches" [ref=f7e116]
+                - rowgroup [ref=f7e117]:
+                  - row [ref=f7e118]:
+                    - cell "Karnataka" [ref=f7e119]
+                    - cell "1" [ref=f7e120]
+                    - cell "206.1" [ref=f7e121]
+                    - cell "₹0.0L" [ref=f7e122]
+                    - cell "0" [ref=f7e123]
+                  - row [ref=f7e124]:
+                    - cell "Tamil Nadu" [ref=f7e125]
+                    - cell "14" [ref=f7e126]
+                    - cell "3564.6" [ref=f7e127]
+                    - cell "₹37103.2L" [ref=f7e128]
+                    - cell "6" [ref=f7e129]
+        - generic [ref=f7e130]:
+          - generic [ref=f7e131]:
+            - heading "Quick Actions விரைவான செயல்கள்" [level=3] [ref=f7e133]:
+              - text: Quick Actions
+              - generic [ref=f7e134]: விரைவான செயல்கள்
+            - generic [ref=f7e135]:
+              - link "MIS Reports" [ref=f7e136] [cursor=pointer]:
+                - /url: /app/reports
+              - link "Title Conflicts" [ref=f7e138] [cursor=pointer]:
+                - /url: /app/conflicts
+          - generic [ref=f7e140]:
+            - generic [ref=f7e141]:
+              - heading "Critical SLA Alerts விழிப்பூட்டல்கள்" [level=3] [ref=f7e142]:
+                - text: Critical SLA Alerts
+                - generic [ref=f7e143]: விழிப்பூட்டல்கள்
+              - generic [ref=f7e144]:
+                - generic [ref=f7e145]: 6 Breached
+                - generic [ref=f7e146]: 3 At Risk
+            - generic [ref=f7e147]:
+              - generic [ref=f7e148]:
+                - generic [ref=f7e149]:
+                  - link "Chennai–Salem Green Corridor Expressway" [ref=f7e151] [cursor=pointer]:
+                    - /url: /app/projects/p-tn-chennai-salem
+                  - generic [ref=f7e152]: Section 19 Declaration deadline missed.
+                - generic [ref=f7e153]: breached
+              - generic [ref=f7e154]:
+                - generic [ref=f7e155]:
+                  - link "Chennai Metro Phase 2 – Poonamallee Extension" [ref=f7e157] [cursor=pointer]:
+                    - /url: /app/projects/p-tn-chennai-metro
+                  - generic [ref=f7e158]: Compensation Award deadline approaching.
+                - generic [ref=f7e159]: at-risk
+              - generic [ref=f7e160]:
+                - generic [ref=f7e161]:
+                  - link "Cauvery–Vaigai–Gundar Link Canal (Sivaganga Reach)" [ref=f7e163] [cursor=pointer]:
+                    - /url: /app/projects/p-tn-cvg-canal
+                  - generic [ref=f7e164]: R&R Award deadline approaching.
+                - generic [ref=f7e165]: at-risk
+              - generic [ref=f7e166]:
+                - generic [ref=f7e167]:
+                  - link "SIPCOT Industrial Corridor Expansion – Perambalur" [ref=f7e169] [cursor=pointer]:
+                    - /url: /app/projects/p-tn-sipcot-perambalur
+                  - generic [ref=f7e170]: Compensation Award deadline missed.
+                - generic [ref=f7e171]: breached
+        - generic [ref=f7e172]:
+          - generic [ref=f7e173]:
+            - heading "Active Projects List (15) செயல்படும் திட்டங்கள்" [level=2] [ref=f7e174]:
+              - text: Active Projects List (15)
+              - generic [ref=f7e175]: செயல்படும் திட்டங்கள்
+            - generic [ref=f7e176]:
+              - textbox "Search projects..." [ref=f7e178]
+              - button "Filter" [ref=f7e179]
+          - table [ref=f7e182]:
+            - rowgroup [ref=f7e183]:
+              - row [ref=f7e184]:
+                - columnheader "Project ID / Name திட்டத்தின் பெயர்" [ref=f7e185]:
+                  - text: Project ID / Name
+                  - generic [ref=f7e186]: திட்டத்தின் பெயர்
+                - columnheader "Location இடம்" [ref=f7e187]:
+                  - text: Location
+                  - generic [ref=f7e188]: இடம்
+                - columnheader "Current Stage தற்போதைய நிலை" [ref=f7e189]:
+                  - text: Current Stage
+                  - generic [ref=f7e190]: தற்போதைய நிலை
+                - columnheader "SLA Timelines காலக்கெடு" [ref=f7e191]:
+                  - text: SLA Timelines
+                  - generic [ref=f7e192]: காலக்கெடு
+                - columnheader "Actions" [ref=f7e193]
+            - rowgroup [ref=f7e194]:
+              - row [ref=f7e195]:
+                - cell "P-TN-CHENNAI-SALEM Chennai–Salem Green Corridor Expressway" [ref=f7e196]:
+                  - generic [ref=f7e197]: P-TN-CHENNAI-SALEM
+                  - link "Chennai–Salem Green Corridor Expressway" [ref=f7e198] [cursor=pointer]:
+                    - /url: /app/projects/p-tn-chennai-salem
+                - cell "Krishnagiri Tamil Nadu" [ref=f7e199]:
+                  - generic [ref=f7e200]: Krishnagiri
+                  - generic [ref=f7e201]: Tamil Nadu
+                - cell "NOTIFIED" [ref=f7e202]
+                - cell "Section" [ref=f7e204]:
+                  - generic "Section 19 Declaration" [ref=f7e206]: Section
+                - cell [ref=f7e207]:
+                  - link [ref=f7e208] [cursor=pointer]:
+                    - /url: /app/projects/p-tn-chennai-salem
+              - row [ref=f7e209]:
+                - cell "P-TN-CHENNAI-METRO Chennai Metro Phase 2 – Poonamallee Extension" [ref=f7e210]:
+                  - generic [ref=f7e211]: P-TN-CHENNAI-METRO
+                  - link "Chennai Metro Phase 2 – Poonamallee Extension" [ref=f7e212] [cursor=pointer]:
+                    - /url: /app/projects/p-tn-chennai-metro
+                - cell "Chennai Tamil Nadu" [ref=f7e213]:
+                  - generic [ref=f7e214]: Chennai
+                  - generic [ref=f7e215]: Tamil Nadu
+                - cell "AWARDED" [ref=f7e216]
+                - cell "Section Compensation R&R Infrastructure" [ref=f7e218]:
+                  - generic [ref=f7e219]:
+                    - generic "Section 19 Declaration" [ref=f7e220]: Section
+                    - generic "Compensation Award" [ref=f7e221]: Compensation
+                    - generic "R&R Award" [ref=f7e222]: R&R
+                    - generic "Infrastructure" [ref=f7e223]
+                - cell [ref=f7e224]:
+                  - link [ref=f7e225] [cursor=pointer]:
+                    - /url: /app/projects/p-tn-chennai-metro
+              - row [ref=f7e226]:
+                - cell "P-TN-CVG-CANAL Cauvery–Vaigai–Gundar Link Canal (Sivaganga Reach)" [ref=f7e227]:
+                  - generic [ref=f7e228]: P-TN-CVG-CANAL
+                  - link "Cauvery–Vaigai–Gundar Link Canal (Sivaganga Reach)" [ref=f7e229] [cursor=pointer]:
+                    - /url: /app/projects/p-tn-cvg-canal
+                - cell "Sivaganga Tamil Nadu" [ref=f7e230]:
+                  - generic [ref=f7e231]: Sivaganga
+                  - generic [ref=f7e232]: Tamil Nadu
+                - cell "RR_IN_PROGRESS" [ref=f7e233]
+                - cell "Section Compensation R&R Infrastructure" [ref=f7e235]:
+                  - generic [ref=f7e236]:
+                    - generic "Section 19 Declaration" [ref=f7e237]: Section
+                    - generic "Compensation Award" [ref=f7e238]: Compensation
+                    - generic "R&R Award" [ref=f7e239]: R&R
+                    - generic "Infrastructure" [ref=f7e240]
+                - cell [ref=f7e241]:
+                  - link [ref=f7e242] [cursor=pointer]:
+                    - /url: /app/projects/p-tn-cvg-canal
+              - row [ref=f7e243]:
+                - cell "P-TN-ENNORE-KATTUPALLI Ennore–Kattupalli Port Connectivity Corridor" [ref=f7e244]:
+                  - generic [ref=f7e245]: P-TN-ENNORE-KATTUPALLI
+                  - link "Ennore–Kattupalli Port Connectivity Corridor" [ref=f7e246] [cursor=pointer]:
+                    - /url: /app/projects/p-tn-ennore-kattupalli
+                - cell "Thiruvallur Tamil Nadu" [ref=f7e247]:
+                  - generic [ref=f7e248]: Thiruvallur
+                  - generic [ref=f7e249]: Tamil Nadu
+                - cell "RR_COMPLETE" [ref=f7e250]
+                - cell "Section Compensation R&R Infrastructure" [ref=f7e252]:
+                  - generic [ref=f7e253]:
+                    - generic "Section 19 Declaration" [ref=f7e254]: Section
+                    - generic "Compensation Award" [ref=f7e255]: Compensation
+                    - generic "R&R Award" [ref=f7e256]: R&R
+                    - generic "Infrastructure" [ref=f7e257]
+                - cell [ref=f7e258]:
+                  - link [ref=f7e259] [cursor=pointer]:
+                    - /url: /app/projects/p-tn-ennore-kattupalli
+              - row [ref=f7e260]:
+                - cell "P-TN-COIMBATORE-BYPASS Coimbatore–Sathyamangalam NH Bypass" [ref=f7e261]:
+                  - generic [ref=f7e262]: P-TN-COIMBATORE-BYPASS
+                  - link "Coimbatore–Sathyamangalam NH Bypass" [ref=f7e263] [cursor=pointer]:
+                    - /url: /app/projects/p-tn-coimbatore-bypass
+                - cell "Coimbatore Tamil Nadu" [ref=f7e264]:
+                  - generic [ref=f7e265]: Coimbatore
+                  - generic [ref=f7e266]: Tamil Nadu
+                - cell "SIA" [ref=f7e267]
+                - cell [ref=f7e269]
+                - cell [ref=f7e270]:
+                  - link [ref=f7e271] [cursor=pointer]:
+                    - /url: /app/projects/p-tn-coimbatore-bypass
+              - row [ref=f7e272]:
+                - cell "P-TN-SIPCOT-PERAMBALUR SIPCOT Industrial Corridor Expansion – Perambalur" [ref=f7e273]:
+                  - generic [ref=f7e274]: P-TN-SIPCOT-PERAMBALUR
+                  - link "SIPCOT Industrial Corridor Expansion – Perambalur" [ref=f7e275] [cursor=pointer]:
+                    - /url: /app/projects/p-tn-sipcot-perambalur
+                - cell "Perambalur Tamil Nadu" [ref=f7e276]:
+                  - generic [ref=f7e277]: Perambalur
+                  - generic [ref=f7e278]: Tamil Nadu
+                - cell "AWARDED" [ref=f7e279]
+                - cell "Section Compensation R&R Infrastructure" [ref=f7e281]:
+                  - generic [ref=f7e282]:
+                    - generic "Section 19 Declaration" [ref=f7e283]: Section
+                    - generic "Compensation Award" [ref=f7e284]: Compensation
+                    - generic "R&R Award" [ref=f7e285]: R&R
+                    - generic "Infrastructure" [ref=f7e286]
+                - cell [ref=f7e287]:
+                  - link [ref=f7e288] [cursor=pointer]:
+                    - /url: /app/projects/p-tn-sipcot-perambalur
+              - row [ref=f7e289]:
+                - cell "P-KA-BENGALURU-PRR Bengaluru Peripheral Ring Road Corridor" [ref=f7e290]:
+                  - generic [ref=f7e291]: P-KA-BENGALURU-PRR
+                  - link "Bengaluru Peripheral Ring Road Corridor" [ref=f7e292] [cursor=pointer]:
+                    - /url: /app/projects/p-ka-bengaluru-prr
+                - cell "Bengaluru Urban Karnataka" [ref=f7e293]:
+                  - generic [ref=f7e294]: Bengaluru Urban
+                  - generic [ref=f7e295]: Karnataka
+                - cell "NOTIFIED" [ref=f7e296]
+                - cell "Section" [ref=f7e298]:
+                  - generic "Section 19 Declaration" [ref=f7e300]: Section
+                - cell [ref=f7e301]:
+                  - link [ref=f7e302] [cursor=pointer]:
+                    - /url: /app/projects/p-ka-bengaluru-prr
+              - row [ref=f7e303]:
+                - cell "P-TN-MADURAI-METRO Madurai Metro Phase 1" [ref=f7e304]:
+                  - generic [ref=f7e305]: P-TN-MADURAI-METRO
+                  - link "Madurai Metro Phase 1" [ref=f7e306] [cursor=pointer]:
+                    - /url: /app/projects/p-tn-madurai-metro
+                - cell "Madurai Tamil Nadu" [ref=f7e307]:
+                  - generic [ref=f7e308]: Madurai
+                  - generic [ref=f7e309]: Tamil Nadu
+                - cell "NOTIFIED" [ref=f7e310]
+                - cell "Section" [ref=f7e312]:
+                  - generic "Section 19 Declaration" [ref=f7e314]: Section
+                - cell [ref=f7e315]:
+                  - link [ref=f7e316] [cursor=pointer]:
+                    - /url: /app/projects/p-tn-madurai-metro
+              - row [ref=f7e317]:
+                - cell "P-TN-TRICHY-AIRPORT Trichy International Airport Runway Expansion" [ref=f7e318]:
+                  - generic [ref=f7e319]: P-TN-TRICHY-AIRPORT
+                  - link "Trichy International Airport Runway Expansion" [ref=f7e320] [cursor=pointer]:
+                    - /url: /app/projects/p-tn-trichy-airport
+                - cell "Tiruchirappalli Tamil Nadu" [ref=f7e321]:
+                  - generic [ref=f7e322]: Tiruchirappalli
+                  - generic [ref=f7e323]: Tamil Nadu
+                - cell "AWARDED" [ref=f7e324]
+                - cell "Section Compensation R&R Infrastructure" [ref=f7e326]:
+                  - generic [ref=f7e327]:
+                    - generic "Section 19 Declaration" [ref=f7e328]: Section
+                    - generic "Compensation Award" [ref=f7e329]: Compensation
+                    - generic "R&R Award" [ref=f7e330]: R&R
+                    - generic "Infrastructure" [ref=f7e331]
+                - cell [ref=f7e332]:
+                  - link [ref=f7e333] [cursor=pointer]:
+                    - /url: /app/projects/p-tn-trichy-airport
+              - row [ref=f7e334]:
+                - cell "P-TN-TUTICORIN-RAIL Tuticorin Port Dedicated Freight Rail Link" [ref=f7e335]:
+                  - generic [ref=f7e336]: P-TN-TUTICORIN-RAIL
+                  - link "Tuticorin Port Dedicated Freight Rail Link" [ref=f7e337] [cursor=pointer]:
+                    - /url: /app/projects/p-tn-tuticorin-rail
+                - cell "Thoothukudi Tamil Nadu" [ref=f7e338]:
+                  - generic [ref=f7e339]: Thoothukudi
+                  - generic [ref=f7e340]: Tamil Nadu
+                - cell "RR_COMPLETE" [ref=f7e341]
+                - cell "Section Compensation R&R Infrastructure" [ref=f7e343]:
+                  - generic [ref=f7e344]:
+                    - generic "Section 19 Declaration" [ref=f7e345]: Section
+                    - generic "Compensation Award" [ref=f7e346]: Compensation
+                    - generic "R&R Award" [ref=f7e347]: R&R
+                    - generic "Infrastructure" [ref=f7e348]
+                - cell [ref=f7e349]:
+                  - link [ref=f7e350] [cursor=pointer]:
+                    - /url: /app/projects/p-tn-tuticorin-rail
+              - row [ref=f7e351]:
+                - cell "P-TN-SALEM-STEEL Salem Steel Plant Phase 3 Land Acquisition" [ref=f7e352]:
+                  - generic [ref=f7e353]: P-TN-SALEM-STEEL
+                  - link "Salem Steel Plant Phase 3 Land Acquisition" [ref=f7e354] [cursor=pointer]:
+                    - /url: /app/projects/p-tn-salem-steel
+                - cell "Salem Tamil Nadu" [ref=f7e355]:
+                  - generic [ref=f7e356]: Salem
+                  - generic [ref=f7e357]: Tamil Nadu
+                - cell "SCRUTINY" [ref=f7e358]
+                - cell [ref=f7e360]
+                - cell [ref=f7e361]:
+                  - link [ref=f7e362] [cursor=pointer]:
+                    - /url: /app/projects/p-tn-salem-steel
+              - row [ref=f7e363]:
+                - cell "P-TN-VELLORE-WATER Vellore Smart City Pipeline Corridor" [ref=f7e364]:
+                  - generic [ref=f7e365]: P-TN-VELLORE-WATER
+                  - link "Vellore Smart City Pipeline Corridor" [ref=f7e366] [cursor=pointer]:
+                    - /url: /app/projects/p-tn-vellore-water
+                - cell "Vellore Tamil Nadu" [ref=f7e367]:
+                  - generic [ref=f7e368]: Vellore
+                  - generic [ref=f7e369]: Tamil Nadu
+                - cell "NOTIFIED" [ref=f7e370]
+                - cell "Section" [ref=f7e372]:
+                  - generic "Section 19 Declaration" [ref=f7e374]: Section
+                - cell [ref=f7e375]:
+                  - link [ref=f7e376] [cursor=pointer]:
+                    - /url: /app/projects/p-tn-vellore-water
+              - row [ref=f7e377]:
+                - cell "P-TN-THANJAVUR-SOLAR Thanjavur Solar Energy Park" [ref=f7e378]:
+                  - generic [ref=f7e379]: P-TN-THANJAVUR-SOLAR
+                  - link "Thanjavur Solar Energy Park" [ref=f7e380] [cursor=pointer]:
+                    - /url: /app/projects/p-tn-thanjavur-solar
+                - cell "Thanjavur Tamil Nadu" [ref=f7e381]:
+                  - generic [ref=f7e382]: Thanjavur
+                  - generic [ref=f7e383]: Tamil Nadu
+                - cell "AWARDED" [ref=f7e384]
+                - cell "Section Compensation R&R Infrastructure" [ref=f7e386]:
+                  - generic [ref=f7e387]:
+                    - generic "Section 19 Declaration" [ref=f7e388]: Section
+                    - generic "Compensation Award" [ref=f7e389]: Compensation
+                    - generic "R&R Award" [ref=f7e390]: R&R
+                    - generic "Infrastructure" [ref=f7e391]
+                - cell [ref=f7e392]:
+                  - link [ref=f7e393] [cursor=pointer]:
+                    - /url: /app/projects/p-tn-thanjavur-solar
+              - row [ref=f7e394]:
+                - cell "P-TN-KANCHIPURAM-IT Kanchipuram IT Corridor Extension" [ref=f7e395]:
+                  - generic [ref=f7e396]: P-TN-KANCHIPURAM-IT
+                  - link "Kanchipuram IT Corridor Extension" [ref=f7e397] [cursor=pointer]:
+                    - /url: /app/projects/p-tn-kanchipuram-it
+                - cell "Kanchipuram Tamil Nadu" [ref=f7e398]:
+                  - generic [ref=f7e399]: Kanchipuram
+                  - generic [ref=f7e400]: Tamil Nadu
+                - cell "STATE_APPROVED" [ref=f7e401]
+                - cell "Section" [ref=f7e403]:
+                  - generic "Section 19 Declaration" [ref=f7e405]: Section
+                - cell [ref=f7e406]:
+                  - link [ref=f7e407] [cursor=pointer]:
+                    - /url: /app/projects/p-tn-kanchipuram-it
+              - row [ref=f7e408]:
+                - cell "P-TN-BHAVANI-BRIDGE Bhavani River Bridge & Approach Road, Sirumugai" [ref=f7e409]:
+                  - generic [ref=f7e410]: P-TN-BHAVANI-BRIDGE
+                  - link "Bhavani River Bridge & Approach Road, Sirumugai" [ref=f7e411] [cursor=pointer]:
+                    - /url: /app/projects/p-tn-bhavani-bridge
+                - cell "Coimbatore Tamil Nadu" [ref=f7e412]:
+                  - generic [ref=f7e413]: Coimbatore
+                  - generic [ref=f7e414]: Tamil Nadu
+                - cell "DRAFT" [ref=f7e415]
+                - cell [ref=f7e417]
+                - cell [ref=f7e418]:
+                  - link [ref=f7e419] [cursor=pointer]:
+                    - /url: /app/projects/p-tn-bhavani-bridge
+          - generic [ref=f7e420]:
+            - generic [ref=f7e421]: Showing 15 entries
+            - generic [ref=f7e422]:
+              - button "Prev" [ref=f7e423]
+              - button "Next" [ref=f7e424]
+  - region "Notifications alt+T"

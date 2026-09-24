@@ -1,0 +1,40 @@
+- generic [active] [ref=f1e1]:
+  - generic [ref=f1e3]:
+    - generic [ref=f1e4]:
+      - heading "Government Official Login அரசு அதிகாரி உள்நுழைவு" [level=2] [ref=f1e6]:
+        - text: Government Official Login
+        - generic [ref=f1e7]: அரசு அதிகாரி உள்நுழைவு
+      - paragraph [ref=f1e8]: For demonstration purposes, select a role below to authenticate securely via NILAMS SSO.
+    - generic [ref=f1e9]:
+      - generic [ref=f1e10]:
+        - button "Central Authority (DoLR) National oversight, dashboards, central approvals." [disabled] [ref=f1e11]:
+          - generic [ref=f1e14]: Central Authority (DoLR)
+          - generic [ref=f1e15]: National oversight, dashboards, central approvals.
+        - button "Tamil Nadu State Government State-level approvals, notifications, and project screening." [disabled] [ref=f1e16]:
+          - generic [ref=f1e19]: Tamil Nadu State Government
+          - generic [ref=f1e20]: State-level approvals, notifications, and project screening.
+        - button "District Collector (Krishnagiri) Chennai-Salem expressway district officer, compensation assessment, and SLA tracking." [disabled] [ref=f1e21]:
+          - generic [ref=f1e24]: District Collector (Krishnagiri)
+          - generic [ref=f1e25]: Chennai-Salem expressway district officer, compensation assessment, and SLA tracking.
+        - button "Requiring Body (NHAI/Metro) Project creation, funds deposit, DPR upload." [disabled] [ref=f1e26]:
+          - generic [ref=f1e29]: Requiring Body (NHAI/Metro)
+          - generic [ref=f1e30]: Project creation, funds deposit, DPR upload.
+        - button "Field Officer (Krishnagiri) Chennai-Salem expressway field verification, geo-tagging, and reporting." [disabled] [ref=f1e31]:
+          - generic [ref=f1e34]: Field Officer (Krishnagiri)
+          - generic [ref=f1e35]: Chennai-Salem expressway field verification, geo-tagging, and reporting.
+      - generic [ref=f1e37]:
+        - link "Back to Public Portal" [ref=f1e38] [cursor=pointer]:
+          - /url: /
+        - generic [ref=f1e39]: Secured by NIC ePramaan
+  - region "Notifications alt+T":
+    - list:
+      - listitem [ref=f1e76]:
+        - generic [ref=f1e81]: Successfully logged in
+  - button "Open Next.js Dev Tools" [ref=f1e83] [cursor=pointer]:
+    - generic [ref=f1e86]:
+      - text: Compiling
+      - generic [ref=f1e87]:
+        - generic [ref=f1e88]: .
+        - generic [ref=f1e89]: .
+        - generic [ref=f1e90]: .
+  - alert [ref=f1e49]: NILAMS - National Integrated Land Acquisition Management System

@@ -1,3 +1,4 @@
+import { L2, T2 } from "@/components/l2";
 import { Icon } from '@iconify/react';
 import Link from 'next/link';
 import { listPublicProjects, getPublicPortfolioStats } from '@/db/public';
@@ -11,7 +12,7 @@ export default async function AboutPage() {
       <div className="stats-band" style={{ padding: '40px 0 36px' }}>
         <div className="sec-wrap" style={{ color: '#fff' }}>
           <div style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.15em', color: 'rgba(255,255,255,0.5)', marginBottom: 6 }}>
-            About the Portal · போர்ட்டல் பற்றி
+            About the Portal · <L2 ta="போர்ட்டல் பற்றி" />
           </div>
           <h1 style={{ fontSize: 28, fontWeight: 700, color: '#ffc107', marginBottom: 8 }}>
             NILAMS - National Integrated Land Acquisition Management System
@@ -48,7 +49,7 @@ export default async function AboutPage() {
             <h2 className="sec-title">
               <Icon icon="mdi:target" width={21} color="#e56b00" />
               Mission &amp; Objectives
-              <span className="ta">நோக்கம் &amp; குறிக்கோள்கள்</span>
+              <L2 className="ta" ta="நோக்கம் & குறிக்கோள்கள்" />
             </h2>
           </div>
           <div className="two-col">
@@ -103,7 +104,7 @@ export default async function AboutPage() {
             <h2 className="sec-title">
               <Icon icon="mdi:book-open-page-variant-outline" width={21} color="#e56b00" />
               RFCTLARR Act 2013 — Key Sections
-              <span className="ta">சட்டத்தின் முக்கிய பிரிவுகள்</span>
+              <L2 className="ta" ta="சட்டத்தின் முக்கிய பிரிவுகள்" />
             </h2>
           </div>
           <div className="svc-grid" style={{ gridTemplateColumns: 'repeat(4, 1fr)' }}>
@@ -135,7 +136,7 @@ export default async function AboutPage() {
             <h2 className="sec-title">
               <Icon icon="mdi:sitemap-outline" width={21} color="#e56b00" />
               Organisational Hierarchy
-              <span className="ta">அமைப்பு கட்டமைப்பு</span>
+              <L2 className="ta" ta="அமைப்பு கட்டமைப்பு" />
             </h2>
           </div>
           <div className="links-grid">
@@ -178,7 +179,7 @@ export default async function AboutPage() {
             <h2 className="sec-title">
               <Icon icon="mdi:file-chart-outline" width={21} color="#e56b00" />
               Annual Reports &amp; Tender Notices
-              <span className="ta">ஆண்டு அறிக்கைகள்</span>
+              <L2 className="ta" ta="ஆண்டு அறிக்கைகள்" />
             </h2>
           </div>
           <div className="links-grid" style={{ gridTemplateColumns: '1fr 1fr' }}>

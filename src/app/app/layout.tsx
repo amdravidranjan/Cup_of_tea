@@ -1,3 +1,5 @@
+import { L2 } from "@/components/l2";
+import { SecondLangSwitch } from "@/components/second-lang-switch";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth";
@@ -85,19 +87,22 @@ export default async function DashboardLayout({
           <GovEmblem size={56} />
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ fontSize: 11, color: "#6c757d", marginBottom: 2 }}>
-              Government of India &nbsp;|&nbsp; இந்திய அரசு
+              Government of India &nbsp;|&nbsp; <L2 ta="இந்திய அரசு" />
+              <span style={{ marginLeft: 10 }}><SecondLangSwitch /></span>
             </div>
             <Link href="/app" className="portal-name-en" style={{ textDecoration: "none" }}>
               NILAMS - National Integrated Land Acquisition Management System
             </Link>
-            <div className="portal-name-ta">தேசிய ஒருங்கிணைந்த நிலம் கையகப்படுத்தல் மேலாண்மை அமைப்பு (NILAMS)</div>
+            <L2 className="portal-name-ta block" ta="தேசிய ஒருங்கிணைந்த நிலம் கையகப்படுத்தல் மேலாண்மை அமைப்பு (NILAMS)" />
             <div className="portal-dept">
               Department of Land Resources · Ministry of Rural Development
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
-            <GlobalSearch />
+          <div className="flex flex-wrap items-center justify-end gap-3">
+            <div className="hidden sm:block">
+              <GlobalSearch />
+            </div>
             <div
               className="flex items-center gap-2"
               style={{ borderLeft: "1px solid #dee2e6", paddingLeft: 14 }}
@@ -126,10 +131,10 @@ export default async function DashboardLayout({
       <AppNav primary={primary} moreItems={moreItems} />
 
       <main id="main" className="flex-1">
-        {/* px-6/py-6 specifically: the project workspace uses `-m-6` to break
-            its stage header out to the full container width, and that only
-            cancels cleanly against 24px padding. */}
-        <div className="mx-auto w-full max-w-[1240px] px-6 py-6">{children}</div>
+        {/* The project workspace breaks its stage header out to the full
+            container width with a matching negative margin, so these paddings
+            and that breakout have to change together. */}
+        <div className="mx-auto w-full max-w-[1240px] px-4 py-4 sm:px-6 sm:py-6">{children}</div>
       </main>
     </div>
   );

@@ -778,6 +778,7 @@ export function Project3DView({
               {!isFlying ? (
                 <button
                   type="button"
+                  data-tour="fly-3d"
                   onClick={flyAlongAlignment}
                   className="rounded-md bg-brand px-3 py-1.5 font-medium text-white shadow-sm hover:bg-brand/90"
                 >
